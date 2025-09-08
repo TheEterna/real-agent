@@ -1,0 +1,111 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.ai.agent</groupId>
+  <artifactId>kit-agent</artifactId>
+  <version>0.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <url>https://github.com/TheEterna/kit-agent</url>
+
+  <modules>
+    <module>kit-agent-core</module>
+    <module>kit-agent-web</module>
+    <module>kit-agent-common</module>
+    <module>kit-agent-contract</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spring-ai.version>1.0.1</spring-ai.version>
+    <project.version>0.0.0-SNAPSHOT</project.version>
+    <spring-boot.version>3.4.4</spring-boot.version>
+
+    <r2dbc.version>1.0.5</r2dbc.version>
+    <server2mcp.version>1.1.0-SNAPSHOT</server2mcp.version>
+
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+
+  </properties>
+
+
+  <repositories>
+    <repository>
+      <id>spring-milestones</id>
+      <name>Spring Milestones</name>
+      <url>https://repo.spring.io/milestone</url>
+
+    </repository>
+    <repository>
+      <id>spring-snapshots</id>
+      <name>Spring Snapshots</name>
+      <url>https://repo.spring.io/snapshot</url>
+
+    </repository>
+    <repository>
+      <name>Central Portal Snapshots</name>
+      <id>central-portal-snapshots</id>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+
+    </repository>
+  </repositories>
+
+
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>com.alibaba.cloud.ai</groupId>
+        <artifactId>spring-ai-alibaba-bom</artifactId>
+        <version>1.0.0.2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+
+    </dependencies>
+
+
+  </dependencyManagement>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <configLocation>checkstyle.xml</configLocation> <!-- 自定义规则文件 -->
+          <failOnViolation>true</failOnViolation> <!-- 违规时构建失败 -->
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

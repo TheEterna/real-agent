@@ -1,0 +1,40 @@
+package com.ai.agent.kit.core.tool.model;
+
+import com.ai.agent.kit.common.exception.ToolException;
+import com.ai.agent.kit.common.spec.ToolResult;
+import com.ai.agent.kit.core.agent.communication.AgentContext;
+
+
+/**
+ * AgentTool 接口定义了一个工具的基本行为。
+ * 接口的选择, 而不是抽象类, 是因为 cause 属性改写不强制, 不够优雅。
+ * @author han
+ * @time 2025/8/30 17:05
+ */
+public interface AgentTool {
+
+    /**
+     * 获取工具的唯一标识, 如果重复, 会抛出异常
+     *
+     * @return 工具的名称
+     */
+    String Id();
+
+    /**
+     * 获取工具的规范。
+     *
+     * @return 工具的规范
+     */
+    ToolSpec getSpec();
+
+    /**
+     * 执行工具的操作。
+     *
+     * @param ctx  上下文
+     * @return 工具执行结果
+     * @throws ToolException 工具执行异常
+     */
+    ToolResult<?> execute(AgentContext ctx) throws ToolException;
+    
+
+}
