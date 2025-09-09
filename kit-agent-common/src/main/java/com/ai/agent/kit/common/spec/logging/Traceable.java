@@ -1,5 +1,7 @@
 package com.ai.agent.kit.common.spec.logging;
 
+import java.time.*;
+
 public interface Traceable {
     String getUserId();
     Traceable setUserId(String userId);
@@ -10,11 +12,11 @@ public interface Traceable {
     String getTraceId();
     Traceable setTraceId(String traceId);
 
-    long getStartTime();
-    Traceable setStartTime(long startTime);
+    LocalDateTime getStartTime();
+    Traceable setStartTime(LocalDateTime startTime);
 
-    long getEndTime();
-    Traceable setEndTime(long endTime);
+    LocalDateTime getEndTime();
+    Traceable setEndTime(LocalDateTime endTime);
 
     String getSpanId();
     Traceable setSpanId(String spanId);

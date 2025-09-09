@@ -1,8 +1,10 @@
 package com.ai.agent.kit.core.agent.strategy;
 
 import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.kit.common.spec.AgentExecutionEvent.*;
 import com.ai.agent.kit.core.agent.*;
 import com.ai.agent.kit.core.agent.communication.*;
+import com.ai.agent.kit.core.agent.communication.AgentMessage;
 import com.ai.agent.kit.core.agent.impl.*;
 import com.ai.agent.kit.core.tool.*;
 import com.ai.agent.kit.core.tool.model.*;
@@ -36,6 +38,7 @@ public class ReAct implements AgentStrategy {
     private final ThinkingAgent thinkingAgent;
     private final ActionAgent actionAgent;
     private final ObservationAgent observationAgent;
+    private final FinalAgent finalAgent;
     private final List<AgentTool> availableTools;
 
     public ReAct(ChatModel chatModel, ToolRegistry toolRegistry) {
@@ -43,6 +46,7 @@ public class ReAct implements AgentStrategy {
         this.thinkingAgent = new ThinkingAgent(chatModel, toolRegistry);
         this.actionAgent = new ActionAgent(chatModel, toolRegistry);
         this.observationAgent = new ObservationAgent(chatModel, toolRegistry);
+        this.finalAgent = new FinalAgent(chatModel, toolRegistry);
     }
 
 
@@ -65,10 +69,11 @@ public class ReAct implements AgentStrategy {
                 // 发送开始事件
                 sink.next(AgentExecutionEvent.started("开始ReAct推理循环"));
                 
-                // 初始化上下文
-                context.getConversationHistory().append("任务: ").append(task).append("\n");
+                // 初始化上下文 - 添加任务消息
+                context.addMessage(AgentMessage.user("任务: " + task, "user"));
 
                 for (int iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
+                    int finalIteration = iteration;
                     log.debug("ReAct循环第{}轮开始", iteration);
                     context.setCurrentIteration(iteration);
                     
@@ -79,71 +84,87 @@ public class ReAct implements AgentStrategy {
                     ));
 
                     // 1. 思考阶段 - 使用ThinkingAgent
-                    sink.next(AgentExecutionEvent.thinking(ThinkingAgent.AGENT_ID, "开始分析任务..."));
+                    sink.next(AgentExecutionEvent.thinking(ThinkingAgent.AGENT_ID, "开始分析任务...\n"));
 
-                    int finalIteration = iteration;
-                    thinkingAgent.executeStream(task, context)
-                        .doOnNext(thinking -> {
-                            sink.next(AgentExecutionEvent.thinking(ThinkingAgent.AGENT_ID, thinking.getMessage()));
-                        })
-                        .doOnComplete(() -> {
-                            String fullThinking = context.getLastThinking();
-                            context.getConversationHistory()
-                                .append("思考").append(finalIteration).append(": ")
-                                .append(fullThinking).append("\n");
-                            
+                    String fullThinking = thinkingAgent.executeStream(task, context)
+                            .doOnNext(thinking -> {
+                                sink.next(AgentExecutionEvent.thinking(ThinkingAgent.AGENT_ID, thinking.getMessage()));
+                            })
 
-                        })
-                        .blockLast();
+//                        .doOnComplete(() -> {
+//                            String fullThinking = context.getLastThinking();
+//                            // 添加思考消息到对话历史
+//                            context.addMessage(AgentMessage.thinking(fullThinking, ThinkingAgent.AGENT_ID, finalIteration));
+//                        })
+
+                          .reduce("", (acc, cur) -> cur.getMessage() + acc)
+                          .block();
+                    context.addMessage(AgentMessage.thinking(fullThinking, ThinkingAgent.AGENT_ID, finalIteration));
 
                     // 2. 行动阶段 - 使用ActionAgent
-                    sink.next(AgentExecutionEvent.acting(ActionAgent.AGENT_ID, "开始执行行动..."));
-                    
-                    actionAgent.executeStream(task, context)
-                        .doOnNext(action -> {
-                            sink.next(AgentExecutionEvent.acting(ActionAgent.AGENT_ID, action.getMessage()));
-                        })
-                        .doOnComplete(() -> {
-                            String fullAction = context.getLastAction();
-                            context.getConversationHistory()
-                                .append("行动").append(finalIteration).append(": ")
-                                .append(fullAction).append("\n");
-                            // 检查是否通过task_done工具完成任务
-                            if (isTaskCompletedByTool(fullAction)) {
-                                sink.next(AgentExecutionEvent.completed(
-                                        AgentResult.success(extractTaskResult(fullAction), ThinkingAgent.AGENT_ID)
-                                ));
-                                sink.complete();
-                            }
-                        })
+                    sink.next(AgentExecutionEvent.action(ActionAgent.AGENT_ID, "开始执行行动...\n"));
 
-                        .blockLast();
+                    String fullAction = actionAgent.executeStream(task, context)
+                            .doOnNext(action -> {
+                                sink.next(AgentExecutionEvent.action(ActionAgent.AGENT_ID, action.getMessage()));
+                            })
+//                        .doOnComplete(() -> {
+//                            // 添加行动消息到对话历史
+//                            context.addMessage(AgentMessage.action("Action: " + finalIteration + fullAction, ActionAgent.AGENT_ID, finalIteration));
+//                        })
+                            .reduce("", (acc, cur) -> cur.getMessage() + acc)
+                            .block();
+                    context.addMessage(AgentMessage.action(fullAction, ThinkingAgent.AGENT_ID, finalIteration));
+
+                    // 检查是否通过 task_done 工具完成任务
+                    if (isTaskCompletedByTool(fullAction) && validateTaskCompletion(task, context, fullAction)) {
+                        // 进行额外的任务完成验证 使用final agent来结束总结任务
+
+                        String endingMessage = finalAgent.executeStream(task, context)
+                                .doOnNext(ending -> {
+                                    sink.next(AgentExecutionEvent.executing(FinalAgent.AGENT_ID, ending.getMessage()));
+                                })
+                                .reduce("", (acc, cur) -> cur.getMessage() + acc)
+                                .block();
+
+                        context.addMessage(AgentMessage.done(endingMessage, FinalAgent.AGENT_ID, finalIteration));
+
+                        sink.next(AgentExecutionEvent.completed(FinalAgent.AGENT_ID, TASK_DONE));
+                        sink.complete();
+
+                    } else {
+                        context.addMessage(AgentMessage.action("Action: " + finalIteration + fullAction, ActionAgent.AGENT_ID, finalIteration));
+                    }
+
 
                     // 3. 观察阶段 - 使用ObservationAgent
-                    sink.next(AgentExecutionEvent.observing(ObservationAgent.AGENT_ID, "开始观察结果..."));
-                    
-                    observationAgent.executeStream(task, context)
-                        .doOnNext(observation -> {
-                            sink.next(AgentExecutionEvent.observing(ObservationAgent.AGENT_ID, observation.getMessage()));
-                        })
-                        .doOnComplete(() -> {
-                            String fullObservation = context.getLastToolResult();
-                            context.getConversationHistory()
-                                .append("观察").append(finalIteration).append(": ")
-                                .append(fullObservation).append("\n\n");
-                            
-                            sink.next(AgentExecutionEvent.partialResult(
-                                "react-agent", 
-                                "第" + finalIteration + "轮ReAct循环完成"
-                            ));
-                        })
-                        .blockLast();
+                    sink.next(AgentExecutionEvent.observing(ObservationAgent.AGENT_ID, "开始观察结果...\n"));
+
+                    String fullObservation = observationAgent.executeStream(task, context)
+                            .doOnNext(observation -> {
+                                sink.next(AgentExecutionEvent.observing(ObservationAgent.AGENT_ID, observation.getMessage()));
+                            })
+//                        .doOnComplete(() -> {
+//                            String fullObservation = context.getLastToolResult();
+//                            // 添加观察消息到对话历史
+//                            context.addMessage(AgentMessage.observing("Observation: " + finalIteration + fullObservation, ObservationAgent.AGENT_ID, finalIteration));
+//
+//                            sink.next(AgentExecutionEvent.partialResult(
+//                                "react-agent",
+//                                "第" + finalIteration + "轮ReAct循环完成"
+//                            ));
+//                        })
+                        .reduce("", (acc, cur) -> cur.getMessage() + acc)
+                        .block();
+                    context.addMessage(AgentMessage.observing(fullObservation, ThinkingAgent.AGENT_ID, finalIteration));
+
+
+
                 }
 
                 // 达到最大迭代次数
                 log.warn("ReAct循环达到最大迭代次数{}，强制结束", MAX_ITERATIONS);
-                AgentResult finalResult = AgentResult.failure("达到最大迭代次数，任务未完成", "react-agent");
-                sink.next(AgentExecutionEvent.completed(finalResult));
+                sink.next(AgentExecutionEvent.completed(FinalAgent.AGENT_ID, "达到最大迭代次数 " + MAX_ITERATIONS + "，任务未完成"));
                 sink.complete();
                 
             } catch (Exception e) {
@@ -156,24 +177,60 @@ public class ReAct implements AgentStrategy {
     
     /**
      * 检查是否通过工具完成任务
+     * 参考trae-agent的llm_indicates_task_completed方法
      */
     private boolean isTaskCompletedByTool(String response) {
-        // 检查响应中是否包含task_done工具调用的标识
-        return response != null && (
-            response.contains(TASK_DONE)
-        );
+        if (response == null) {
+            return false;
+        }
+        
+        // 1. 检查是否包含task_done工具调用
+        if (response.contains(TASK_DONE)) {
+            return true;
+        }
+        
+        // 2. 检查其他完成指示词（参考trae-agent）
+        String responseLower = response.toLowerCase();
+        String[] completionIndicators = {
+            "task completed", "task finished", "done", 
+            "completed successfully", "finished successfully",
+            "任务完成", "任务已完成", "完成了", "已完成"
+        };
+        
+        for (String indicator : completionIndicators) {
+            if (responseLower.contains(indicator)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**
-     * 从响应中提取任务结果
+     * 验证任务是否真正完成
+     * 参考trae-agent的_is_task_completed方法，进行额外的业务逻辑验证
      */
-    private String extractTaskResult(String response) {
-        // 简单的结果提取逻辑，实际应该解析工具调用的参数
-        if (response.contains("最终答案:")) {
-            return response.substring(response.indexOf("最终答案:") + 5).trim();
+    private boolean validateTaskCompletion(String task, AgentContext context, String response) {
+        // 1. 检查是否有实际的执行结果
+        if (response == null || response.trim().isEmpty()) {
+            return false;
         }
-        return response;
+        
+        // 2. 检查对话历史中是否有实际的工具执行记录
+        List<AgentMessage> conversationHistory = context.getConversationHistory();
+        // 判断 conversationHistory 有没有tool的message
+        boolean hasToolExecution = conversationHistory.stream()
+            .anyMatch(msg -> msg.getAgentMessageType() == AgentMessage.AgentMessageType.TOOL);
+        if (!hasToolExecution) { 
+            return false;
+        }
+
+        // 4. 检查任务类型特定的完成条件
+        return true;
     }
+    
+
+
 
 
     /**

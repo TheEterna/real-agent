@@ -15,6 +15,7 @@ public class AgentExecutionEvent {
         COLLABORATING,  // Agent协作
         PARTIAL_RESULT, // 部分结果
         COMPLETED,      // 执行完成
+        EXECUTING,      // 执行中
         ERROR          // 执行错误
     }
 
@@ -48,12 +49,15 @@ public class AgentExecutionEvent {
         return new AgentExecutionEvent(EventType.THINKING, thought, null, agentId);
     }
 
-    public static AgentExecutionEvent acting(String agentId, String action) {
+    public static AgentExecutionEvent action(String agentId, String action) {
         return new AgentExecutionEvent(EventType.ACTING, action, null, agentId);
     }
 
     public static AgentExecutionEvent observing(String agentId, String observation) {
         return new AgentExecutionEvent(EventType.OBSERVING, observation, null, agentId);
+    }
+    public static AgentExecutionEvent executing(String agentId, String execution) {
+        return new AgentExecutionEvent(EventType.EXECUTING, execution, null, agentId);
     }
 
     public static AgentExecutionEvent partialResult(String agentId, String result) {
@@ -64,8 +68,8 @@ public class AgentExecutionEvent {
         return new AgentExecutionEvent(EventType.COLLABORATING, message, null, agentId);
     }
 
-    public static AgentExecutionEvent completed(AgentResult result) {
-        return new AgentExecutionEvent(EventType.COMPLETED, "执行完成", result, result.getAgentId());
+    public static AgentExecutionEvent completed(String agentId, String message) {
+        return new AgentExecutionEvent(EventType.COMPLETED, message, null, agentId);
     }
 
     public static AgentExecutionEvent error(String message, Throwable error) {

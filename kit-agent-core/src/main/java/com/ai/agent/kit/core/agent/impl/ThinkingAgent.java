@@ -3,6 +3,7 @@ package com.ai.agent.kit.core.agent.impl;
 import com.ai.agent.kit.common.spec.*;
 import com.ai.agent.kit.core.agent.Agent;
 import com.ai.agent.kit.core.agent.communication.AgentContext;
+import com.ai.agent.kit.core.agent.communication.AgentMessage;
 import com.ai.agent.kit.core.tool.*;
 import com.ai.agent.kit.core.tool.model.*;
 import lombok.extern.slf4j.Slf4j;
@@ -105,17 +106,21 @@ public class ThinkingAgent extends Agent {
                     .build();
             
             // 构建消息
-            List<Message> messages = List.of(
-                new SystemMessage(SYSTEM_PROMPT),
-                new UserMessage(thinkingPrompt)
-            );
-            
+            // 构建消息
+            List<AgentMessage> conversationHistory = context.getConversationHistory();
+            List<Message> messages = new ArrayList<>();
+            messages.add(new SystemMessage(SYSTEM_PROMPT));
+            messages.addAll(conversationHistory);
+            messages.add(new UserMessage(thinkingPrompt));
+
+
+
             // 流式调用LLM
             return chatModel.stream(new Prompt(messages, options))
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(content -> content != null && !content.trim().isEmpty())
                     .doOnNext(content -> log.debug("ThinkingAgent流式输出: {}", content))
-                    .map(content -> AgentExecutionEvent.acting(AGENT_ID, content))
+                    .map(content -> AgentExecutionEvent.action(AGENT_ID, content))
                     .doOnError(e -> log.error("ThinkingAgent流式执行异常", e))
                     .doOnComplete(() -> log.debug("ThinkingAgent流式分析完成"));
 
@@ -134,21 +139,16 @@ public class ThinkingAgent extends Agent {
         promptBuilder.append("请分析以下任务的当前状态：\n\n");
         promptBuilder.append("原始任务: ").append(task).append("\n\n");
         
-        // 添加上下文信息
-        if (context.getConversationHistory() != null && !context.getConversationHistory().isEmpty()) {
-            promptBuilder.append("执行历史:\n");
-            promptBuilder.append(context.getConversationHistory()).append("\n\n");
-        }
-        
-        // 添加可用工具信息
-        if (availableTools != null && !availableTools.isEmpty()) {
-            promptBuilder.append("可用工具:\n");
-            for (AgentTool tool : availableTools) {
-                promptBuilder.append("- ").append(tool.getSpec().getName())
-                           .append(": ").append(tool.getSpec().getDescription()).append("\n");
-            }
-            promptBuilder.append("\n");
-        }
+
+//        // 添加可用工具信息
+//        if (availableTools != null && !availableTools.isEmpty()) {
+//            promptBuilder.append("可用工具:\n");
+//            for (AgentTool tool : availableTools) {
+//                promptBuilder.append("- ").append(tool.getSpec().getName())
+//                           .append(": ").append(tool.getSpec().getDescription()).append("\n");
+//            }
+//            promptBuilder.append("\n");
+//        }
         
         promptBuilder.append("请基于以上信息进行思考分析，并决定下一步的行动策略。");
         promptBuilder.append("如果任务已经完成，请调用task_done工具提供最终结果。");

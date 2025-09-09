@@ -162,7 +162,7 @@
 //        simulateDelay(200);
 //
 //        // 执行行动
-//        sink.next(AgentExecutionEvent.acting(
+//        sink.next(AgentExecutionEvent.action(
 //            agent.getAgentId(),
 //            agent.getAgentName() + " 开始执行专业任务"
 //        ));

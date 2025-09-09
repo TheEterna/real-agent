@@ -98,7 +98,7 @@
 //            simulateDelay(300);
 //
 //            // 行动阶段
-//            sink.next(AgentExecutionEvent.acting(agent.getAgentId(), "开始执行任务处理逻辑"));
+//            sink.next(AgentExecutionEvent.action(agent.getAgentId(), "开始执行任务处理逻辑"));
 //            simulateDelay(800);
 //
 //            // 观察阶段

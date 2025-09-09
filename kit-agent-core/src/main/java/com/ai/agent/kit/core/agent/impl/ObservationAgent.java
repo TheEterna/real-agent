@@ -3,11 +3,14 @@ package com.ai.agent.kit.core.agent.impl;
 import com.ai.agent.kit.common.spec.*;
 import com.ai.agent.kit.core.agent.Agent;
 import com.ai.agent.kit.core.agent.communication.AgentContext;
+import com.ai.agent.kit.core.agent.communication.AgentMessage;
 import com.ai.agent.kit.core.tool.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.model.tool.*;
+import org.springframework.ai.support.*;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
@@ -22,7 +25,7 @@ import java.util.*;
 @Slf4j
 public class ObservationAgent extends Agent {
     
-    public static final String AGENT_ID = "observation-agent";
+    public static final String AGENT_ID = "ObservationAgent";
     
     private final String SYSTEM_PROMPT = """
             你是一个专门负责观察和分析的AI助手。
@@ -51,9 +54,6 @@ public class ObservationAgent extends Agent {
                 toolRegistry,
                 Set.of("ReAct", "观察", "Observation"));
         this.setCapabilities(new String[]{"ReAct", "观察", "Observation"});
-    }
-    public ObservationAgent(ChatModel chatModel) {
-        this.chatModel = chatModel;
     }
     
 
@@ -92,19 +92,25 @@ public class ObservationAgent extends Agent {
             
             // 构建观察提示
             String observationPrompt = buildObservationPrompt(task, context);
-            
+
+            // 配置工具调用选项
+            var options = DefaultToolCallingChatOptions.builder()
+                    .toolCallbacks(ToolCallbacks.from(availableTools))
+                    .build();
+
             // 构建消息
-            List<Message> messages = List.of(
-                new SystemMessage(SYSTEM_PROMPT),
-                new UserMessage(observationPrompt)
-            );
-            
+            List<AgentMessage> conversationHistory = context.getConversationHistory();
+            List<Message> messages = new ArrayList<>();
+            messages.add(new SystemMessage(SYSTEM_PROMPT));
+            messages.addAll(conversationHistory);
+            messages.add(new UserMessage(observationPrompt));
+
             // 流式调用LLM
-            return chatModel.stream(new Prompt(messages))
+            return chatModel.stream(new Prompt(messages, options))
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(content -> content != null && !content.trim().isEmpty())
                     .doOnNext(content -> log.debug("ObservationAgent流式输出: {}", content))
-                    .map(content -> AgentExecutionEvent.acting(AGENT_ID, content))
+                    .map(content -> AgentExecutionEvent.action(AGENT_ID, content))
                     .doOnError(e -> log.error("ObservationAgent流式执行异常", e))
                     .doOnComplete(() -> log.debug("ObservationAgent流式分析完成"));
 
@@ -122,24 +128,14 @@ public class ObservationAgent extends Agent {
         
         promptBuilder.append("请观察和分析以下任务的执行结果：\n\n");
         promptBuilder.append("原始任务: ").append(task).append("\n\n");
-        
-        // 添加最近的行动结果
-        if (context.getLastAction() != null) {
-            promptBuilder.append("最近执行的行动:\n");
-            promptBuilder.append(context.getLastAction()).append("\n\n");
-        }
-        
-        // 添加工具执行结果
-        if (context.getLastToolResult() != null) {
-            promptBuilder.append("工具执行结果:\n");
-            promptBuilder.append(context.getLastToolResult()).append("\n\n");
-        }
-        
-        // 添加完整的执行历史
-        if (context.getConversationHistory() != null && !context.getConversationHistory().isEmpty()) {
-            promptBuilder.append("完整执行历史:\n");
-            promptBuilder.append(context.getConversationHistory()).append("\n\n");
-        }
+
+
+//        // 添加工具执行结果
+//        if (context.getLastToolResult() != null) {
+//            promptBuilder.append("工具执行结果:\n");
+//            promptBuilder.append(context.getLastToolResult()).append("\n\n");
+//        }
+
         
         promptBuilder.append("请基于以上信息进行观察分析：\n");
         promptBuilder.append("1. 评估执行结果是否符合预期\n");

@@ -3,6 +3,7 @@ package com.ai.agent.kit.core.agent.impl;
 import com.ai.agent.kit.common.spec.*;
 import com.ai.agent.kit.core.agent.Agent;
 import com.ai.agent.kit.core.agent.communication.AgentContext;
+import com.ai.agent.kit.core.agent.communication.AgentMessage;
 import com.ai.agent.kit.core.tool.*;
 import com.ai.agent.kit.core.tool.model.*;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,10 @@ import org.springframework.ai.model.tool.DefaultToolCallingChatOptions;
 import org.springframework.ai.support.*;
 import reactor.core.publisher.Flux;
 
+import java.time.*;
 import java.util.*;
+
+import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
 
 /**
  * 行动Agent - 负责ReAct框架中的行动(Acting)阶段
@@ -107,19 +111,39 @@ public class ActionAgent extends Agent {
                     .build();
             
             // 构建消息
-            List<Message> messages = List.of(
-                new SystemMessage(SYSTEM_PROMPT),
-                new UserMessage(actionPrompt)
-            );
+            List<AgentMessage> conversationHistory = context.getConversationHistory();
+            List<Message> messages = new ArrayList<>();
+            messages.add(new SystemMessage(SYSTEM_PROMPT));
+            messages.addAll(conversationHistory);
+            messages.add(new UserMessage(actionPrompt));
+
+            
+            // 用于收集完整的响应内容
+            StringBuilder fullResponseBuilder = new StringBuilder();
             
             // 流式调用LLM
             return chatModel.stream(new Prompt(messages, options))
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(content -> content != null && !content.trim().isEmpty())
-                    .doOnNext(content -> log.debug("ActionAgent流式输出: {}", content))
-                    .map(content -> AgentExecutionEvent.acting(AGENT_ID, content))
+                    .doOnNext(content -> {
+                        log.debug("ActionAgent流式输出: {}", content);
+                        // 收集完整响应
+                        fullResponseBuilder.append(content);
+                    })
+                    .map(content -> AgentExecutionEvent.action(AGENT_ID, content))
                     .doOnError(e -> log.error("ActionAgent流式执行异常", e))
-                    .doOnComplete(() -> log.debug("ActionAgent流式执行完成"));
+                    .doOnComplete(() -> {
+                        // 判断完整的返回值是否包含TASK_DONE
+                        String fullResponse = fullResponseBuilder.toString();
+                        if (TASK_DONE.equals(fullResponse.trim())) {
+                            // 执行set操作 - 将完整结果设置到context中
+                            log.debug("ActionAgent检测到任务完成标识，已设置完整响应到context");
+                        } else {
+                            // 正常设置响应
+                            context.addMessage(AgentMessage.action(fullResponse, AGENT_ID, context.getCurrentIteration()));
+                        }
+                        log.debug("ActionAgent流式执行完成，完整响应长度: {}", fullResponse.length());
+                    });
                     
         } catch (Exception e) {
             log.error("ActionAgent流式执行异常", e);
@@ -131,23 +155,14 @@ public class ActionAgent extends Agent {
      * 构建行动提示词
      */
     private String buildActionPrompt(String task, AgentContext context) {
+
         StringBuilder promptBuilder = new StringBuilder();
-        
+
+
         promptBuilder.append("请基于思考分析的结果，执行具体的行动：\n\n");
         promptBuilder.append("原始任务: ").append(task).append("\n\n");
-        
-        // 添加思考结果
-        if (context.getLastThinking() != null) {
-            promptBuilder.append("思考分析结果:\n");
-            promptBuilder.append(context.getLastThinking()).append("\n\n");
-        }
-        
-        // 添加执行历史
-        if (context.getConversationHistory() != null && !context.getConversationHistory().isEmpty()) {
-            promptBuilder.append("执行历史:\n");
-            promptBuilder.append(context.getConversationHistory()).append("\n\n");
-        }
-        
+
+
         // 添加可用工具信息
         if (availableTools != null && !availableTools.isEmpty()) {
             promptBuilder.append("可用工具:\n");

@@ -74,7 +74,7 @@ public class GeneralPurposeAgent extends Agent {
             log.info("Agent[{}] 开始执行任务: {}", agentId, task);
 
             // 1. 获取可用工具
-            List<AgentTool> availableTools = getAvailableTools();
+            List<AgentTool> availableTools = this.availableTools;
             log.debug("Agent[{}] 可用工具: {}", agentId,
                     availableTools.stream().map(t -> t.getSpec().getName()).toList());
 

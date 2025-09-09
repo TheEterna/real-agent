@@ -4,7 +4,9 @@ import com.ai.agent.kit.common.spec.logging.*;
 import lombok.*;
 import lombok.experimental.*;
 
-import java.util.Map;
+import java.time.*;
+import java.util.*;
+import java.util.stream.*;
 
 
 /**
@@ -27,29 +29,9 @@ public class AgentContext implements Traceable {
     private Map<String, Object> args;
 
     /**
-     * 工具执行的超时时间，单位毫秒
+     * 对话历史记录 - 使用结构化消息列表
      */
-    private long timeoutMs = 15000;
-    
-    /**
-     * 对话历史记录
-     */
-    private StringBuilder conversationHistory = new StringBuilder();
-    
-    /**
-     * 最近的思考结果
-     */
-    private String lastThinking;
-    
-    /**
-     * 最近的行动结果
-     */
-    private String lastAction;
-    
-    /**
-     * 最近的工具执行结果
-     */
-    private String lastToolResult;
+    private List<AgentMessage> conversationHistory = new ArrayList<>();
     
     /**
      * 当前迭代轮次
@@ -58,41 +40,74 @@ public class AgentContext implements Traceable {
 
     // ========== 新增字段的getter/setter方法 ==========
     
-    public StringBuilder getConversationHistory() {
+    public List<AgentMessage> getConversationHistory() {
         return conversationHistory;
     }
+
     
-    public AgentContext setConversationHistory(StringBuilder conversationHistory) {
-        this.conversationHistory = conversationHistory;
+    /**
+     * 添加消息到对话历史
+     */
+    public AgentContext addMessage(AgentMessage message) {
+        this.conversationHistory.add(message);
         return this;
     }
     
-    public String getLastThinking() {
-        return lastThinking;
-    }
-    
-    public AgentContext setLastThinking(String lastThinking) {
-        this.lastThinking = lastThinking;
+    /**
+     * 添加多条消息到对话历史
+     */
+    public AgentContext addMessages(List<AgentMessage> messages) {
+        this.conversationHistory.addAll(messages);
         return this;
     }
     
-    public String getLastAction() {
-        return lastAction;
+    /**
+     * 获取对话历史的字符串表示（兼容原有代码）
+     */
+    public String getConversationHistoryAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (AgentMessage message : conversationHistory) {
+            sb.append(message.toFormattedString()).append("\n");
+        }
+        return sb.toString();
     }
     
-    public AgentContext setLastAction(String lastAction) {
-        this.lastAction = lastAction;
+    /**
+     * 获取指定类型的消息
+     */
+    public List<AgentMessage> getMessagesByType(AgentMessage.AgentMessageType messageType) {
+        return conversationHistory.stream()
+                .filter(msg -> msg.getAgentMessageType() == messageType)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取指定迭代轮次的消息
+     */
+    public List<AgentMessage> getMessagesByIteration(Integer iteration) {
+        return conversationHistory.stream()
+                .filter(msg -> Objects.equals(msg.getIteration(), iteration))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取最近N条消息
+     */
+    public List<AgentMessage> getRecentMessages(int count) {
+        int size = conversationHistory.size();
+        int fromIndex = Math.max(0, size - count);
+        return new ArrayList<>(conversationHistory.subList(fromIndex, size));
+    }
+    
+    /**
+     * 清空对话历史
+     */
+    public AgentContext clearConversationHistory() {
+        this.conversationHistory.clear();
         return this;
     }
-    
-    public String getLastToolResult() {
-        return lastToolResult;
-    }
-    
-    public AgentContext setLastToolResult(String lastToolResult) {
-        this.lastToolResult = lastToolResult;
-        return this;
-    }
+
+
     
     public int getCurrentIteration() {
         return currentIteration;
@@ -155,12 +170,12 @@ public class AgentContext implements Traceable {
     }
 
     @Override
-    public long getStartTime() {
+    public LocalDateTime getStartTime() {
         return trace.getStartTime();
     }
 
     @Override
-    public AgentContext setStartTime(long startTime) {
+    public AgentContext setStartTime(LocalDateTime startTime) {
         if (this.trace == null) {
             this.trace = new TraceInfo();
         }
@@ -169,19 +184,22 @@ public class AgentContext implements Traceable {
     }
 
     @Override
-    public long getEndTime() {
+    public LocalDateTime getEndTime() {
         return trace.getEndTime();
     }
 
+
     @Override
-    public AgentContext setEndTime(long endTime) {
+    public AgentContext setEndTime(LocalDateTime endTime) {
         if (this.trace == null) {
             this.trace = new TraceInfo();
         }
         this.trace.setEndTime(endTime);
         return this;
     }
-
+    public boolean isEnd() {
+        return trace.getEndTime() != null;
+    }
     @Override
     public String getSpanId() {
         return trace.getSpanId();
