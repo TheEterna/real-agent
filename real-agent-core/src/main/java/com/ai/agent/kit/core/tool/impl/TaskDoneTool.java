@@ -33,7 +33,7 @@ public class TaskDoneTool implements AgentTool {
     }
 
     @Override
-    @Tool(description = "标记任务已完成", name = "完成任务", returnDirect = true)
+    @Tool(description = "标记任务已完成", name = TASK_DONE, returnDirect = true)
     public ToolResult<String> execute(AgentContext ctx) throws ToolException {
 
         return ToolResult.ok(TASK_DONE, 0, Id());

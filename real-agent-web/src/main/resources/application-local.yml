@@ -1,0 +1,31 @@
+spring:
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/real-agent?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8
+
+    username: root
+    password: *
+  application:
+    name: real-agent-web
+  ai:
+    dashscope:
+      api-key: sk-***
+      chat:
+        options:
+          model: qwen-max
+    vectorstore:
+      milvus:
+        client:
+          host: "192.168.*.*"
+          port: 19530
+          username: "root"
+          password: "milvus"
+        databaseName: "default"
+        collectionName: "vector_store"
+        embeddingDimension: 1536
+        indexType: IVF_FLAT
+        metricType: COSINE
+
+logging:
+  level:
+#    com.ai.agent: DEBUG
+

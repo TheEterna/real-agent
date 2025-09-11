@@ -3,17 +3,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.ai.agent</groupId>
-  <artifactId>kit-agent</artifactId>
+  <artifactId>real-agent</artifactId>
   <version>0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <url>https://github.com/TheEterna/kit-agent</url>
+  <url>https://github.com/TheEterna/real-agent</url>
 
   <modules>
-    <module>kit-agent-core</module>
-    <module>kit-agent-web</module>
-    <module>kit-agent-common</module>
-    <module>kit-agent-contract</module>
+    <module>real-agent-core</module>
+    <module>real-agent-web</module>
+    <module>real-agent-common</module>
+    <module>real-agent-contract</module>
   </modules>
 
   <properties>

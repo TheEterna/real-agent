@@ -107,10 +107,8 @@ public abstract class Agent {
      *  pre handle of executeStream method
      */
     protected void preHandle(AgentContext context) {
+        // 此处不再需要设置agentId和nodeId，它们在独立的上下文中创建
         context.setEndTime(null);
-        context.setAgentId(getAgentId());
-        context.setStartTime(LocalDateTime.now());
-        context.setNodeId(CommonUtils.getNodeId());
     }
 
     /**

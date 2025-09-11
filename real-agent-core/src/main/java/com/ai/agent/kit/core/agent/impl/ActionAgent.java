@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.concurrent.atomic.*;
 
 import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
+import static org.springframework.ai.model.tool.ToolExecutionResult.FINISH_REASON;
+import static org.springframework.ai.model.tool.ToolExecutionResult.METADATA_TOOL_NAME;
 
 /**
  * 行动Agent - 负责ReAct框架中的行动(Acting)阶段
@@ -102,7 +104,15 @@ public class ActionAgent extends Agent {
             return AgentResult.failure("行动执行出现异常: " + e.getMessage(), AGENT_ID);
         }
     }
-    
+//    private boolean isTaskDone(ChatResponse response) {
+//        return response.getResult().getMetadata().containsKey(FINISH_REASON)
+//                && response.getResult().getMetadata().get(METADATA_TOOL_NAME).equals(TASK_DONE)
+//    }
+    private boolean isTool(ChatResponse response) {
+        boolean finishReason = response.getResult().getMetadata().getFinishReason().equals(FINISH_REASON);
+
+        return finishReason;
+    }
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
@@ -135,36 +145,39 @@ public class ActionAgent extends Agent {
                     .concatMap(response -> {
                         String content = response.getResult().getOutput().getText();
 
-                        List<ToolCall> toolCalls = response.getResult().getOutput().getToolCalls();
+//                        List<ToolCall> toolCalls = response.getResult().getOutput().getToolCalls();
 
                         List<AgentExecutionEvent> events = new ArrayList<>();
 
-                        // 处理文本内容
-                        if (content != null && !content.trim().isEmpty()) {
+
+
+                        if (isTool(response)) {
+                            events.add(AgentExecutionEvent.tool(context, TASK_DONE));
+                        } else if (!content.trim().isEmpty()) {
                             log.debug("ActionAgent流式输出: {}", content);
                             events.add(AgentExecutionEvent.action(context, content));
                         }
 
-                        // 处理工具调用
-                        if (!toolCalls.isEmpty()) {
-                            for (ToolCall toolCall : toolCalls) {
-                                log.debug("检测到工具调用: {}, 参数: {}", toolCall.name(), toolCall.arguments());
-                                
-                                // 执行工具调用
-                                try {
-                                    Object toolResult = executeToolCall(toolCall, context);
-                                    context.addMessage(AgentMessage.tool(toolResult.toString(), toolCall.id()));
-                                    events.add(AgentExecutionEvent.tool(context, 
-                                        String.format("工具调用: %s\n参数: %s\n结果: %s", 
-                                            toolCall.name(), toolCall.arguments(), toolResult)));
-                                } catch (Exception e) {
-                                    log.error("工具调用执行失败: {}", toolCall.name(), e);
-                                    String errorMsg = "工具调用失败: " + e.getMessage();
-                                    context.addMessage(AgentMessage.tool(errorMsg, toolCall.id()));
-                                    events.add(AgentExecutionEvent.error(errorMsg));
-                                }
-                            }
-                        }
+//                        // 处理工具调用
+//                        if (!toolCalls.isEmpty()) {
+//                            for (ToolCall toolCall : toolCalls) {
+//                                log.debug("检测到工具调用: {}, 参数: {}", toolCall.name(), toolCall.arguments());
+//
+//                                // 执行工具调用
+//                                try {
+//                                    Object toolResult = executeToolCall(toolCall, context);
+//                                    context.addMessage(AgentMessage.tool(toolResult.toString(), toolCall.id()));
+//                                    events.add(AgentExecutionEvent.tool(context,
+//                                        String.format("工具调用: %s\n参数: %s\n结果: %s",
+//                                            toolCall.name(), toolCall.arguments(), toolResult)));
+//                                } catch (Exception e) {
+//                                    log.error("工具调用执行失败: {}", toolCall.name(), e);
+//                                    String errorMsg = "工具调用失败: " + e.getMessage();
+//                                    context.addMessage(AgentMessage.tool(errorMsg, toolCall.id()));
+//                                    events.add(AgentExecutionEvent.error(errorMsg));
+//                                }
+//                            }
+//                        }
 
                         return Flux.fromIterable(events);
                     })

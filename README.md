@@ -1,4 +1,4 @@
-# Kit-Agent 多Agent策略框架
+# real-agent 多Agent策略框架
 
 一个基于Spring AI的多Agent协作框架，支持多种Agent策略模式，能够智能选择最适合的Agent来处理不同类型的任务。
 
