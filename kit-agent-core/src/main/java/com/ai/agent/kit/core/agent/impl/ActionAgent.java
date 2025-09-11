@@ -1,21 +1,26 @@
 package com.ai.agent.kit.core.agent.impl;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.exception.*;
+import com.ai.agent.contract.spec.*;
+
+import com.ai.agent.contract.spec.message.*;
+import com.ai.agent.kit.common.utils.*;
 import com.ai.agent.kit.core.agent.Agent;
-import com.ai.agent.kit.core.agent.communication.AgentContext;
-import com.ai.agent.kit.core.agent.communication.AgentMessage;
+import com.ai.agent.contract.spec.AgentContext;
+
 import com.ai.agent.kit.core.tool.*;
-import com.ai.agent.kit.core.tool.model.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.*;
-import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.messages.AssistantMessage.*;
+import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.DefaultToolCallingChatOptions;
 import org.springframework.ai.support.*;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.*;
 
-import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.*;
 
 import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
 
@@ -48,6 +53,7 @@ public class ActionAgent extends Agent {
             - 提供清晰的执行反馈
             """;
 
+
     /**
      * 构造函数
      */
@@ -55,12 +61,12 @@ public class ActionAgent extends Agent {
                        ToolRegistry toolRegistry) {
 
         super(AGENT_ID,
-                "ReAct-ActionAgent",
+                "ReActAgentStrategy-ActionAgent",
                 "负责ReAct框架中的行动(Acting)阶段，执行思考阶段的行动指令",
                 chatModel,
                 toolRegistry,
-                Set.of("ReAct", "行动", "Action"));
-        this.setCapabilities(new String[]{"ReAct", "行动", "Action", "close"});
+                Set.of("ReActAgentStrategy", "行动", "Action", "close", "task_done"));
+        this.setCapabilities(new String[]{"ReActAgentStrategy", "行动", "Action", "close", "task_done"});
     }
     
 
@@ -70,11 +76,11 @@ public class ActionAgent extends Agent {
             log.debug("ActionAgent开始执行行动: {}", task);
             
             // 构建行动提示
-            String actionPrompt = buildActionPrompt(task, context);
+            String actionPrompt = buildActionPrompt(task);
             
             // 配置工具调用选项
             var options = DefaultToolCallingChatOptions.builder()
-                    .toolCallbacks(ToolCallbacks.from(availableTools))
+                    .toolCallbacks(ToolCallbacks.from(availableTools.toArray()))
                     .build();
             
             // 构建消息
@@ -100,51 +106,81 @@ public class ActionAgent extends Agent {
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
+            // pre handle
+            preHandle(context);
+
             log.debug("ActionAgent开始流式执行行动: {}", task);
-            
+
             // 构建行动提示
-            String actionPrompt = buildActionPrompt(task, context);
-            
+            String actionPrompt = buildActionPrompt(task);
+
             // 配置工具调用选项
-            var options = DefaultToolCallingChatOptions.builder()
-                    .toolCallbacks(ToolCallbacks.from(availableTools))
-                    .build();
-            
+            var optionsBuilder = DefaultToolCallingChatOptions.builder();
+            if (availableTools != null && !availableTools.isEmpty()) {
+                optionsBuilder.toolCallbacks(ToolCallbacks.from(availableTools.toArray()));
+            }
+            var options = optionsBuilder.build();
+
+
             // 构建消息
             List<AgentMessage> conversationHistory = context.getConversationHistory();
             List<Message> messages = new ArrayList<>();
             messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(conversationHistory);
+            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
             messages.add(new UserMessage(actionPrompt));
 
-            
-            // 用于收集完整的响应内容
-            StringBuilder fullResponseBuilder = new StringBuilder();
-            
-            // 流式调用LLM
+
+
             return chatModel.stream(new Prompt(messages, options))
-                    .map(response -> response.getResult().getOutput().getText())
-                    .filter(content -> content != null && !content.trim().isEmpty())
-                    .doOnNext(content -> {
-                        log.debug("ActionAgent流式输出: {}", content);
-                        // 收集完整响应
-                        fullResponseBuilder.append(content);
+                    .concatMap(response -> {
+                        String content = response.getResult().getOutput().getText();
+
+                        List<ToolCall> toolCalls = response.getResult().getOutput().getToolCalls();
+
+                        List<AgentExecutionEvent> events = new ArrayList<>();
+
+                        // 处理文本内容
+                        if (content != null && !content.trim().isEmpty()) {
+                            log.debug("ActionAgent流式输出: {}", content);
+                            events.add(AgentExecutionEvent.action(context, content));
+                        }
+
+                        // 处理工具调用
+                        if (!toolCalls.isEmpty()) {
+                            for (ToolCall toolCall : toolCalls) {
+                                log.debug("检测到工具调用: {}, 参数: {}", toolCall.name(), toolCall.arguments());
+                                
+                                // 执行工具调用
+                                try {
+                                    Object toolResult = executeToolCall(toolCall, context);
+                                    context.addMessage(AgentMessage.tool(toolResult.toString(), toolCall.id()));
+                                    events.add(AgentExecutionEvent.tool(context, 
+                                        String.format("工具调用: %s\n参数: %s\n结果: %s", 
+                                            toolCall.name(), toolCall.arguments(), toolResult)));
+                                } catch (Exception e) {
+                                    log.error("工具调用执行失败: {}", toolCall.name(), e);
+                                    String errorMsg = "工具调用失败: " + e.getMessage();
+                                    context.addMessage(AgentMessage.tool(errorMsg, toolCall.id()));
+                                    events.add(AgentExecutionEvent.error(errorMsg));
+                                }
+                            }
+                        }
+
+                        return Flux.fromIterable(events);
                     })
-                    .map(content -> AgentExecutionEvent.action(AGENT_ID, content))
+                    .filter(Objects::nonNull) // 过滤掉 null 事件
                     .doOnError(e -> log.error("ActionAgent流式执行异常", e))
                     .doOnComplete(() -> {
-                        // 判断完整的返回值是否包含TASK_DONE
-                        String fullResponse = fullResponseBuilder.toString();
-                        if (TASK_DONE.equals(fullResponse.trim())) {
-                            // 执行set操作 - 将完整结果设置到context中
-                            log.debug("ActionAgent检测到任务完成标识，已设置完整响应到context");
-                        } else {
-                            // 正常设置响应
-                            context.addMessage(AgentMessage.action(fullResponse, AGENT_ID, context.getCurrentIteration()));
-                        }
-                        log.debug("ActionAgent流式执行完成，完整响应长度: {}", fullResponse.length());
+                        afterHandle(context);
+                    })
+                    .onErrorResume(e -> {
+                        log.error("ActionAgent流式执行异常", e);
+                        return Flux.just(AgentExecutionEvent.error("ActionAgent流式执行异常: " + e.getMessage()));
+                    })
+
+                    .doFinally(signalType -> {
+                        log.debug("ActionAgent流式执行结束，信号类型: {}", signalType);
                     });
-                    
         } catch (Exception e) {
             log.error("ActionAgent流式执行异常", e);
             return Flux.error(e);
@@ -154,7 +190,7 @@ public class ActionAgent extends Agent {
     /**
      * 构建行动提示词
      */
-    private String buildActionPrompt(String task, AgentContext context) {
+    private String buildActionPrompt(String task) {
 
         StringBuilder promptBuilder = new StringBuilder();
 
@@ -178,4 +214,47 @@ public class ActionAgent extends Agent {
         
         return promptBuilder.toString();
     }
+    
+    /**
+     * 执行工具调用
+     */
+    private Object executeToolCall(ToolCall toolCall, AgentContext context) throws ToolException {
+        String toolName = toolCall.name();
+        String arguments = toolCall.arguments();
+        
+        // 查找对应的工具
+        AgentTool tool = availableTools.stream()
+            .filter(t -> toolName.equals(t.getSpec().getName()))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("未找到工具: " + toolName));
+        
+        // 将工具参数设置到上下文中
+        if (arguments != null && !arguments.trim().isEmpty()) {
+            try {
+                // 解析JSON参数并设置到context.args中
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, Object> argsMap = mapper.readValue(arguments, Map.class);
+                context.getArgs().clear();
+                context.getArgs().putAll(argsMap);
+            } catch (Exception e) {
+                log.warn("解析工具参数失败，使用原始字符串: {}", arguments, e);
+                context.getArgs().clear();
+                context.getArgs().put("input", arguments);
+            }
+        } else {
+            context.getArgs().clear();
+        }
+        
+        // 执行工具
+        ToolResult result = tool.execute(context);
+        
+        // 检查是否是任务完成工具
+        if (TASK_DONE.equals(toolName)) {
+            context.setTaskCompleted(true);
+        }
+        
+        return result.getData();
+    }
+    
+
 }

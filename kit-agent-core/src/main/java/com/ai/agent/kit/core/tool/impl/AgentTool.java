@@ -2,7 +2,7 @@
 //
 //import com.ai.agent.kit.common.exception.*;
 //import com.ai.agent.kit.core.agent.communication.*;
-//import com.ai.agent.kit.core.agent.strategy.ReAct;
+//import com.ai.agent.kit.core.agent.strategy.ReActAgentStrategy;
 //import com.ai.agent.kit.common.spec.ToolResult;
 //import com.ai.agent.kit.core.tool.model.*;
 //import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@
 //    private final String agentId;
 //    private final String agentName;
 //    private final ChatModel chatModel;
-//    private final ReAct reactFramework;
+//    private final ReActAgentStrategy reactFramework;
 //    private final ToolSpec spec = new ToolSpec()
 //            .setName("Agent工具")
 //            .setDescription("Agent工具, 可以执行任意任务")
@@ -33,7 +33,7 @@
 //        this.agentId = agentId;
 //        this.agentName = agentName;
 //        this.chatModel = chatModel;
-//        this.reactFramework = new ReAct(chatModel, new ArrayList<>());
+//        this.reactFramework = new ReActAgentStrategy(chatModel, new ArrayList<>());
 //    }
 //
 //

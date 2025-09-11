@@ -1,10 +1,9 @@
 package com.ai.agent.kit.core.agent.impl;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.spec.*;
+
 import com.ai.agent.kit.core.agent.Agent;
-import com.ai.agent.kit.core.agent.communication.*;
 import com.ai.agent.kit.core.tool.*;
-import com.ai.agent.kit.core.tool.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;

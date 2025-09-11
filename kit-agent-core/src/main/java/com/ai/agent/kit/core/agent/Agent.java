@@ -1,19 +1,16 @@
 package com.ai.agent.kit.core.agent;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.spec.*;
+import com.ai.agent.kit.common.utils.*;
 import com.ai.agent.kit.core.tool.*;
-import com.ai.agent.kit.core.tool.model.*;
-import com.ai.agent.kit.core.agent.communication.AgentContext;
+import com.ai.agent.contract.spec.AgentContext;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.*;
-import org.springframework.ai.chat.prompt.*;
 import reactor.core.publisher.Flux;
 
 import java.time.*;
 import java.util.*;
-
-import static com.ai.agent.kit.common.spec.AgentMessage.MessageType.*;
 
 /**
  * Agent 抽象基类，定义了所有Agent的基本行为规范
@@ -84,8 +81,7 @@ public abstract class Agent {
         this.toolRegistry = toolRegistry;
         this.keywords = keywords;
         // 需要使用 toolRegistry 去判断有没有工具
-        List<AgentTool> toolList = toolRegistry.getToolsByKeywords(this.keywords);
-        this.availableTools = toolList;
+        this.availableTools = toolRegistry.getToolsByKeywords(this.keywords);
 //        if (toolList.isEmpty()) {
 //            log.warn("Agent[{}] 没有可用的工具", agentId);
 //        } else {
@@ -105,6 +101,24 @@ public abstract class Agent {
      * @return 流式执行结果
      */
     public abstract Flux<AgentExecutionEvent> executeStream(String task, AgentContext context);
+
+
+    /**
+     *  pre handle of executeStream method
+     */
+    protected void preHandle(AgentContext context) {
+        context.setEndTime(null);
+        context.setAgentId(getAgentId());
+        context.setStartTime(LocalDateTime.now());
+        context.setNodeId(CommonUtils.getNodeId());
+    }
+
+    /**
+     *  after handle of executeStream method
+     */
+    protected void afterHandle(AgentContext context) {
+        context.setEndTime(LocalDateTime.now());
+    }
 
     /**
      * 执行任务（同步版本，兼容旧接口）

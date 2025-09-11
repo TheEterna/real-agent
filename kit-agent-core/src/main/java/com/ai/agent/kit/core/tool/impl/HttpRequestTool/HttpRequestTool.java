@@ -1,9 +1,9 @@
 package com.ai.agent.kit.core.tool.impl.HttpRequestTool;
 
-import com.ai.agent.kit.common.exception.*;
-import com.ai.agent.kit.common.spec.*;
-import com.ai.agent.kit.core.agent.communication.*;
-import com.ai.agent.kit.core.tool.model.*;
+import com.ai.agent.contract.exception.*;
+import com.ai.agent.contract.spec.*;
+import org.springframework.ai.tool.annotation.*;
+
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -19,9 +19,9 @@ public class HttpRequestTool implements AgentTool {
     public HttpRequestTool(SandboxPolicy policy) {
         this.policy = policy;
         this.spec = new ToolSpec()
-                .setName("进行HTTP请求")
-                .setDescription("执行受限的HTTP GET请求")
-                .setCategory("network");
+            .setName("http_request")
+            .setDescription("执行受限的HTTP GET请求")
+            .setCategory("network");
     }
 
     /**
@@ -40,6 +40,7 @@ public class HttpRequestTool implements AgentTool {
     }
 
     @Override
+    @Tool(description = "进行HTTP请求", name = "接口请求工具")
     public ToolResult<?> execute(AgentContext ctx) throws ToolException {
         long start = System.currentTimeMillis();
 
@@ -47,21 +48,23 @@ public class HttpRequestTool implements AgentTool {
         try {
             String urlStr = String.valueOf(args.getOrDefault("url", ""));
             if (urlStr.isEmpty()) {
-                return ToolResult.error("INVALID_ARG", "url is required");
+                return ToolResult.error("INVALID_ARG", "url is required", Id());
             }
             URL url = new URL(urlStr);
             if (!policy.isHostAllowed(url.getHost())) {
-                return ToolResult.error("DENY_HOST", "host not allowed");
+                return ToolResult.error("DENY_HOST", "host not allowed" , Id());
             }
             String method = String.valueOf(args.getOrDefault("method", "GET")).toUpperCase();
             if (!policy.isMethodAllowed(method)) {
-                return ToolResult.error("DENY_METHOD", "method not allowed");
+                return ToolResult.error("DENY_METHOD", "method not allowed", Id());
             }
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod(method);
-            conn.setConnectTimeout((int) Math.min(ctx.getTimeoutMs(), 10000));
-            conn.setReadTimeout((int) Math.min(ctx.getTimeoutMs(), 15000));
+
+
+
+
             int code = conn.getResponseCode();
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (code >= 200 && code < 400) ? conn.getInputStream() : conn.getErrorStream(),
@@ -78,9 +81,9 @@ public class HttpRequestTool implements AgentTool {
                 sb.append(line).append('\n');
             }
             br.close();
-            return ToolResult.ok(Map.of("status", code, "body", sb.toString()), System.currentTimeMillis() - start);
+            return ToolResult.ok(Map.of("status", code, "body", sb.toString()), System.currentTimeMillis() - start, Id());
         } catch (Exception e) {
-            return ToolResult.error("HTTP_ERROR", e.getMessage());
+            return ToolResult.error("HTTP_ERROR", e.getMessage(), Id());
         }
     }
 }

@@ -1,10 +1,10 @@
 package com.ai.agent.kit.core;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.spec.*;
 import com.ai.agent.kit.core.agent.*;
 import com.ai.agent.kit.core.agent.strategy.AgentStrategy;
 import com.ai.agent.kit.core.analyzer.TaskAnalyzer;
-import com.ai.agent.kit.core.agent.communication.AgentContext;
+import com.ai.agent.contract.spec.AgentContext;
 import com.ai.agent.kit.core.tool.ToolRegistry;
 import lombok.extern.slf4j.Slf4j;
 

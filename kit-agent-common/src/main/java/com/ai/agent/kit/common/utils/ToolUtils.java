@@ -1,6 +1,6 @@
 package com.ai.agent.kit.common.utils;
 
-import com.ai.agent.kit.core.tool.model.*;
+import com.ai.agent.contract.spec.*;
 
 import java.util.*;
 

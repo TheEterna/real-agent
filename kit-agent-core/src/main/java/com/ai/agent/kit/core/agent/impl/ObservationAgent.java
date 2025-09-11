@@ -1,9 +1,12 @@
 package com.ai.agent.kit.core.agent.impl;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.spec.*;
+
+import com.ai.agent.contract.spec.message.*;
+import com.ai.agent.kit.common.utils.*;
 import com.ai.agent.kit.core.agent.Agent;
-import com.ai.agent.kit.core.agent.communication.AgentContext;
-import com.ai.agent.kit.core.agent.communication.AgentMessage;
+import com.ai.agent.contract.spec.AgentContext;
+
 import com.ai.agent.kit.core.tool.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.*;
@@ -48,12 +51,12 @@ public class ObservationAgent extends Agent {
                           ToolRegistry toolRegistry) {
 
         super(AGENT_ID,
-                "ReAct-ObservationAgent",
+                "ReActAgentStrategy-ObservationAgent",
                 "负责ReAct框架中的观察(Observation)阶段，分析工具执行结果，总结执行效果，为下一轮思考提供输入",
                 chatModel,
                 toolRegistry,
-                Set.of("ReAct", "观察", "Observation"));
-        this.setCapabilities(new String[]{"ReAct", "观察", "Observation"});
+                Set.of("ReActAgentStrategy", "观察", "Observation"));
+        this.setCapabilities(new String[]{"ReActAgentStrategy", "观察", "Observation"});
     }
     
 
@@ -88,21 +91,28 @@ public class ObservationAgent extends Agent {
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
+            // pre handle
+            preHandle(context);
+
             log.debug("ObservationAgent开始流式观察分析: {}", task);
             
             // 构建观察提示
             String observationPrompt = buildObservationPrompt(task, context);
 
+
             // 配置工具调用选项
-            var options = DefaultToolCallingChatOptions.builder()
-                    .toolCallbacks(ToolCallbacks.from(availableTools))
-                    .build();
+            var optionsBuilder = DefaultToolCallingChatOptions.builder();
+            if (availableTools != null && !availableTools.isEmpty()) {
+                optionsBuilder.toolCallbacks(ToolCallbacks.from(availableTools.toArray()));
+            }
+            var options = optionsBuilder.build();
+
 
             // 构建消息
             List<AgentMessage> conversationHistory = context.getConversationHistory();
             List<Message> messages = new ArrayList<>();
             messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(conversationHistory);
+            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
             messages.add(new UserMessage(observationPrompt));
 
             // 流式调用LLM
@@ -110,9 +120,19 @@ public class ObservationAgent extends Agent {
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(content -> content != null && !content.trim().isEmpty())
                     .doOnNext(content -> log.debug("ObservationAgent流式输出: {}", content))
-                    .map(content -> AgentExecutionEvent.action(AGENT_ID, content))
+                    .map(content -> AgentExecutionEvent.observing(context, content))
                     .doOnError(e -> log.error("ObservationAgent流式执行异常", e))
-                    .doOnComplete(() -> log.debug("ObservationAgent流式分析完成"));
+
+                    .onErrorResume(e -> {
+                        // handle error
+                        return Flux.just(AgentExecutionEvent.error("ObservationAgent流式执行异常"));
+                    })
+                    .doOnComplete(() -> {
+                        log.debug("ObservationAgent流式分析完成");
+                        // after handle
+                        afterHandle(context);
+                    })
+                    .concatWith(Flux.just(AgentExecutionEvent.action(context, "\n")));
 
         } catch (Exception e) {
             log.error("ObservationAgent流式执行异常", e);

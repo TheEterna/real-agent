@@ -20,6 +20,13 @@
 			<version>${project.version}</version>
 		</dependency>
 
+
+		<dependency>
+			<groupId>com.ai.agent</groupId>
+			<artifactId>kit-agent-contract</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 <!--		<dependency>-->
 <!--			<groupId>com.ai.agent</groupId>-->
 <!--			<artifactId>kit-agent-contract</artifactId>-->

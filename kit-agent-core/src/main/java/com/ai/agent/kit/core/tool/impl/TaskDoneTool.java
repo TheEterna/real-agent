@@ -1,10 +1,7 @@
 package com.ai.agent.kit.core.tool.impl;
 
-import com.ai.agent.kit.common.exception.ToolException;
-import com.ai.agent.kit.common.spec.ToolResult;
-import com.ai.agent.kit.core.agent.communication.AgentContext;
-import com.ai.agent.kit.core.tool.model.*;
-import com.ai.agent.kit.core.tool.model.AgentTool;
+import com.ai.agent.contract.exception.ToolException;
+import com.ai.agent.contract.spec.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 
@@ -21,7 +18,7 @@ import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
 public class TaskDoneTool implements AgentTool {
 
     private final ToolSpec spec = new ToolSpec()
-            .setName("完成任务")
+            .setName("task_done")
             .setDescription("标记任务已完成")
             .setCategory("system");
 
@@ -39,7 +36,7 @@ public class TaskDoneTool implements AgentTool {
     @Tool(description = "标记任务已完成", name = "完成任务", returnDirect = true)
     public ToolResult<String> execute(AgentContext ctx) throws ToolException {
 
-        return ToolResult.ok(TASK_DONE, 0);
+        return ToolResult.ok(TASK_DONE, 0, Id());
     }
 
 }

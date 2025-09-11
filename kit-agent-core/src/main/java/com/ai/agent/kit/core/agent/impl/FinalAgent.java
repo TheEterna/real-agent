@@ -1,22 +1,19 @@
 package com.ai.agent.kit.core.agent.impl;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.spec.*;
+
+import com.ai.agent.contract.spec.message.*;
+import com.ai.agent.kit.common.utils.*;
 import com.ai.agent.kit.core.agent.*;
-import com.ai.agent.kit.core.agent.communication.*;
-import com.ai.agent.kit.core.agent.communication.AgentMessage;
+
 import com.ai.agent.kit.core.tool.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
-import org.springframework.ai.model.tool.*;
-import org.springframework.ai.support.*;
 import reactor.core.publisher.*;
 
-import java.time.*;
 import java.util.*;
-
-import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
 
 /**
  * @author han
@@ -57,32 +54,40 @@ public class FinalAgent extends Agent {
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
+            // pre handle
+            preHandle(context);
             log.debug("FinalAgent开始流式执行行动: {}", task);
 
             // 构建消息
             List<AgentMessage> conversationHistory = context.getConversationHistory();
             List<Message> messages = new ArrayList<>();
             messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(conversationHistory);
+            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
 
 
-            // 用于收集完整的响应内容
-            StringBuilder fullResponseBuilder = new StringBuilder();
 
             // 流式调用LLM
             return chatModel.stream(new Prompt(messages))
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(content -> content != null && !content.trim().isEmpty())
                     .doOnNext(content -> {
-                        log.debug("ActionAgent流式输出: {}", content);
-                        // 收集完整响应
-                        fullResponseBuilder.append(content);
+                        log.debug("FinalAgent流式输出: {}", content);
                     })
-                    .map(content -> AgentExecutionEvent.action(AGENT_ID, content))
-                    .doOnError(e -> log.error("FinalAgent流式执行异常", e))
+                    .map(content ->  AgentExecutionEvent.executing(context, content))
+                    .doOnError(e -> {
+                        // handle error
+                        log.error("FinalAgent流式执行异常", e);
+                    })
+                    .onErrorResume(e -> {
+                        // handle error
+                        return Flux.just(AgentExecutionEvent.error("FinalAgent流式执行异常"));
+                    })
                     .doOnComplete(() -> {
-                        context.setEndTime(LocalDateTime.now());
-                    });
+                        // after handle
+                        afterHandle(context);
+                    })
+
+                    .concatWith(Flux.just(AgentExecutionEvent.executing(context, "\n")));
 
         } catch (Exception e) {
             log.error("FinalAgent流式执行异常", e);

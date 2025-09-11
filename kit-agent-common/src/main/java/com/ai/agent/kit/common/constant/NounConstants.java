@@ -8,5 +8,5 @@ package com.ai.agent.kit.common.constant;
 public class NounConstants {
 
 
-    public final static String TASK_DONE = "TASK_DONE-任务完成";
+    public final static String TASK_DONE = "task_done";
 }

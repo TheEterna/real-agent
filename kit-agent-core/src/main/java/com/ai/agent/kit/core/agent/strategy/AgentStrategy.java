@@ -1,10 +1,10 @@
 package com.ai.agent.kit.core.agent.strategy;
 
-import com.ai.agent.kit.common.spec.*;
+import com.ai.agent.contract.spec.*;
+
 import com.ai.agent.kit.core.agent.Agent;
-import com.ai.agent.kit.core.agent.communication.AgentContext;
+import com.ai.agent.contract.spec.AgentContext;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 

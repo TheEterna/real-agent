@@ -1,6 +1,6 @@
 package com.ai.agent.kit.core.tool;
 
-import com.ai.agent.kit.core.tool.model.AgentTool;
+import com.ai.agent.contract.spec.AgentTool;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

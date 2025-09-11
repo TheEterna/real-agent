@@ -2,7 +2,7 @@
 //
 //import com.ai.agent.kit.core.agent.Agent;
 //import com.ai.agent.kit.common.spec.AgentResult;
-//import com.ai.agent.kit.core.agent.communication.AgentContext;
+//import com.ai.agent.contract.spec.AgentContext;
 //import lombok.extern.slf4j.Slf4j;
 //
 //import java.time.LocalDateTime;

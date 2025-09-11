@@ -1,18 +1,12 @@
 package com.ai.agent.kit.core.tool.impl.MathEvalTool;
 
-import com.ai.agent.kit.common.exception.*;
-import com.ai.agent.kit.common.spec.*;
-import com.ai.agent.kit.core.agent.communication.*;
-import com.ai.agent.kit.core.tool.model.*;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.SimpleBindings;
-import java.util.Map;
+import com.ai.agent.contract.exception.*;
+import com.ai.agent.contract.spec.*;
+import org.springframework.ai.tool.annotation.*;
 
 public class MathEvalTool implements AgentTool {
     private final ToolSpec spec = new ToolSpec()
-            .setName("数学计算")
+            .setName("math_eval")
             .setDescription("Evaluate math expression: + - * / () and Math.*")
             .setCategory("utility");
 
@@ -31,6 +25,7 @@ public class MathEvalTool implements AgentTool {
     public ToolSpec getSpec(){ return spec; }
 
     @Override
+    @Tool(description = "数学计算", name = "数学计算")
     public ToolResult<?> execute(AgentContext ctx) throws ToolException {
 //        long start = System.currentTimeMillis();
 //        String expr = String.valueOf(.getOrDefault("expr",""));
@@ -44,6 +39,6 @@ public class MathEvalTool implements AgentTool {
 //        }catch(Exception e){
 //            return ToolResult.error("EVAL_ERROR", e.getMessage());
 //        }
-        return null;
+        return ToolResult.ok("暂未开发", 0, Id());
     }
 }

@@ -1,6 +1,6 @@
 //package com.ai.agent.kit.core.agent;
 //
-//import com.ai.agent.kit.common.spec.*;
+//
 //import com.ai.agent.kit.core.agent.impl.CodeAnalysisAgent;
 //import com.ai.agent.kit.core.agent.impl.DocumentationAgent;
 //import com.ai.agent.kit.core.agent.impl.GeneralPurposeAgent;
@@ -8,7 +8,7 @@
 //import com.ai.agent.kit.core.agent.strategy.CollaborativeAgentStrategy;
 //import com.ai.agent.kit.core.agent.strategy.CompetitiveAgentStrategy;
 //import com.ai.agent.kit.core.agent.strategy.SingleAgentStrategy;
-//import com.ai.agent.kit.core.agent.communication.AgentContext;
+//import com.ai.agent.contract.spec.AgentContext;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.mockito.Mock;
