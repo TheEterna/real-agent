@@ -18,6 +18,8 @@ import reactor.core.publisher.Flux;
 
 import java.util.*;
 
+import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
+
 /**
  * 观察Agent - 负责ReAct框架中的观察(Observation)阶段
  * 分析工具执行结果，总结执行效果，为下一轮思考提供输入
@@ -33,12 +35,13 @@ public class ObservationAgent extends Agent {
     private final String SYSTEM_PROMPT = """
             你是一个专门负责观察和分析的AI助手。
             你的职责是：
-            1. 分析工具执行的结果和效果
+            1. 分析工具执行的结果和效果, 是否与任务目标一致
             2. 评估行动是否达到了预期目标
             3. 总结当前任务的进展状态
             4. 识别可能的问题和改进方向
             5. 为下一轮思考提供有价值的观察结果
-            
+            6. 当你认为任务完成或达到了预期目标,且没有问题时，使用{task_done}工具报告任务完成
+
             观察分析时请遵循以下原则：
             - 客观分析执行结果，不添加主观臆测
             - 明确指出成功和失败的部分
@@ -55,8 +58,8 @@ public class ObservationAgent extends Agent {
                 "负责ReAct框架中的观察(Observation)阶段，分析工具执行结果，总结执行效果，为下一轮思考提供输入",
                 chatModel,
                 toolRegistry,
-                Set.of("ReActAgentStrategy", "观察", "Observation"));
-        this.setCapabilities(new String[]{"ReActAgentStrategy", "观察", "Observation"});
+                Set.of("ReActAgentStrategy", "观察", "Observation", TASK_DONE));
+        this.setCapabilities(new String[]{"ReActAgentStrategy", "观察", "Observation", TASK_DONE});
     }
     
 
@@ -91,36 +94,39 @@ public class ObservationAgent extends Agent {
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
-            // pre handle
-            preHandle(context);
 
             log.debug("ObservationAgent开始流式观察分析: {}", task);
             
             // 构建观察提示
             String observationPrompt = buildObservationPrompt(task, context);
 
-
-            // 配置工具调用选项
-            var optionsBuilder = DefaultToolCallingChatOptions.builder();
-            if (availableTools != null && !availableTools.isEmpty()) {
-                optionsBuilder.toolCallbacks(ToolCallbacks.from(availableTools.toArray()));
-            }
-            var options = optionsBuilder.build();
-
-
-            // 构建消息
-            List<AgentMessage> conversationHistory = context.getConversationHistory();
-            List<Message> messages = new ArrayList<>();
-            messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
-            messages.add(new UserMessage(observationPrompt));
+            Prompt prompt = AgentUtils.buildPromptWithContextAndTools(
+                    this.availableTools,
+                    context,
+                    SYSTEM_PROMPT,
+                    observationPrompt
+            );
 
             // 流式调用LLM
-            return chatModel.stream(new Prompt(messages, options))
-                    .map(response -> response.getResult().getOutput().getText())
-                    .filter(content -> content != null && !content.trim().isEmpty())
+            return chatModel.stream(prompt)
+                    .concatMap(response -> {
+                        String content = response.getResult().getOutput().getText();
+                        List<AgentExecutionEvent> events = new ArrayList<>();
+
+
+                        if (ToolUtils.hasTaskDone(response)) {
+                            events.add(AgentExecutionEvent.done(content));
+                        } else if (ToolUtils.hasToolCalling(response)) {
+                            events.add(AgentExecutionEvent.tool(context, content));
+                        } else if (!content.trim().isEmpty()) {
+                            log.debug("ActionAgent流式输出: {}", content);
+                            events.add(AgentExecutionEvent.observing(context, content));
+                        }
+
+
+                        return Flux.fromIterable(events);
+                    })
                     .doOnNext(content -> log.debug("ObservationAgent流式输出: {}", content))
-                    .map(content -> AgentExecutionEvent.observing(context, content))
                     .doOnError(e -> log.error("ObservationAgent流式执行异常", e))
 
                     .onErrorResume(e -> {
@@ -162,7 +168,10 @@ public class ObservationAgent extends Agent {
         promptBuilder.append("2. 识别成功和失败的部分\n");
         promptBuilder.append("3. 分析当前任务的进展状态\n");
         promptBuilder.append("4. 提出下一步的改进建议\n");
-        
+        promptBuilder.append("5. 当你认为agent任务完成,且没有问题时，使用{task_done}工具报告任务完成. \n");
+        promptBuilder.append("6. 你要明确你的身份, 你需要辅佐思考和行动, 并纠察他们的行为, 当你认为任务已经差不多达到了用户的效果,你就看可以结束该任务. \n");
+        promptBuilder.append("7. 你要切记, 你的引导和纠正, 十分重要, 不要为了否定而否定, 不能过度纠察, 而导致回答陷入死循环. \n");
+
         return promptBuilder.toString();
     }
 }

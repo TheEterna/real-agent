@@ -103,13 +103,7 @@ public abstract class Agent {
     public abstract Flux<AgentExecutionEvent> executeStream(String task, AgentContext context);
 
 
-    /**
-     *  pre handle of executeStream method
-     */
-    protected void preHandle(AgentContext context) {
-        // 此处不再需要设置agentId和nodeId，它们在独立的上下文中创建
-        context.setEndTime(null);
-    }
+
 
     /**
      *  after handle of executeStream method

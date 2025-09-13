@@ -18,6 +18,8 @@ import reactor.core.publisher.*;
 
 import java.util.*;
 
+import static com.ai.agent.kit.common.constant.NounConstants.TOOLCALLING;
+
 /**
  * 思考Agent - 负责ReAct框架中的思考(Thinking)阶段
  * 分析当前情况，决定下一步行动策略
@@ -42,6 +44,7 @@ public class ThinkingAgent extends Agent {
             - 基于事实进行分析，避免臆测
             - 考虑所有可用的工具和选项
             - 如果信息不足，说明需要获取更多信息
+            - 不要过度臆想, 基于上下文和基本事实进行深度分析即可
             """;
     
 
@@ -67,23 +70,17 @@ public class ThinkingAgent extends Agent {
             // 构建思考提示
             String thinkingPrompt = buildThinkingPrompt(task, context);
             
-            // 配置工具调用选项
-            var optionsBuilder = DefaultToolCallingChatOptions.builder();
-            if (availableTools != null && !availableTools.isEmpty()) {
-                optionsBuilder.toolCallbacks(ToolCallbacks.from(availableTools));
-            }
-            var options = optionsBuilder.build();
-            
 
-            // 构建消息
-            List<AgentMessage> conversationHistory = context.getConversationHistory();
-            List<Message> messages = new ArrayList<>();
-            messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(conversationHistory);
-            messages.add(new UserMessage(thinkingPrompt));
+            Prompt prompt = AgentUtils.buildPromptWithContextAndTools(
+                    this.availableTools,
+                    context,
+                    SYSTEM_PROMPT,
+                    thinkingPrompt
+            );
+
 
             // 调用LLM进行思考
-            var response = chatModel.call(new Prompt(messages, options));
+            var response = chatModel.call(prompt);
             String thinking = response.getResult().getOutput().getText();
             
             log.debug("ThinkingAgent思考结果: {}", thinking);
@@ -107,40 +104,39 @@ public class ThinkingAgent extends Agent {
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
-            // pre handle
-            preHandle(context);
+
             log.debug("ThinkingAgent开始流式分析任务: {}", task);
             
             // 构建思考提示
             String thinkingPrompt = buildThinkingPrompt(task, context);
 
-
-            // 配置工具调用选项
-            var optionsBuilder = DefaultToolCallingChatOptions.builder();
-            if (availableTools != null && !availableTools.isEmpty()) {
-                optionsBuilder.toolCallbacks(ToolCallbacks.from(availableTools.toArray()));
-            }
-            var options = optionsBuilder.build();
-
-
-            // 构建消息
-            // 构建消息
-            List<AgentMessage> conversationHistory = context.getConversationHistory();
-            List<Message> messages = new ArrayList<>();
-            messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
-            messages.add(new UserMessage(thinkingPrompt));
-
-
+            Prompt prompt = AgentUtils.buildPromptWithContextAndTools(
+                    this.availableTools,
+                    context,
+                    SYSTEM_PROMPT,
+                    thinkingPrompt
+            );
 
             // 流式调用LLM
-            return chatModel.stream(new Prompt(messages, options))
-                    .map(response -> response.getResult().getOutput().getText())
-                    .filter(content -> content != null && !content.trim().isEmpty())
-                    .doOnNext(content -> log.debug("ThinkingAgent流式输出: {}", content))
-                    .map(content -> {
-                        return AgentExecutionEvent.thinking(context, content);
+            return chatModel.stream(prompt)
+                    .concatMap(response -> {
+                        String content = response.getResult().getOutput().getText();
+                        List<AgentExecutionEvent> events = new ArrayList<>();
+
+
+                        if (ToolUtils.hasTaskDone(response)) {
+                            events.add(AgentExecutionEvent.done(content));
+                        } else if (ToolUtils.hasToolCalling(response)) {
+                            events.add(AgentExecutionEvent.tool(context, content));
+                        } else if (!content.trim().isEmpty()) {
+                            log.debug("ThinkingAgent流式输出: {}", content);
+                            events.add(AgentExecutionEvent.thinking(context, content));
+                        }
+
+
+                        return Flux.fromIterable(events);
                     })
+                    .doOnNext(content -> log.debug("ThinkingAgent流式输出: {}", content))
                     .doOnError(e -> log.error("ThinkingAgent流式执行异常", e))
                     .onErrorResume(e -> {
                         // handle error

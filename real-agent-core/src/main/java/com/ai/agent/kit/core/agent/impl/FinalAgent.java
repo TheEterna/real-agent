@@ -54,20 +54,19 @@ public class FinalAgent extends Agent {
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
-            // pre handle
-            preHandle(context);
+
             log.debug("FinalAgent开始流式执行行动: {}", task);
 
             // 构建消息
-            List<AgentMessage> conversationHistory = context.getConversationHistory();
-            List<Message> messages = new ArrayList<>();
-            messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
-
-
+            Prompt prompt = AgentUtils.buildPromptWithContextAndTools(
+                    this.availableTools,
+                    context,
+                    SYSTEM_PROMPT,
+                    "你将对会执行的结果进行整合，形成最终的输出"
+            );
 
             // 流式调用LLM
-            return chatModel.stream(new Prompt(messages))
+            return chatModel.stream(prompt)
                     .map(response -> response.getResult().getOutput().getText())
                     .filter(content -> content != null && !content.trim().isEmpty())
                     .doOnNext(content -> {

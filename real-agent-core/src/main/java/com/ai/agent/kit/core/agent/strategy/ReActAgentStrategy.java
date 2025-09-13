@@ -73,34 +73,31 @@ public class ReActAgentStrategy implements AgentStrategy {
             // 执行ReAct循环
             Flux.range(1, MAX_ITERATIONS)
                 .concatMap(iteration -> executeReActIteration(task, context, iteration)
-                    .doOnNext(event -> {
-                        // 检查是否有完成事件
-                        if (isTaskDoneEvent(event)) {
-                            taskCompleted.set(true);
-                        }
-                    }))
+//                    .doOnNext(event -> {
+//                        // 依据上下文的任务完成标记进行短路，而非等待 DONE 事件
+//                        if () {
+//                            taskCompleted.set(true);
+//                        }
+//                    }))
                 .takeUntil(this::isTaskDoneEvent)
-                // 迭代结束（正常完成或达到最大轮次）
+
+
         )
         .onErrorResume(error -> {
             log.error("ReAct流式执行异常", error);
             return Flux.just(AgentExecutionEvent.error(error));
         })
-        // 统一收尾：无论是否完成，都执行 finalAgent 再发 DONE/DONEWITHWARNING
-        .concatWith(Flux.defer(() -> {
-            return finalAgent.executeStream(task, createAgentContext(context, FinalAgent.AGENT_ID))
-                .doOnNext(event -> {
-                    if (event.getMessage() != null && !event.getMessage().trim().isEmpty()) {
-                        context.addMessage(AgentMessage.done(event.getMessage(), FinalAgent.AGENT_ID));
-                    }
-                })
+        // 收尾：始终保留 FinalAgent 总结，然后由 FinalAgent 阶段发出 DONE/DONEWITHWARNING
+        .concatWith(Flux.defer(() ->
+            finalAgent.executeStream(task, createAgentContext(context, FinalAgent.AGENT_ID))
+                .transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))
                 .concatWith(Flux.just(
-                    taskCompleted.get()
+                    (taskCompleted.get() || context.isTaskCompleted())
                         ? AgentExecutionEvent.done(TASK_DONE)
                         : AgentExecutionEvent.doneWithWarning("达到最大迭代次数 " + MAX_ITERATIONS + "，任务未完成")
-                ));
-        }))
-        .doOnComplete(() -> log.info("ReAct任务执行完成"));
+                ))
+        ))
+        .doOnComplete(() -> log.info("ReAct任务执行完成，上下文: {}", context)));
     }
     
     /**
@@ -110,8 +107,9 @@ public class ReActAgentStrategy implements AgentStrategy {
         if (event == null || event.getType() == null) {
             return false;
         }
-        return "DONE".equals(event.getType().toString()) || 
-               (event.getMessage() != null && event.getMessage().contains(TASK_DONE));
+        return "DONE".equals(event.getType().toString());
+//        return "DONE".equals(event.getType().toString()) ||
+//               (event.getMessage() != null && event.getMessage().contains(TASK_DONE));
     }
     
     /**
@@ -128,41 +126,26 @@ public class ReActAgentStrategy implements AgentStrategy {
             
             // 1. 思考阶段
             thinkingAgent.executeStream(task, createAgentContext(context, ThinkingAgent.AGENT_ID))
-                .doOnNext(event -> {
-                    // 实时记录思考内容到对话历史
-                    if (event.getMessage() != null && !event.getMessage().trim().isEmpty()) {
-                        context.addMessage(AgentMessage.thinking(event.getMessage(), ThinkingAgent.AGENT_ID));
-                    }
-                }),
-            
+                .transform(FluxUtils.handleContext(context, ThinkingAgent.AGENT_ID))
+                    .doOnComplete(() -> log.info("思考阶段结束: {}", context.getConversationHistory())),
+
             // 2. 行动阶段 
             actionAgent.executeStream(task, createAgentContext(context, ActionAgent.AGENT_ID))
-                .doOnNext(event -> {
-                    // 实时记录行动内容到对话历史
-                    if (event.getMessage() != null && !event.getMessage().trim().isEmpty()) {
-                        if (event.getType() == AgentExecutionEvent.EventType.TOOL) {
-                            context.addMessage(AgentMessage.tool(event.getMessage(), ActionAgent.AGENT_ID));
-                        } else {
-                            context.addMessage(AgentMessage.action(event.getMessage(), ActionAgent.AGENT_ID));
-                        }
-                    }
-                })
-                .concatWith(Flux.defer(() -> {
-                    // 检查任务是否完成
-                    if (context.isTaskCompleted()) {
-                        // 已完成，当前迭代结束，这里不触发 finalAgent，统一在主流程尾部执行
-                        return Flux.empty();
-                    } else {
-                        // 任务未完成，继续观察阶段
-                        return observationAgent.executeStream(task, createAgentContext(context, ObservationAgent.AGENT_ID))
-                            .doOnNext(event -> {
-                                if (event.getMessage() != null && !event.getMessage().trim().isEmpty()) {
-                                    context.addMessage(AgentMessage.observing(event.getMessage(), ObservationAgent.AGENT_ID));
-                                }
-                            });
-                    }
-                }))
+                .transform(FluxUtils.handleContext(context, ActionAgent.AGENT_ID))
+                .doOnComplete(() -> log.info("行动阶段结束: {}", context.getConversationHistory())),
 
+            // 3. 观察阶段（独立第三阶段，未完成时才执行）
+            observationAgent.executeStream(task, createAgentContext(context, ObservationAgent.AGENT_ID))
+                    .transform(FluxUtils.handleContext(context, ObservationAgent.AGENT_ID))
+                    .doOnComplete(() -> log.info("观察阶段结束: {}", context.getConversationHistory()))
+
+                // Flux.defer(() -> {
+            //     if (context.isTaskCompleted()) {
+            //         return Flux.empty();
+            //     }
+            //     return observationAgent.executeStream(task, createAgentContext(context, ObservationAgent.AGENT_ID))
+            //         .transform(FluxUtils.handleContext(context, ObservationAgent.AGENT_ID));
+            // })
         );
     }
 
@@ -176,6 +159,7 @@ public class ReActAgentStrategy implements AgentStrategy {
         newContext.setTraceId(originalContext.getTraceId());
         newContext.setSpanId(originalContext.getSpanId());
         // start/end time 由各 Agent 生命周期自行设置，这里不复制 endTime
+        newContext.setEndTime(null);
 
         // 复制对话历史与参数（浅拷贝集合内容即可）
         newContext.addMessages(originalContext.getConversationHistory());

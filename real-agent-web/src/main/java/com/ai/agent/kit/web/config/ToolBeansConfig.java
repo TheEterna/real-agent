@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Set;
 
+import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
+
 @Configuration
 public class ToolBeansConfig {
 
@@ -30,7 +32,7 @@ public class ToolBeansConfig {
 //        registry.registerWithKeywords(new HttpRequestTool(policy), Set.of("http", "api", "请求"));
 //        registry.registerWithKeywords(new MathEvalTool(), Set.of("math", "计算"));
 //        registry.registerWithKeywords(new TimeNowTool(), Set.of("time", "时间"));
-        registry.registerWithKeywords(new TaskDoneTool(), Set.of("close"));
+        registry.registerWithKeywords(new TaskDoneTool(), Set.of(TASK_DONE));
         return registry;
     }
     @Bean

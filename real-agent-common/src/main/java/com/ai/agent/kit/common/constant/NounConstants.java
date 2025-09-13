@@ -9,4 +9,5 @@ public class NounConstants {
 
 
     public final static String TASK_DONE = "task_done";
+    public final static String TOOLCALLING = "tool_calling";
 }

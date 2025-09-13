@@ -1,9 +1,6 @@
 package com.ai.agent.kit.core.config;
 
-import com.ai.agent.kit.core.agent.Agent;
 import com.ai.agent.kit.core.agent.impl.*;
-import com.ai.agent.kit.core.agent.manager.AgentManager;
-import com.ai.agent.kit.core.agent.strategy.AgentStrategy;
 //import com.ai.agent.kit.core.agent.strategy.CollaborativeAgentStrategy;
 //import com.ai.agent.kit.core.agent.strategy.CompetitiveAgentStrategy;
 //import com.ai.agent.kit.core.agent.strategy.SingleAgentStrategy;
@@ -13,8 +10,6 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 /**
  * Agent自动配置类
@@ -31,33 +26,6 @@ public class AgentAutoConfiguration {
     /**
      * Agent管理器Bean
      */
-    @Bean
-    public AgentManager agentManager(
-                                   List<Agent> agents, 
-                                   List<AgentStrategy> strategies,
-                                   SystemProperties properties) {
-        AgentManager manager = new AgentManager();
-        
-        // 注册所有Agent
-        for (Agent agent : agents) {
-            manager.registerAgent(agent);
-        }
-        
-        // 注册所有策略
-        for (AgentStrategy strategy : strategies) {
-            manager.registerStrategy(strategy);
-        }
-        
-        // 设置默认策略
-        if (properties.getDefaultStrategy() != null) {
-            manager.setDefaultStrategy(properties.getDefaultStrategy());
-        }
-        
-        log.info("AgentManager初始化完成，注册Agent数量: {}, 策略数量: {}", 
-                agents.size(), strategies.size());
-        
-        return manager;
-    }
 
 //    @Bean
 //    public CollaborativeAgentStrategy collaborativeAgentStrategy() {

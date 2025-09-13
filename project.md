@@ -56,7 +56,7 @@ add the following message
 
 
 正常使用, 不加 returnDirect = true, 进入步骤1, 相当于步骤2-3都是不可见的, 直接返回回答结果,示例: 今天北京天气为28度
-加 returnDirect = true, 进入步骤1, 直接给你
+加 returnDirect = true, 进入步骤1, 直接给你返回
 ``` json
 {
     [
@@ -108,3 +108,5 @@ add the following message
 直接将强规范的type 的TOOL 转化为了 ASSISTANT , 我认为完全是多此一举, 应该供开发者选择逻辑, 因为你在最后一步封装此操作, 完全就是把你自己的开发思想, 惯用开发方法 定义为范式
 
 造成只能降级使用, 现在只能通过 弱校验, meta 和 finishReason 等字段判断
+
+

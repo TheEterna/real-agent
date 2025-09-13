@@ -20,11 +20,9 @@ import org.springframework.ai.support.*;
 import reactor.core.publisher.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.*;
 
 import static com.ai.agent.kit.common.constant.NounConstants.TASK_DONE;
 import static org.springframework.ai.model.tool.ToolExecutionResult.FINISH_REASON;
-import static org.springframework.ai.model.tool.ToolExecutionResult.METADATA_TOOL_NAME;
 
 /**
  * 行动Agent - 负责ReAct框架中的行动(Acting)阶段
@@ -45,7 +43,6 @@ public class ActionAgent extends Agent {
             2. 调用合适的工具来完成任务
             3. 处理工具调用的参数和配置
             4. 确保行动的准确性和有效性
-            5. 如果任务完成，调用task_done工具
             
             执行行动时请遵循以下原则：
             - 严格按照思考阶段的分析结果执行
@@ -67,8 +64,8 @@ public class ActionAgent extends Agent {
                 "负责ReAct框架中的行动(Acting)阶段，执行思考阶段的行动指令",
                 chatModel,
                 toolRegistry,
-                Set.of("ReActAgentStrategy", "行动", "Action", "close", "task_done"));
-        this.setCapabilities(new String[]{"ReActAgentStrategy", "行动", "Action", "close", "task_done"});
+                Set.of("ReActAgentStrategy", "行动", "Action"));
+        this.setCapabilities(new String[]{"ReActAgentStrategy", "行动", "Action"});
     }
     
 
@@ -84,7 +81,7 @@ public class ActionAgent extends Agent {
             var options = DefaultToolCallingChatOptions.builder()
                     .toolCallbacks(ToolCallbacks.from(availableTools.toArray()))
                     .build();
-            
+
             // 构建消息
             List<Message> messages = List.of(
                 new SystemMessage(SYSTEM_PROMPT),
@@ -108,80 +105,44 @@ public class ActionAgent extends Agent {
 //        return response.getResult().getMetadata().containsKey(FINISH_REASON)
 //                && response.getResult().getMetadata().get(METADATA_TOOL_NAME).equals(TASK_DONE)
 //    }
-    private boolean isTool(ChatResponse response) {
-        boolean finishReason = response.getResult().getMetadata().getFinishReason().equals(FINISH_REASON);
 
-        return finishReason;
-    }
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
-            // pre handle
-            preHandle(context);
 
             log.debug("ActionAgent开始流式执行行动: {}", task);
 
             // 构建行动提示
             String actionPrompt = buildActionPrompt(task);
 
-            // 配置工具调用选项
-            var optionsBuilder = DefaultToolCallingChatOptions.builder();
-            if (availableTools != null && !availableTools.isEmpty()) {
-                optionsBuilder.toolCallbacks(ToolCallbacks.from(availableTools.toArray()));
-            }
-            var options = optionsBuilder.build();
 
+            Prompt prompt = AgentUtils.buildPromptWithContextAndTools(
+                    this.availableTools,
+                    context,
+                    SYSTEM_PROMPT,
+                    actionPrompt
+            );
 
-            // 构建消息
-            List<AgentMessage> conversationHistory = context.getConversationHistory();
-            List<Message> messages = new ArrayList<>();
-            messages.add(new SystemMessage(SYSTEM_PROMPT));
-            messages.addAll(AgentMessageUtils.toSpringAiMessages(conversationHistory));
-            messages.add(new UserMessage(actionPrompt));
-
-
-
-            return chatModel.stream(new Prompt(messages, options))
+            return chatModel.stream(prompt)
                     .concatMap(response -> {
                         String content = response.getResult().getOutput().getText();
-
-//                        List<ToolCall> toolCalls = response.getResult().getOutput().getToolCalls();
-
                         List<AgentExecutionEvent> events = new ArrayList<>();
 
 
-
-                        if (isTool(response)) {
-                            events.add(AgentExecutionEvent.tool(context, TASK_DONE));
+                        if (ToolUtils.hasTaskDone(response)) {
+                            events.add(AgentExecutionEvent.done(content));
+                        } else if (ToolUtils.hasToolCalling(response)) {
+                            events.add(AgentExecutionEvent.tool(context, content));
                         } else if (!content.trim().isEmpty()) {
                             log.debug("ActionAgent流式输出: {}", content);
                             events.add(AgentExecutionEvent.action(context, content));
                         }
 
-//                        // 处理工具调用
-//                        if (!toolCalls.isEmpty()) {
-//                            for (ToolCall toolCall : toolCalls) {
-//                                log.debug("检测到工具调用: {}, 参数: {}", toolCall.name(), toolCall.arguments());
-//
-//                                // 执行工具调用
-//                                try {
-//                                    Object toolResult = executeToolCall(toolCall, context);
-//                                    context.addMessage(AgentMessage.tool(toolResult.toString(), toolCall.id()));
-//                                    events.add(AgentExecutionEvent.tool(context,
-//                                        String.format("工具调用: %s\n参数: %s\n结果: %s",
-//                                            toolCall.name(), toolCall.arguments(), toolResult)));
-//                                } catch (Exception e) {
-//                                    log.error("工具调用执行失败: {}", toolCall.name(), e);
-//                                    String errorMsg = "工具调用失败: " + e.getMessage();
-//                                    context.addMessage(AgentMessage.tool(errorMsg, toolCall.id()));
-//                                    events.add(AgentExecutionEvent.error(errorMsg));
-//                                }
-//                            }
-//                        }
 
                         return Flux.fromIterable(events);
                     })
                     .filter(Objects::nonNull) // 过滤掉 null 事件
+                    .doOnNext(content -> log.debug("ActionAgent流式输出: {}", content))
                     .doOnError(e -> log.error("ActionAgent流式执行异常", e))
                     .doOnComplete(() -> {
                         afterHandle(context);
@@ -223,51 +184,10 @@ public class ActionAgent extends Agent {
         }
         
         promptBuilder.append("请选择合适的工具并执行相应的行动。");
-        promptBuilder.append("如果任务已经完成，请调用task_done工具提供最终结果。");
-        
+
         return promptBuilder.toString();
     }
     
-    /**
-     * 执行工具调用
-     */
-    private Object executeToolCall(ToolCall toolCall, AgentContext context) throws ToolException {
-        String toolName = toolCall.name();
-        String arguments = toolCall.arguments();
-        
-        // 查找对应的工具
-        AgentTool tool = availableTools.stream()
-            .filter(t -> toolName.equals(t.getSpec().getName()))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("未找到工具: " + toolName));
-        
-        // 将工具参数设置到上下文中
-        if (arguments != null && !arguments.trim().isEmpty()) {
-            try {
-                // 解析JSON参数并设置到context.args中
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> argsMap = mapper.readValue(arguments, Map.class);
-                context.getArgs().clear();
-                context.getArgs().putAll(argsMap);
-            } catch (Exception e) {
-                log.warn("解析工具参数失败，使用原始字符串: {}", arguments, e);
-                context.getArgs().clear();
-                context.getArgs().put("input", arguments);
-            }
-        } else {
-            context.getArgs().clear();
-        }
-        
-        // 执行工具
-        ToolResult result = tool.execute(context);
-        
-        // 检查是否是任务完成工具
-        if (TASK_DONE.equals(toolName)) {
-            context.setTaskCompleted(true);
-        }
-        
-        return result.getData();
-    }
-    
+
 
 }

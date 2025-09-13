@@ -27,5 +27,4 @@ spring:
 
 logging:
   level:
-#    com.ai.agent: DEBUG
-
+    com.ai.agent: DEBUG
