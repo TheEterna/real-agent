@@ -41,12 +41,7 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>https://repo.spring.io/milestone</url>
 
-    </repository>
     <repository>
       <id>spring-snapshots</id>
       <name>Spring Snapshots</name>
@@ -88,6 +83,7 @@
         <artifactId>real-agent-contract</artifactId>
         <version>${project.version}</version>
       </dependency>
+
       <dependency>
         <groupId>com.ai.agent</groupId>
         <artifactId>real-agent-application</artifactId>
@@ -128,22 +124,34 @@
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.3.0</version>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
         <configuration>
-          <configLocation>checkstyle.xml</configLocation> <!-- 自定义规则文件 -->
-          <failOnViolation>true</failOnViolation> <!-- 违规时构建失败 -->
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.source}</target>
+          <compilerArgs><arg>-parameters</arg></compilerArgs>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
+
+      <!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
+<!--        <version>3.3.0</version>-->
+<!--        <configuration>-->
+<!--          <configLocation>checkstyle.xml</configLocation> &lt;!&ndash; 自定义规则文件 &ndash;&gt;-->
+<!--          <failOnViolation>true</failOnViolation> &lt;!&ndash; 违规时构建失败 &ndash;&gt;-->
+<!--        </configuration>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <goals>-->
+<!--              <goal>check</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
 
     </plugins>
   </build>

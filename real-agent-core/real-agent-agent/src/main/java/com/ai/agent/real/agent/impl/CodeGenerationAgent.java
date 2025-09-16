@@ -1,9 +1,7 @@
 package com.ai.agent.real.agent.impl;
 
 import com.ai.agent.real.agent.*;
-import com.ai.agent.real.core.agent.*;
 import com.ai.agent.real.contract.spec.*;
-import com.ai.agent.real.tool.ToolRegistry;
 import org.springframework.ai.chat.model.ChatModel;
 import reactor.core.publisher.*;
 

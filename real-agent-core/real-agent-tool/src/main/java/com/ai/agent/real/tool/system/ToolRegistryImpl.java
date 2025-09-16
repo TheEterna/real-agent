@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.*;
 import java.util.stream.Collectors;
 
 /**
@@ -14,8 +15,10 @@ import java.util.stream.Collectors;
  * @author han
  * @time 2025/9/7 01:20
  */
+
 @Slf4j
 public class ToolRegistryImpl implements ToolRegistry {
+
     private final Map<String, AgentTool> tools = new ConcurrentHashMap<>();
 
     private void register(AgentTool tool) {
@@ -81,7 +84,7 @@ public class ToolRegistryImpl implements ToolRegistry {
                     .add(toolName);
         }
 
-        ToolRegistryImpl.log.info("工具 [{}] 注册成功，绑定关键词: {}", toolName, keywords);
+        log.info("工具 [{}] 注册成功，绑定关键词: {}", toolName, keywords);
     }
 
 

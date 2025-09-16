@@ -22,12 +22,17 @@ public class TaskDoneTool implements AgentTool {
             .setDescription("标记任务已完成")
             .setCategory("system");
 
+    /**
+     * 获取工具的唯一标识, 如果重复, 会抛出异常
+     *
+     * @return 工具的名称
+     */
     @Override
     public String Id() {
         return "task_done";
     }
 
-    @Override
+
     public ToolSpec getSpec() {
         return spec;
     }
