@@ -7,6 +7,13 @@ spring:
   application:
     name: real-agent-web
   ai:
+    mcp:
+      client:
+        enabled: true
+        name: my-mcp-client
+        version: 1.0.0
+        request-timeout: 30s
+        type: ASYNC
     dashscope:
       api-key: sk-***
       chat:
