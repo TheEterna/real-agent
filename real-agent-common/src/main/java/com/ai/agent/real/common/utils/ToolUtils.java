@@ -3,15 +3,20 @@ package com.ai.agent.real.common.utils;
 import com.ai.agent.real.common.constant.*;
 import com.ai.agent.real.contract.exception.*;
 import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.spec.ToolSpec.*;
+import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
+import io.modelcontextprotocol.client.*;
 import lombok.*;
 import org.springframework.ai.chat.messages.AssistantMessage.*;
 import org.springframework.ai.chat.model.*;
+import org.springframework.ai.mcp.*;
 import org.springframework.ai.model.*;
 import org.springframework.ai.tool.*;
 import org.springframework.ai.tool.metadata.*;
 import org.springframework.ai.tool.method.*;
 import org.springframework.ai.tool.support.*;
+import org.springframework.util.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -77,6 +82,14 @@ public class ToolUtils {
         }
         return toolCalls.stream().filter(Objects::nonNull).anyMatch(toolCall -> NounConstants.TASK_DONE.equals(toolCall));
     }
+
+
+    public static boolean hasTaskDoneNative(ChatResponse response) {
+
+        return response.getResult().getOutput().getToolCalls()
+                .stream()
+                .filter(Objects::nonNull).anyMatch(toolCall -> NounConstants.TASK_DONE.equals(toolCall.name()));
+    }
 //    public static boolean hasTaskDone(ChatResponse response) {
 //
 //        List<Generation> generations = response.getResults();
@@ -87,6 +100,8 @@ public class ToolUtils {
 //        }
 //        return toolCalls.stream().anyMatch(toolCall -> toolCall.name().equals(TASK_DONE));
 //    }
+
+
     /**
      * check tool call
      * @param response
@@ -105,6 +120,8 @@ public class ToolUtils {
         }
         return !toolCalls.isEmpty();
     }
+
+
 
     /**
      * 执行工具调用
@@ -173,33 +190,42 @@ public class ToolUtils {
         return toolCallbacks;
     }
     /**
-     * convert toolCallback to AgentTool
+     * convert toolCallbacks to AgentTools
      * @param toolCallbacks
      * @return
      */
     @SneakyThrows
-    public static List<AgentTool> convertToolCallback2AgentTool(List<ToolCallback> toolCallbacks) {
+    public static List<AgentTool> convertToolCallbacks2AgentTools(List<ToolCallback> toolCallbacks) {
         List<AgentTool> agentTools = new ArrayList<>();
         for (ToolCallback toolCallback : toolCallbacks) {
             AgentTool agentTool = new AgentTool() {
                 @Override
-                public String Id() {
-                    return toolCallback.getToolDefinition().name();
+                public String getId() {
+                    return String.valueOf(toolCallback.getToolDefinition().hashCode());
                 }
 
+                @SneakyThrows
                 @Override
                 public ToolSpec getSpec() {
                     return new ToolSpec()
                             .setName(toolCallback.getToolDefinition().name())
                             .setDescription(toolCallback.getToolDefinition().description())
-                            .setCategory(MCP);
+                            .setInputSchema(toolCallback.getToolDefinition().inputSchema())
+                            .setCategory(MCP)
+                            .setMcpToolSpec(
+                                    McpToolSpec
+                                            .builder()
+                                            .server(((McpAsyncClient)ReflectionUtils.findField(toolCallback.getClass(), "mcpClient").get(toolCallback)).getServerInfo().name())
+                                            .server(((McpAsyncClient)ReflectionUtils.findField(toolCallback.getClass(), "mcpClient").get(toolCallback)).getClientInfo().name())
+                                            .build());
                 }
 
                 @Override
                 public ToolResult<String> execute(AgentContext ctx) throws ToolException {
                     try {
+                        long l = System.currentTimeMillis();
                         String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
-                        return ToolResult.ok(result, System.currentTimeMillis(), this.Id());
+                        return ToolResult.ok(result, l - System.currentTimeMillis(), String.valueOf(this.getId()));
                     } catch (Exception e) {
                         throw new ToolException("Tool execution failed", e);
                     }
@@ -209,6 +235,66 @@ public class ToolUtils {
             agentTools.add(agentTool);
         }
         return agentTools;
+    }
+
+
+
+    /**
+     * 通过spring 源码 逆向出解决方案
+     * @param name
+     * @return
+     */
+    private static String exactPrefixedName(String name) {
+        int index = name.indexOf(".");
+        if (index > 0) {
+            return name.substring(index + 1);
+        }
+        return name;
+    }
+
+    /**
+     * convert toolCallback to AgentTool
+     * @param toolCallback
+     * @return
+     */
+    @SneakyThrows
+    public static AgentTool convertToolCallback2AgentTool(ToolCallback toolCallback, McpAsyncClient mcpAsyncClient) {
+        return new AgentTool() {
+                @Override
+                public String getId() {
+                    return String.valueOf(toolCallback.getToolDefinition().hashCode());
+                }
+
+                @Override
+                public ToolSpec getSpec() {
+
+
+                    return new ToolSpec()
+                            .setName(toolCallback.getToolDefinition().name())
+                            .setDescription(toolCallback.getToolDefinition().description())
+                            .setInputSchema(toolCallback.getToolDefinition().inputSchema())
+                            .setCategory(MCP)
+                            .setMcpToolSpec(
+                                    McpToolSpec
+                                    .builder()
+                                    .server(mcpAsyncClient.getServerInfo().name())
+                                            // 去除 mcpAsyncClient.getClientInfo().name() 里的最后一个 " - " + mcpAsyncClient.getServerInfo().name()
+                                    .client(mcpAsyncClient.getClientInfo().name())
+                                    .build());
+                }
+
+                @Override
+                public ToolResult<String> execute(AgentContext ctx) throws ToolException {
+                    try {
+                        long l = System.currentTimeMillis();
+                        String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
+                        return ToolResult.ok(result, l - System.currentTimeMillis(), String.valueOf(this.getId()));
+                    } catch (Exception e) {
+                        throw new ToolException("Tool execution failed", e);
+                    }
+                }
+
+            };
     }
 
 }

@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +33,11 @@ public class DocumentationAgent extends Agent {
             使用Markdown格式输出，包含适当的标题、列表、代码块等元素。
             """;
 
-    public DocumentationAgent(ChatModel chatModel, ToolRegistry toolRegistry) {
+    public DocumentationAgent(ChatModel chatModel, ToolService toolService) {
         super("documentation-agent",
                 "文档生成专家",
                 "专门处理各类技术文档生成任务", chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("文档", "说明", "手册", "指南", "readme", "api文档", "注释",
                 "规范", "文档生成", "documentation", "manual", "guide",
                 "comment", "specification", "doc", "md", "markdown"));

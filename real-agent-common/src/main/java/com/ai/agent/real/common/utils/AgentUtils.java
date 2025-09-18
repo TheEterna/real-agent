@@ -56,7 +56,7 @@ public class AgentUtils {
             String systemPrompt,
             String userPrompt) {
 
-        // 配置工具调用选项
+        // 配置工具调用选项, 使用原生function calling
         var optionsBuilder = DefaultToolCallingChatOptions.builder();
         if (availableTools != null && !availableTools.isEmpty()) {
             optionsBuilder.toolCallbacks(ToolUtils.convertAgentTool2ToolCallback(availableTools));

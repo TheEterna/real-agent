@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +35,12 @@ public class GeneralPurposeAgent extends Agent {
             请根据用户的具体需求，提供准确、有用的回答和建议。
             """;
 
-    public GeneralPurposeAgent(ChatModel chatModel, ToolRegistry toolRegistry) {
+    public GeneralPurposeAgent(ChatModel chatModel, ToolService toolService) {
         super("general-purpose-agent",
                 "通用助手",
                 "处理各种通用任务的万能Agent",
                 chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("通用", "问答", "文本", "处理", "逻辑", "推理", "创意思考", "任务", "规划"));
         this.setCapabilities(new String[]{"通用问答", "文本处理", "逻辑推理", "创意思考", "任务规划"});
     }

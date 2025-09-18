@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +31,12 @@ public class CodeAnalysisAgent extends Agent {
             请用专业、详细且易懂的方式分析代码，提供具体的改进建议。
             """;
 
-    public CodeAnalysisAgent(ChatModel chatModel, ToolRegistry toolRegistry) {
+    public CodeAnalysisAgent(ChatModel chatModel, ToolService toolService) {
         super("code-analysis-agent",
                 "代码分析专家",
                 "专门处理代码分析和架构分析任务",
                 chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("代码", "架构", "分析", "审查", "优化", "重构", "设计模式",
                     "性能", "安全", "漏洞", "规范", "最佳实践", "code", "architecture",
                     "analysis", "review", "optimize", "refactor", "design pattern",

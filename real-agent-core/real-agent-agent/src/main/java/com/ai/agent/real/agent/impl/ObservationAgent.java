@@ -1,6 +1,7 @@
 package com.ai.agent.real.agent.impl;
 
 import com.ai.agent.real.common.constant.*;
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 
@@ -12,8 +13,6 @@ import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
-
-import static com.ai.agent.real.common.constant.NounConstants.TASK_DONE;
 
 /**
  * 观察Agent - 负责ReAct框架中的观察(Observation)阶段
@@ -46,13 +45,13 @@ public class ObservationAgent extends Agent {
             """;
 
     public ObservationAgent(ChatModel chatModel,
-                          ToolRegistry toolRegistry) {
+                          ToolService toolService) {
 
         super(AGENT_ID,
                 "ReActAgentStrategy-ObservationAgent",
                 "负责ReAct框架中的观察(Observation)阶段，分析工具执行结果，总结执行效果，为下一轮思考提供输入",
                 chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("ReActAgentStrategy", "观察", "Observation", NounConstants.TASK_DONE));
         this.setCapabilities(new String[]{"ReActAgentStrategy", "观察", "Observation", NounConstants.TASK_DONE});
     }
@@ -109,9 +108,9 @@ public class ObservationAgent extends Agent {
                         List<AgentExecutionEvent> events = new ArrayList<>();
 
 
-                        if (ToolUtils.hasTaskDone(response)) {
+                        if (ToolUtils.hasTaskDoneNative(response)) {
                             events.add(AgentExecutionEvent.done(content));
-                        } else if (ToolUtils.hasToolCalling(response)) {
+                        } else if (ToolUtils.hasToolCallingNative(response)) {
                             events.add(AgentExecutionEvent.tool(context, content));
                         } else if (!content.trim().isEmpty()) {
                             log.debug("ActionAgent流式输出: {}", content);

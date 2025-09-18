@@ -27,6 +27,16 @@ public class ToolResult<T> {
         return r;
     }
 
+    public static <T> ToolResult<T> ok(T data, long elapsed, int toolId) {
+        ToolResult<T> r = new ToolResult<>();
+        r.ok = true;
+        r.data = data;
+        r.elapsedMs = elapsed;
+        r.meta = new HashMap<>();
+        r.toolId = String.valueOf(toolId);
+        return r;
+    }
+
     public static <T> ToolResult<T> error(String code, String message, String toolId) {
         ToolResult<T> r = new ToolResult<>();
         r.ok = false;

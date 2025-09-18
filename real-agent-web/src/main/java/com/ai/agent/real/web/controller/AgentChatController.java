@@ -2,11 +2,10 @@ package com.ai.agent.real.web.controller;
 
 
 import com.ai.agent.real.agent.strategy.*;
-import com.ai.agent.real.contract.spec.*;
-import com.ai.agent.real.contract.spec.message.*;
-import com.ai.agent.real.tool.system.ToolRegistryImpl;
+import com.ai.agent.real.contract.spec.AgentContext;
+import com.ai.agent.real.contract.spec.AgentExecutionEvent;
+import com.ai.agent.real.contract.spec.message.AgentMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -27,14 +26,11 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class AgentChatController {
 
-    private final ChatModel chatModel;
-    private final ToolRegistryImpl toolRegistry;
-    private final AgentStrategy agentStrategy;
+    private final ReActAgentStrategy reActAgentStrategy;
 
-    public AgentChatController(ChatModel chatModel, ToolRegistryImpl toolRegistry) {
-        this.chatModel = chatModel;
-        this.toolRegistry = toolRegistry;
-        this.agentStrategy = new ReActAgentStrategy(chatModel, toolRegistry);
+    public AgentChatController(
+                               ReActAgentStrategy reActAgentStrategy) {
+        this.reActAgentStrategy = reActAgentStrategy;
     }
 
     /**
@@ -53,7 +49,7 @@ public class AgentChatController {
 
 
             // 执行ReAct流式任务
-            return agentStrategy.executeStream(request.getMessage(), null, context)
+            return reActAgentStrategy.executeStream(request.getMessage(), null, context)
                     // 将流中的异常转换为一个错误事件，避免直接以错误终止连接
                     .onErrorResume(error -> {
                         log.error("ReAct执行异常(流内)", error);
@@ -74,45 +70,6 @@ public class AgentChatController {
     }
 
 
-    /**
-     * 执行ReAct任务（同步响应）
-     */
-    @PostMapping("/react/sync")
-    public ChatResponse executeReActSync(@RequestBody ChatRequest request) {
-        log.info("收到ReAct同步执行请求: {}", request.getMessage());
-
-        try {
-            // 创建ReAct策略
-            ReActAgentStrategy reactStrategy = new ReActAgentStrategy(chatModel, toolRegistry);
-
-            // 创建执行上下文
-            AgentContext context = new AgentContext()
-                    .setSessionId(request.getSessionId())
-                    .setTraceId(generateTraceId())
-                    .setStartTime(LocalDateTime.now());
-
-            // 执行ReAct同步任务
-            AgentResult result = reactStrategy.execute(request.getMessage(), null, context);
-            context.setEndTime(LocalDateTime.now());
-
-            return ChatResponse.builder()
-                    .success(result.isSuccess())
-                    .message(result.getResult())
-                    .agentId(result.getAgentId())
-                    .sessionId(request.getSessionId())
-                    .timestamp(LocalDateTime.now())
-                    .conversationHistory(context.getConversationHistory())
-                    .build();
-
-        } catch (Exception e) {
-            log.error("ReAct同步执行异常", e);
-            return ChatResponse.builder()
-                    .success(false)
-                    .message("执行异常: " + e.getMessage())
-                    .timestamp(LocalDateTime.now())
-                    .build();
-        }
-    }
 
     /**
      * 获取对话历史

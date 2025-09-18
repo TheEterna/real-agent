@@ -1,6 +1,7 @@
 package com.ai.agent.real.agent.impl;
 
 import com.ai.agent.real.agent.*;
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import org.springframework.ai.chat.model.ChatModel;
 import reactor.core.publisher.*;
@@ -80,12 +81,12 @@ public class CodeGenerationAgent extends Agent {
                         
             """;
 
-    public CodeGenerationAgent(ChatModel chatModel, ToolRegistry toolRegistry) {
+    public CodeGenerationAgent(ChatModel chatModel, ToolService toolService) {
         super("code-generation-agent",
                 "代码生成专家",
                 "专门处理代码编写、生成、实现等任务",
                 chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("编写", "生成", "创建", "实现", "开发", "代码", "程序", "功能",
                         "write", "generate", "create", "implement", "develop", "code", "program"));
         this.setCapabilities(new String[]{"代码生成", "功能实现", "脚本生成", "框架集成", "调试建议", "性能优化", "code"});

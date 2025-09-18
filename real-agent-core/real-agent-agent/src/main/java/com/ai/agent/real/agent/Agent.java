@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent;
 
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,7 @@ public abstract class Agent {
     protected String[] capabilities;
     
 
-    protected ToolRegistry toolRegistry;
+    protected ToolService toolService;
 
     public Agent() {
 
@@ -69,16 +70,16 @@ public abstract class Agent {
                  String agentName,
                  String description,
                  ChatModel chatModel,
-                 ToolRegistry toolRegistry,
+                 ToolService toolService,
                  Set<String> keywords) {
         this.agentId = agentId;
         this.agentName = agentName;
         this.description = description;
         this.chatModel = chatModel;
-        this.toolRegistry = toolRegistry;
+        this.toolService = toolService;
         this.keywords = keywords;
-        // 需要使用 toolRegistry 去判断有没有工具
-        this.availableTools = toolRegistry.getToolsByKeywords(this.keywords);
+        // 需要使用 toolService 去判断有没有工具
+        this.availableTools = toolService.getToolsByKeywords(this.keywords);
 //        if (toolList.isEmpty()) {
 //            log.warn("Agent[{}] 没有可用的工具", agentId);
 //        } else {

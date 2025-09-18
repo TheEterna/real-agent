@@ -3,6 +3,7 @@ package com.ai.agent.real.agent.impl;
 import com.ai.agent.real.agent.*;
 
 import com.ai.agent.real.common.utils.*;
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
@@ -30,13 +31,13 @@ public class FinalAgent extends Agent {
 
 
     public FinalAgent(ChatModel chatModel,
-                       ToolRegistry toolRegistry) {
+                       ToolService toolService) {
 
         super(AGENT_ID,
                 "FinalAgent",
                 "负责最终结果输出",
                 chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("*"));
         this.setCapabilities(new String[]{"close"});
     }

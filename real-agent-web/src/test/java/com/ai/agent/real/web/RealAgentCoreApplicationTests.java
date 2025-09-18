@@ -7,7 +7,7 @@ import reactor.core.publisher.*;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
-class CtrlAgentCoreApplicationTests {
+class RealAgentCoreApplicationTests {
 
 	@Test
 	void simpleRxJavaPublisherConsumerTest() throws InterruptedException {

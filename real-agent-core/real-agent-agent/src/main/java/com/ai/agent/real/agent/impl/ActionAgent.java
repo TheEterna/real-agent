@@ -1,5 +1,7 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.common.constant.*;
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 
@@ -8,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.model.tool.DefaultToolCallingChatOptions;
+import org.springframework.ai.model.tool.*;
 import org.springframework.ai.support.*;
 import reactor.core.publisher.*;
 
@@ -47,15 +49,15 @@ public class ActionAgent extends Agent {
      * 构造函数
      */
     public ActionAgent(ChatModel chatModel,
-                       ToolRegistry toolRegistry) {
+                       ToolService toolService) {
 
         super(AGENT_ID,
                 "ReActAgentStrategy-ActionAgent",
                 "负责ReAct框架中的行动(Acting)阶段，执行思考阶段的行动指令",
                 chatModel,
-                toolRegistry,
-                Set.of("ReActAgentStrategy", "行动", "Action"));
-        this.setCapabilities(new String[]{"ReActAgentStrategy", "行动", "Action"});
+                toolService,
+                Set.of("ReActAgentStrategy", "行动", "Action", NounConstants.MCP));
+        this.setCapabilities(new String[]{"ReActAgentStrategy", "行动", "Action", NounConstants.MCP});
     }
     
 
@@ -91,16 +93,13 @@ public class ActionAgent extends Agent {
             return AgentResult.failure("行动执行出现异常: " + e.getMessage(), AGENT_ID);
         }
     }
-//    private boolean isTaskDone(ChatResponse response) {
-//        return response.getResult().getMetadata().containsKey(FINISH_REASON)
-//                && response.getResult().getMetadata().get(METADATA_TOOL_NAME).equals(TASK_DONE)
-//    }
+
 
     @Override
     public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
         try {
 
-            log.debug("ActionAgent开始流式执行行动: {}", task);
+            log.info("ActionAgent开始流式执行行动: {}", task);
 
             // 构建行动提示
             String actionPrompt = buildActionPrompt(task);
@@ -119,9 +118,9 @@ public class ActionAgent extends Agent {
                         List<AgentExecutionEvent> events = new ArrayList<>();
 
 
-                        if (ToolUtils.hasTaskDone(response)) {
-                            events.add(AgentExecutionEvent.done(content));
-                        } else if (ToolUtils.hasToolCalling(response)) {
+                        if (ToolUtils.hasToolCallingNative(response)) {
+                            this.toolService.
+
                             events.add(AgentExecutionEvent.tool(context, content));
                         } else if (!content.trim().isEmpty()) {
                             log.debug("ActionAgent流式输出: {}", content);

@@ -14,6 +14,9 @@ spring:
         version: 1.0.0
         request-timeout: 30s
         type: ASYNC
+        # 移除stdio配置以避免启动错误
+        # stdio:
+        #   servers-configuration: mcp-servers-config.json
     dashscope:
       api-key: sk-***
       chat:

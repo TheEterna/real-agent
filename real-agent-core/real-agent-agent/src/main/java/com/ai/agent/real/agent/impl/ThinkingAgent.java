@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 
@@ -43,12 +44,12 @@ public class ThinkingAgent extends Agent {
      * 构造函数
      */
     public ThinkingAgent(ChatModel chatModel,
-                          ToolRegistry toolRegistry) {
+                          ToolService toolService) {
         super(AGENT_ID,
                 "ReActAgentStrategy-ThinkingAgent",
                 "ReAct框架里的思考agent",
                 chatModel,
-                toolRegistry,
+                toolService,
                 Set.of("ReActAgentStrategy", "thinking", "思考"));
         this.setCapabilities(new String[]{"ReActAgentStrategy", "thinking", "思考"});
     }
@@ -115,9 +116,7 @@ public class ThinkingAgent extends Agent {
                         List<AgentExecutionEvent> events = new ArrayList<>();
 
 
-                        if (ToolUtils.hasTaskDone(response)) {
-                            events.add(AgentExecutionEvent.done(content));
-                        } else if (ToolUtils.hasToolCalling(response)) {
+                        if (ToolUtils.hasToolCallingNative(response)) {
                             events.add(AgentExecutionEvent.tool(context, content));
                         } else if (!content.trim().isEmpty()) {
                             log.debug("ThinkingAgent流式输出: {}", content);

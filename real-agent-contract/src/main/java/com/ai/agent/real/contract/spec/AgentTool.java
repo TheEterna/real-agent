@@ -16,7 +16,7 @@ public interface AgentTool {
      *
      * @return 工具的名称
      */
-    String Id();
+    String getId();
 
     /**
      * 获取工具的规范。

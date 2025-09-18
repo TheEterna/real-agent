@@ -22,7 +22,7 @@ public class TimeNowTool implements AgentTool {
      * @return 工具的名称
      */
     @Override
-    public String Id() {
+    public String getId() {
         return "time.now";
     }
 
@@ -46,9 +46,9 @@ public class TimeNowTool implements AgentTool {
         try{
             ZonedDateTime now = ZonedDateTime.now(ZoneId.of(zone));
             String s = now.format(DateTimeFormatter.ofPattern(pattern));
-            return ToolResult.ok(Map.of("time", s, "epochMs", now.toInstant().toEpochMilli()), System.currentTimeMillis()-start, Id());
+            return ToolResult.ok(Map.of("time", s, "epochMs", now.toInstant().toEpochMilli()), System.currentTimeMillis()-start, getId());
         }catch(Exception e){
-            return ToolResult.error("TIME_ERROR", e.getMessage(), Id());
+            return ToolResult.error("TIME_ERROR", e.getMessage(), getId());
         }
     }
 }

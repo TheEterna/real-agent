@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CtrlAgentCoreApplication {
+public class RealAgentCoreApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CtrlAgentCoreApplication.class, args);
+		SpringApplication.run(RealAgentCoreApplication.class, args);
 	}
 
 }

@@ -17,7 +17,7 @@ public class MathEvalTool implements AgentTool {
      * @return 工具的名称
      */
     @Override
-    public String Id() {
+    public String getId() {
         return "math.eval";
     }
 
@@ -39,6 +39,6 @@ public class MathEvalTool implements AgentTool {
 //        }catch(Exception e){
 //            return ToolResult.error("EVAL_ERROR", e.getMessage());
 //        }
-        return ToolResult.ok("暂未开发", 0, Id());
+        return ToolResult.ok("暂未开发", 0, getId());
     }
 }

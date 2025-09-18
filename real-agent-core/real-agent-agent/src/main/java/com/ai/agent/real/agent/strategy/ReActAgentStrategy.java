@@ -30,11 +30,11 @@ public class ReActAgentStrategy implements AgentStrategy {
     private final FinalAgent finalAgent;
 
 
-    public ReActAgentStrategy(ChatModel chatModel, ToolRegistry toolRegistry) {
-        this.thinkingAgent = new ThinkingAgent(chatModel, toolRegistry);
-        this.actionAgent = new ActionAgent(chatModel, toolRegistry);
-        this.observationAgent = new ObservationAgent(chatModel, toolRegistry);
-        this.finalAgent = new FinalAgent(chatModel, toolRegistry);
+    public ReActAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent, ObservationAgent observationAgent, FinalAgent finalAgent) {
+        this.thinkingAgent = thinkingAgent;
+        this.actionAgent = actionAgent;
+        this.observationAgent = observationAgent;
+        this.finalAgent = finalAgent;
     }
 
 
@@ -217,7 +217,9 @@ public class ReActAgentStrategy implements AgentStrategy {
 //        log.warn("ReAct循环达到最大迭代次数{}，强制结束", MAX_ITERATIONS);
 //        return generateFinalAnswer(conversationHistory.toString(), chatModel);
 
-        return AgentResult.success(executeStream(task, agents, context).blockLast().getMessage(), "1");
+        // 不要在非阻塞线程中使用blockLast()，而是直接返回null或抛出UnsupportedOperationException
+        // 因为execute方法是同步阻塞的，而executeStream是异步非阻塞的，两者不兼容
+        throw new UnsupportedOperationException("ReActAgentStrategy不支持同步execute方法，请使用executeStream方法");
     }
 
 

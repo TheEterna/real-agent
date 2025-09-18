@@ -30,7 +30,7 @@ public class HttpRequestTool implements AgentTool {
      * @return 工具的名称
      */
     @Override
-    public String Id() {
+    public String getId() {
         return "http.request";
     }
 
@@ -48,15 +48,15 @@ public class HttpRequestTool implements AgentTool {
         try {
             String urlStr = String.valueOf(args.getOrDefault("url", ""));
             if (urlStr.isEmpty()) {
-                return ToolResult.error("INVALID_ARG", "url is required", Id());
+                return ToolResult.error("INVALID_ARG", "url is required", getId());
             }
             URL url = new URL(urlStr);
             if (!policy.isHostAllowed(url.getHost())) {
-                return ToolResult.error("DENY_HOST", "host not allowed" , Id());
+                return ToolResult.error("DENY_HOST", "host not allowed" , getId());
             }
             String method = String.valueOf(args.getOrDefault("method", "GET")).toUpperCase();
             if (!policy.isMethodAllowed(method)) {
-                return ToolResult.error("DENY_METHOD", "method not allowed", Id());
+                return ToolResult.error("DENY_METHOD", "method not allowed", getId());
             }
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -81,9 +81,9 @@ public class HttpRequestTool implements AgentTool {
                 sb.append(line).append('\n');
             }
             br.close();
-            return ToolResult.ok(Map.of("status", code, "body", sb.toString()), System.currentTimeMillis() - start, Id());
+            return ToolResult.ok(Map.of("status", code, "body", sb.toString()), System.currentTimeMillis() - start, getId());
         } catch (Exception e) {
-            return ToolResult.error("HTTP_ERROR", e.getMessage(), Id());
+            return ToolResult.error("HTTP_ERROR", e.getMessage(), getId());
         }
     }
 }

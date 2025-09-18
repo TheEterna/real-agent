@@ -79,7 +79,7 @@ add the following message
   }
 }
 ```
-最操蛋的是, springAi 进行了 封装, 封装代码如下:
+springAi 进行了 封装, 封装代码如下:
 
 ``` java
 	/**
@@ -105,8 +105,4 @@ add the following message
 		return generations;
 	}
 ```
-直接将强规范的type 的TOOL 转化为了 ASSISTANT , 我认为完全是多此一举, 应该供开发者选择逻辑, 因为你在最后一步封装此操作, 完全就是把你自己的开发思想, 惯用开发方法 定义为范式
-
-造成只能降级使用, 现在只能通过 弱校验, meta 和 finishReason 等字段判断
-
-
+可使用optionsBuilder.internalToolExecutionEnabled(false); 使用原生方式, 不进行任何封装
