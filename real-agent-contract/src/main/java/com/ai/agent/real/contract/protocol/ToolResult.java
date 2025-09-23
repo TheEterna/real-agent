@@ -1,4 +1,4 @@
-package com.ai.agent.real.contract.spec;
+package com.ai.agent.real.contract.protocol;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,12 +6,41 @@ import java.util.Map;
 
 /**
  * @author han
- * @time 2025/8/30 17:05
+ * @time 2025/9/11 23:19
  */
 public class ToolResult<T> {
+
+
+    /**
+     // code enum
+     *
+     */
+    public enum ToolResultCode {
+        SUCCESS("200", "执行成功"),
+        TOOL_NOT_FOUND("404", "工具不存在"),
+        TOOL_EXECUTION_ERROR("500", "工具执行错误");
+        private final String code;
+        private final String message;
+
+        ToolResultCode(String s, String message) {
+            this.code = s;
+            this.message = message;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
+
+
     private boolean ok;
     private String message;
-    private String code;
+    private ToolResultCode code;
     private long elapsedMs;
     private T data;
     private Map<String, Object> meta = new HashMap<>();
@@ -20,6 +49,7 @@ public class ToolResult<T> {
     public static <T> ToolResult<T> ok(T data, long elapsed, String toolId) {
         ToolResult<T> r = new ToolResult<>();
         r.ok = true;
+        r.code = ToolResultCode.SUCCESS;
         r.data = data;
         r.elapsedMs = elapsed;
         r.meta = new HashMap<>();
@@ -37,7 +67,7 @@ public class ToolResult<T> {
         return r;
     }
 
-    public static <T> ToolResult<T> error(String code, String message, String toolId) {
+    public static <T> ToolResult<T> error(ToolResultCode code, String message, String toolId) {
         ToolResult<T> r = new ToolResult<>();
         r.ok = false;
         r.code = code;
@@ -55,7 +85,7 @@ public class ToolResult<T> {
         return message;
     }
 
-    public String getCode() {
+    public ToolResultCode getCode() {
         return code;
     }
 

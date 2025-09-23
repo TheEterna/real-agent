@@ -38,3 +38,7 @@ spring:
 logging:
   level:
     com.ai.agent: DEBUG
+agent:
+  action:
+    tools:
+      approval-mode: AUTO   # 可选：AUTO | REQUIRE_APPROVAL | DISABLED

@@ -1,6 +1,5 @@
 package com.ai.agent.real.web.controller;
 
-import com.ai.agent.real.application.tool.*;
 import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
@@ -20,12 +19,9 @@ import java.util.*;
 public class ToolController {
 
     private final ToolService toolService;
-    private final ToolExecutionService toolExecutionService;
 
-    public ToolController(ToolService toolService,
-                          ToolExecutionService toolExecutionService) {
+    public ToolController(ToolService toolService) {
         this.toolService = toolService;
-        this.toolExecutionService = toolExecutionService;
     }
 
 
@@ -50,21 +46,34 @@ public class ToolController {
     }
 
     @PostMapping("/tools/execute")
-    public Mono<ResponseResult<ToolExecuteResult>> executeTool(@RequestBody ExecuteToolRequest request){
+    public Mono<ResponseResult<? extends ToolResult<?>>> executeTool(@RequestBody ExecuteToolRequest request){
         if (request == null || request.getToolName() == null || request.getToolName().isBlank()){
             return Mono.just(ResponseResult.paramError("参数错误: toolName 不能为空"));
         }
-        return Mono.fromCallable(() -> toolExecutionService.execute(request.getToolName(), request.getArgs()))
+        return toolService.executeToolAsync(request.getToolName(), AgentContext.of(request.getArgs()))
                 .map(res -> {
                     if (res != null && res.isOk()){
                         return ResponseResult.success(res);
                     } else {
-                        ResponseResult<ToolExecuteResult> rr = ResponseResult.error(ResponseResult.ERROR_CODE,
-                                "工具执行失败: " + (res != null && res.getMessage() != null ? res.getMessage() : "unknown"));
-                        rr.setData(res);
-                        return rr;
+                        ResponseResult<ToolResult<?>> responseResult = ResponseResult.error(ResponseResult.ERROR_CODE,
+                                "tool executed faild: " + (res != null && res.getMessage() != null ? res.getMessage() : "unknown"));
+                        responseResult.setData(res);
+                        return responseResult;
                     }
                 })
                 .onErrorResume(e -> Mono.just(ResponseResult.error("工具执行异常: " + e.getMessage())));
+    }
+
+
+    private ToolResult setFieldValue(ToolResult target, String fieldName, Object value) {
+        try {
+            // ToolResult类中没有setter方法，只能通过反射设置字段值
+            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (Exception e) {
+            // 如果设置失败，忽略异常
+        }
+        return target;
     }
 }

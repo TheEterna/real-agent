@@ -2,8 +2,7 @@ package com.ai.agent.real.contract.spec;
 
 import lombok.*;
 import lombok.experimental.*;
-
-import java.util.Map;
+import org.springframework.ai.util.json.schema.*;
 
 /**
  * ToolSpec 类定义了工具的规范。
@@ -42,6 +41,11 @@ public class ToolSpec {
 //    private Map<String, Object> outputSchema;
 
     private McpToolSpec mcpToolSpec;
+
+    public <T> ToolSpec setInputSchemaClass(Class<T> clazz) {
+        this.inputSchema = JsonSchemaGenerator.generateForType(clazz);
+        return this;
+    }
 
 
     @Data

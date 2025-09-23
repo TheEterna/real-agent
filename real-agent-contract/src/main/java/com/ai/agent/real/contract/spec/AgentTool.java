@@ -1,6 +1,9 @@
 package com.ai.agent.real.contract.spec;
 
 import com.ai.agent.real.contract.exception.*;
+import com.ai.agent.real.contract.protocol.*;
+import reactor.core.publisher.*;
+import reactor.core.scheduler.*;
 
 
 /**
@@ -26,13 +29,26 @@ public interface AgentTool {
     ToolSpec getSpec();
 
     /**
-     * 执行工具的操作。
+     * execute tool
      *
      * @param ctx  上下文
      * @return 工具执行结果
      * @throws ToolException 工具执行异常
      */
-    ToolResult<?> execute(AgentContext ctx) throws ToolException;
-    
+    ToolResult<?> execute(AgentContext<Object> ctx) throws ToolException;
+
+    /**
+     * execute tool async
+     *
+     * @param ctx 上下文
+     * @return 工具执行结果
+     * @throws ToolException 工具执行异常
+     */
+    default Mono<? extends ToolResult<?>> executeAsync(AgentContext<Object> ctx) throws ToolException {
+        return Mono.fromCallable(() -> (ToolResult<?>) this.execute(ctx))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+
 
 }

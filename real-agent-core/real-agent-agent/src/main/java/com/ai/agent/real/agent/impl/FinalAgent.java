@@ -12,6 +12,8 @@ import reactor.core.publisher.*;
 
 import java.util.*;
 
+import static com.ai.agent.real.common.constant.NounConstants.FINAL_AGENT_ID;
+
 /**
  * @author han
  * @time 2025/9/9 14:40
@@ -20,7 +22,7 @@ import java.util.*;
 @Slf4j
 public class FinalAgent extends Agent {
 
-    public static final String AGENT_ID = "FinalAgent";
+    public static final String AGENT_ID = FINAL_AGENT_ID;
     private final String SYSTEM_PROMPT = """
             你是一个负责最终结果输出的AI助手。
             你的职责是：

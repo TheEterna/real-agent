@@ -1,6 +1,9 @@
 package com.ai.agent.real.application.tool;
 
 import com.ai.agent.real.common.utils.*;
+import com.ai.agent.real.contract.exception.*;
+import com.ai.agent.real.contract.protocol.*;
+import com.ai.agent.real.contract.protocol.ToolResult.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import io.modelcontextprotocol.client.*;
@@ -36,11 +39,9 @@ public class ToolServiceImpl implements ToolService {
 
 
     /**
-     * async mcp tools
+     * async mcp tool clients
      * @param toolService
      */
-
-
     private final List<McpAsyncClient> mcpAsyncClients;
 
     /**
@@ -123,6 +124,7 @@ public class ToolServiceImpl implements ToolService {
         if (tool == null || tool.getSpec().getName() == null) {
             return;
         }
+
         tools.put(tool.getSpec().getName(), tool);
     }
 
@@ -144,8 +146,15 @@ public class ToolServiceImpl implements ToolService {
      * get tool by name
      */
     @Override
-    public AgentTool get(String name) {
+    public AgentTool getByName(String name) {
         return tools.get(name);
+    }
+    /**
+     * get tool by id
+     */
+    @Override
+    public AgentTool getById(String id) {
+        return tools.get(id);
     }
 
     /**
@@ -207,22 +216,46 @@ public class ToolServiceImpl implements ToolService {
     }
 
 
+
+
+    /**
+     * execute tool Async
+     *
+     * @param toolName
+     * @return
+     */
+    public Mono<ToolResult<?>> executeToolAsync(String toolName, AgentContext agentContext) {
+
+//        DefaultToolCallingManager toolCallingManager = ToolCallingManager.builder().build();
+
+        AgentTool tool = this.getByName(toolName);
+        if (tool == null) {
+            return Mono.just(ToolResult.error(ToolResultCode.TOOL_NOT_FOUND, "工具不存在", toolName));
+        }
+        try{
+            return tool.executeAsync(agentContext);
+        } catch (ToolException ex){
+            return Mono.just(ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, ex.getMessage(), toolName));
+        }
+    }
+
+
     /**
      * 根据关键词获取可用工具
      */
     @Override
     public List<AgentTool> getToolsByKeywords(Set<String> keywords) {
-        Set<String> matchedToolNames = new HashSet<>();
+        Set<String> matchedToolIds = new HashSet<>();
 
         for (String keyword : keywords) {
             Set<String> tools = keywordToTools.get(keyword.toLowerCase());
             if (tools != null) {
-                matchedToolNames.addAll(tools);
+                matchedToolIds.addAll(tools);
             }
         }
 
-        return matchedToolNames.stream()
-                .map(this::get)
+        return matchedToolIds.stream()
+                .map(this::getById)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

@@ -1,16 +1,21 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
 
 import com.ai.agent.real.common.utils.*;
+import com.ai.agent.real.contract.spec.AgentExecutionEvent.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.*;
 
 import java.util.*;
+
+import static com.ai.agent.real.common.constant.NounConstants.THINKING_AGENT_ID;
 
 /**
  * 思考Agent - 负责ReAct框架中的思考(Thinking)阶段
@@ -22,7 +27,7 @@ import java.util.*;
 @Slf4j
 public class ThinkingAgent extends Agent {
 
-    public static final String AGENT_ID = "ThinkingAgent";
+    public static final String AGENT_ID = THINKING_AGENT_ID;
     
     private final String SYSTEM_PROMPT = """
             你是一个专门负责思考和分析的AI助手。
@@ -44,13 +49,15 @@ public class ThinkingAgent extends Agent {
      * 构造函数
      */
     public ThinkingAgent(ChatModel chatModel,
-                          ToolService toolService) {
+                          ToolService toolService,
+                         ToolApprovalMode toolApprovalMode) {
         super(AGENT_ID,
                 "ReActAgentStrategy-ThinkingAgent",
                 "ReAct框架里的思考agent",
                 chatModel,
                 toolService,
-                Set.of("ReActAgentStrategy", "thinking", "思考"));
+                Set.of("ReActAgentStrategy", "thinking", "思考"),
+                toolApprovalMode);
         this.setCapabilities(new String[]{"ReActAgentStrategy", "thinking", "思考"});
     }
 
@@ -109,38 +116,29 @@ public class ThinkingAgent extends Agent {
                     thinkingPrompt
             );
 
-            // 流式调用LLM
-            return chatModel.stream(prompt)
-                    .concatMap(response -> {
-                        String content = response.getResult().getOutput().getText();
-                        List<AgentExecutionEvent> events = new ArrayList<>();
-
-
-                        if (ToolUtils.hasToolCallingNative(response)) {
-                            events.add(AgentExecutionEvent.tool(context, content));
-                        } else if (!content.trim().isEmpty()) {
-                            log.debug("ThinkingAgent流式输出: {}", content);
-                            events.add(AgentExecutionEvent.thinking(context, content));
-                        }
-
-
-                        return Flux.fromIterable(events);
-                    })
-                    .doOnNext(content -> log.debug("ThinkingAgent流式输出: {}", content))
-                    .doOnError(e -> log.error("ThinkingAgent流式执行异常", e))
-                    .onErrorResume(e -> {
-                        // handle error
-                        return Flux.just(AgentExecutionEvent.error("ThinkingAgent流式执行异常"));
-                    })
-                    .doOnComplete(() -> {
-                        log.debug("ThinkingAgent流式分析完成");
-                        // after handle
-                        afterHandle(context);
-                    })
-                    .doFinally(signalType -> {
-                        // after handle
-                        log.debug("ThinkingAgent流式分析结束，信号类型: {}", signalType);
-                    });
+            // 使用通用的工具支持方法
+            return FluxUtils.executeWithToolSupport(
+                    chatModel,
+                    prompt,
+                    context,
+                    AGENT_ID,
+                    toolService,
+                    toolApprovalMode,
+                    EventType.THINKING
+            )
+            .doOnNext(content -> log.debug("ThinkingAgent流式输出: {}", content))
+            .doOnError(e -> log.error("ThinkingAgent流式执行异常", e))
+            .onErrorResume(e -> {
+                // handle error
+                return Flux.just(AgentExecutionEvent.error("ThinkingAgent流式执行异常"));
+            })
+            .doOnComplete(() -> {
+                afterHandle(context);
+            })
+            .doFinally(signalType -> {
+                // after handle
+                log.debug("ThinkingAgent流式分析结束，信号类型: {}", signalType);
+            });
 
 
         } catch (Exception e) {

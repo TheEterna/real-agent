@@ -1,5 +1,7 @@
 package com.ai.agent.real.contract.spec.message;
 
+import com.fasterxml.jackson.core.type.*;
+import com.fasterxml.jackson.databind.*;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import lombok.Data;
@@ -22,49 +24,6 @@ import java.util.Map;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AgentMessage implements Message {
-
-    /**
-     * 消息类型枚举，扩展Spring AI的MessageType
-     */
-    public enum AgentMessageType {
-        // Spring AI标准类型
-        SYSTEM("system"),
-        USER("user"),
-        ASSISTANT("assistant"),
-        TOOL("tool"),
-
-        // Agent系统扩展类型
-        THINKING("thinking"),    // 思考阶段消息
-        ACTION("action"),       // 行动阶段消息
-        OBSERVING("observing"), // 观察阶段消息
-        REFLECTION("reflection"), // 反思消息
-        COLLABORATION("collaboration"), // 协作消息
-        ERROR("error"),      // 错误消息
-        DONE("done");         // 结束消息
-
-        private final String value;
-
-        AgentMessageType(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        /**
-         * 转换为Spring AI的MessageType
-         */
-        public MessageType toSpringAIMessageType() {
-            switch (this) {
-                case SYSTEM: return MessageType.SYSTEM;
-                case USER: return MessageType.USER;
-                case TOOL: return MessageType.TOOL;
-                case ASSISTANT: return MessageType.ASSISTANT;
-                default: return MessageType.ASSISTANT;
-            }
-        }
-    }
 
     /**
      * 消息内容
@@ -99,6 +58,16 @@ public class AgentMessage implements Message {
     /**
      * 构造函数 - 创建基本消息
      */
+    public AgentMessage(String content, AgentMessageType messageType, String senderId, Map<String, Object> metadata) {
+        this.content = content;
+        this.messageType = messageType;
+        this.timestamp = LocalDateTime.now();
+        this.senderId = senderId;
+        this.metadata = metadata;
+    }
+    /**
+     * 构造函数 - 创建基本消息
+     */
     public AgentMessage(String content, AgentMessageType messageType, String senderId) {
         this.content = content;
         this.messageType = messageType;
@@ -108,13 +77,14 @@ public class AgentMessage implements Message {
     }
 
 
+    @Override
     public String getText() {
         return content;
     }
 
     @Override
     public Map<String, Object> getMetadata() {
-        return metadata == null ? Map.of() : metadata;
+        return metadata;
     }
 
 
@@ -190,8 +160,8 @@ public class AgentMessage implements Message {
     /**
      * 创建工具消息
      */
-    public static AgentMessage tool(String content, String toolId) {
-        return new AgentMessage(content, AgentMessageType.TOOL, toolId);
+    public static AgentMessage tool(String content, String agentId, Map<String, Object> metadata) {
+        return new AgentMessage(content, AgentMessageType.TOOL, agentId, metadata);
     }
 
 
@@ -228,5 +198,53 @@ public class AgentMessage implements Message {
 //            default: return messageType.getValue();
 //        }
 //    }
+
+    /**
+     * 消息类型枚举，扩展Spring AI的MessageType
+     */
+    public enum AgentMessageType {
+        // Spring AI标准类型
+        SYSTEM("system"),
+        USER("user"),
+        ASSISTANT("assistant"),
+        TOOL("tool"),
+
+        // Agent系统扩展类型
+        THINKING("thinking"),    // 思考阶段消息
+        ACTION("action"),       // 行动阶段消息
+        OBSERVING("observing"), // 观察阶段消息
+        REFLECTION("reflection"), // 反思消息
+        COLLABORATION("collaboration"), // 协作消息
+        ERROR("error"),      // 错误消息
+        DONE("done");         // 结束消息
+
+        private final String value;
+
+        AgentMessageType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        /**
+         * 转换为Spring AI的MessageType
+         * 使用 if-else 替代 switch 以避免潜在的匿名内部类生成（如 AgentMessage$1）
+         */
+        public MessageType toSpringAIMessageType() {
+            if (this == SYSTEM) {
+                return MessageType.SYSTEM;
+            } else if (this == USER) {
+                return MessageType.USER;
+            } else if (this == TOOL) {
+                return MessageType.TOOL;
+            } else if (this == ASSISTANT) {
+                return MessageType.ASSISTANT;
+            } else {
+                return MessageType.ASSISTANT;
+            }
+        }
+    }
 
 }

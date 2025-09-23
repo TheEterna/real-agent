@@ -38,10 +38,6 @@ public class ToolBeanConfig {
         return toolService;
     }
 
-    @Bean
-    public ToolExecutionServiceImpl toolExecutionService(ToolService toolService,
-                                                         List<McpAsyncClient> mcpAsyncClients) {
-        return new ToolExecutionServiceImpl(toolService, mcpAsyncClients);
-    }
+
 
 }

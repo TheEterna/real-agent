@@ -1,6 +1,7 @@
 package com.ai.agent.real.contract.spec;
 
 import com.ai.agent.real.contract.spec.logging.*;
+import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 
 /**
  * Agent执行事件
@@ -9,6 +10,10 @@ import com.ai.agent.real.contract.spec.logging.*;
 public class AgentExecutionEvent extends TraceInfo {
 
     private final EventType type;
+
+    /**
+     * message, 当事件类型为tool时, message为 toolName
+     */
     private final String message;
     private final Object data;
 
@@ -35,6 +40,10 @@ public class AgentExecutionEvent extends TraceInfo {
         return new AgentExecutionEvent(EventType.PROGRESS, message, progress, null);
     }
 
+    public static AgentExecutionEvent toolApproval(Traceable traceInfo, String message, Object data) {
+        return new AgentExecutionEvent(EventType.TOOL_APPROVAL, message, data, traceInfo);
+    }
+
     public static AgentExecutionEvent agentSelected(Traceable traceInfo, String message) {
         return new AgentExecutionEvent(EventType.AGENT_SELECTED, message, null, traceInfo);
     }
@@ -46,8 +55,9 @@ public class AgentExecutionEvent extends TraceInfo {
     public static AgentExecutionEvent action(Traceable traceInfo, String action) {
         return new AgentExecutionEvent(EventType.ACTING, action, null, traceInfo);
     }
-    public static AgentExecutionEvent tool(Traceable traceInfo, String action) {
-        return new AgentExecutionEvent(EventType.TOOL, action, null, traceInfo);
+
+    public static AgentExecutionEvent tool(Traceable traceInfo, ToolResponse toolResponse, String message) {
+        return new AgentExecutionEvent(EventType.TOOL, message, toolResponse, traceInfo);
     }
 
     public static AgentExecutionEvent observing(Traceable traceInfo, String observation) {
@@ -107,8 +117,8 @@ public class AgentExecutionEvent extends TraceInfo {
         EXECUTING,      // 执行中
         ERROR,          // 执行错误
         TOOL,          // 工具调用
-        DONEWITHWARNING; // 执行完成，有警告
-
+        DONEWITHWARNING, // 执行完成，有警告
+        TOOL_APPROVAL, // 工具审批
 
     }
 

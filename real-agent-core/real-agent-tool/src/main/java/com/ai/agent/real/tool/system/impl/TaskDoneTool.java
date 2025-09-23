@@ -1,6 +1,7 @@
 package com.ai.agent.real.tool.system.impl;
 
 import com.ai.agent.real.contract.exception.ToolException;
+import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.spec.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +21,8 @@ public class TaskDoneTool implements AgentTool {
     private final ToolSpec spec = new ToolSpec()
             .setName(TASK_DONE)
             .setDescription("标记任务已完成")
-            .setCategory("system");
+            .setCategory("system")
+            .setInputSchemaClass(Void.class);
 
     /**
      * 获取工具的唯一标识, 如果重复, 会抛出异常
@@ -38,10 +40,20 @@ public class TaskDoneTool implements AgentTool {
         return spec;
     }
 
+    /**
+     * 执行工具的操作。
+     *
+     * @param ctx 上下文
+     * @return 工具执行结果
+     * @throws ToolException 工具执行异常
+     */
+
+
     @Override
-    public ToolResult<String> execute(AgentContext ctx) throws ToolException {
+    public ToolResult<?> execute(AgentContext<Object> ctx) throws ToolException {
 
         return ToolResult.ok(TASK_DONE, 0, getId());
     }
+
 
 }

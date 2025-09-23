@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent;
 
+import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import lombok.*;
@@ -60,9 +61,44 @@ public abstract class Agent {
 
     protected ToolService toolService;
 
+    protected ToolApprovalMode toolApprovalMode;
+
     public Agent() {
 
     }
+
+
+    /**
+     * 构造函数
+     */
+    protected Agent(String agentId,
+                 String agentName,
+                 String description,
+                 ChatModel chatModel,
+                 ToolService toolService,
+                 Set<String> keywords,
+                 ToolApprovalMode toolApprovalMode) {
+        this.agentId = agentId;
+        this.agentName = agentName;
+        this.description = description;
+        this.chatModel = chatModel;
+        this.toolService = toolService;
+        this.keywords = keywords;
+        // 需要使用 toolService 去判断有没有工具
+        this.availableTools = toolService.getToolsByKeywords(this.keywords);
+        this.toolApprovalMode = toolApprovalMode != null ? toolApprovalMode : ToolApprovalMode.AUTO;
+
+//        if (toolList.isEmpty()) {
+//            log.warn("Agent[{}] 没有可用的工具", agentId);
+//        } else {
+//            // 构造 tool 提示词
+//            this.SYSTEM_PROMPT += "你可以根据场景判断是否使用工具, 你可以使用以下工具来处理任务：\n";
+//            for (AgentTool tool : toolList) {
+//                this.SYSTEM_PROMPT += "- " + tool.getSpec().getName() + ": " + tool.getSpec().getDescription() + "\n";
+//            }
+//        }
+    }
+
     /**
      * 构造函数
      */
@@ -80,6 +116,8 @@ public abstract class Agent {
         this.keywords = keywords;
         // 需要使用 toolService 去判断有没有工具
         this.availableTools = toolService.getToolsByKeywords(this.keywords);
+        this.toolApprovalMode = ToolApprovalMode.AUTO;
+
 //        if (toolList.isEmpty()) {
 //            log.warn("Agent[{}] 没有可用的工具", agentId);
 //        } else {

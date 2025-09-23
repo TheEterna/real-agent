@@ -1,6 +1,7 @@
 package com.ai.agent.real.tool.system.impl.MathEvalTool;
 
 import com.ai.agent.real.contract.exception.*;
+import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.spec.*;
 import org.springframework.ai.tool.annotation.*;
 
@@ -41,4 +42,6 @@ public class MathEvalTool implements AgentTool {
 //        }
         return ToolResult.ok("暂未开发", 0, getId());
     }
+
+
 }

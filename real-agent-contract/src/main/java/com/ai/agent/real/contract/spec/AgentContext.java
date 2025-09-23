@@ -7,6 +7,8 @@ import lombok.experimental.*;
 
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 import java.util.stream.*;
 
 
@@ -17,7 +19,7 @@ import java.util.stream.*;
  */
 @Data
 @Accessors(chain = true)
-public class AgentContext implements Traceable {
+public class AgentContext<T> implements Traceable {
 
     /**
      * 组合的追踪信息对象（推荐使用）
@@ -27,7 +29,7 @@ public class AgentContext implements Traceable {
     /**
      * 工具执行的参数
      */
-    private Map<String, Object> toolArgs;
+    private T toolArgs;
 
     /**
      * 对话历史记录 - 使用结构化消息列表
@@ -42,15 +44,15 @@ public class AgentContext implements Traceable {
     /**
      * 任务完成状态
      */
-    private boolean taskCompleted = false;
+    private AtomicBoolean taskCompleted = new AtomicBoolean(false);
 
     /**
      * 构造函数
      */
     public AgentContext() {
-        this.toolArgs = new HashMap<>();
+        this.toolArgs = null;
         this.trace = new TraceInfo();
-        this.conversationHistory = new ArrayList<>();
+        this.conversationHistory = new CopyOnWriteArrayList<>();
     }
 
 
@@ -64,7 +66,6 @@ public class AgentContext implements Traceable {
      * 添加消息到对话历史
      */
     public AgentContext addMessage(AgentMessage message) {
-
         this.conversationHistory.add(message);
         return this;
     }
@@ -76,45 +77,8 @@ public class AgentContext implements Traceable {
         this.conversationHistory.addAll(messages);
         return this;
     }
-    
-//    /**
-//     * 获取对话历史的字符串表示（兼容原有代码）
-//     */
-//    public String getConversationHistoryAsString() {
-//        StringBuilder sb = new StringBuilder();
-//        for (AgentMessage message : conversationHistory) {
-//            sb.append(message.toFormattedString()).append("\n");
-//        }
-//        return sb.toString();
-//    }
-    
-    /**
-     * 获取指定类型的消息
-     */
-    public List<AgentMessage> getMessagesByType(AgentMessage.AgentMessageType messageType) {
-        return conversationHistory.stream()
-                .filter(msg -> msg.getAgentMessageType() == messageType)
-                .collect(Collectors.toList());
-    }
-    
 
-    
-    /**
-     * 获取最近N条消息
-     */
-    public List<AgentMessage> getRecentMessages(int count) {
-        int size = conversationHistory.size();
-        int fromIndex = Math.max(0, size - count);
-        return new ArrayList<>(conversationHistory.subList(fromIndex, size));
-    }
-    
-    /**
-     * 清空对话历史
-     */
-    public AgentContext clearConversationHistory() {
-        this.conversationHistory.clear();
-        return this;
-    }
+
     
     public int getCurrentIteration() {
         return currentIteration;
@@ -129,14 +93,34 @@ public class AgentContext implements Traceable {
      * 获取任务完成状态
      */
     public boolean isTaskCompleted() {
-        return taskCompleted;
+        return taskCompleted.get();
     }
     
     /**
      * 设置任务完成状态
      */
-    public AgentContext setTaskCompleted(boolean taskCompleted) {
+    public AgentContext setTaskCompleted(AtomicBoolean taskCompleted) {
         this.taskCompleted = taskCompleted;
+        return this;
+    }
+    /**
+     * 设置任务完成状态
+     */
+    public AgentContext setTaskCompleted(Boolean taskCompleted) {
+        this.taskCompleted.set(taskCompleted);
+        return this;
+    }
+
+    /**
+     * 链接任务完成标记引用：
+     * 将本上下文的 taskCompleted 原子布尔替换为入参上下文的同一引用，
+     * 以便多个阶段上下文对任务完成状态进行共享与联动。
+     * 注意：这是引用共享而非值拷贝。
+     */
+    public AgentContext linkTaskCompletedFrom(AgentContext<?> other) {
+        if (other != null && other.taskCompleted != null) {
+            this.taskCompleted = other.taskCompleted;
+        }
         return this;
     }
 
@@ -231,5 +215,30 @@ public class AgentContext implements Traceable {
         return this;
     }
 
+    public T getToolArgs() {
+        return toolArgs;
+    }
+
+    public AgentContext<T> setToolArgs(T toolArgs) {
+        this.toolArgs = toolArgs;
+        return this;
+    }
+
+    public <T> AgentContext<T> setToolArgsClass(Class<T> toolArgsClass) {
+        return (AgentContext<T>) this;
+    }
+
+
+
+    /**
+     * 创建一个包含工具参数的 AgentContext 对象
+     * @param toolArgs 工具参数
+     * @return 包含工具参数的 AgentContext 对象
+     */
+    public static AgentContext of(Map<String, Object> toolArgs) {
+        AgentContext agentContext = new AgentContext();
+        agentContext.setToolArgs(toolArgs);
+        return agentContext;
+    }
 
 }

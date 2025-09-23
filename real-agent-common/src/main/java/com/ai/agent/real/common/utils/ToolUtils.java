@@ -2,15 +2,12 @@ package com.ai.agent.real.common.utils;
 
 import com.ai.agent.real.common.constant.*;
 import com.ai.agent.real.contract.exception.*;
+import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.contract.spec.ToolSpec.*;
-import com.fasterxml.jackson.core.type.*;
-import com.fasterxml.jackson.databind.*;
 import io.modelcontextprotocol.client.*;
 import lombok.*;
-import org.springframework.ai.chat.messages.AssistantMessage.*;
 import org.springframework.ai.chat.model.*;
-import org.springframework.ai.mcp.*;
 import org.springframework.ai.model.*;
 import org.springframework.ai.tool.*;
 import org.springframework.ai.tool.metadata.*;
@@ -126,43 +123,34 @@ public class ToolUtils {
     /**
      * 执行工具调用
      */
-    public Object executeToolCall(ToolCall toolCall, AgentContext context, List<AgentTool> availableTools) throws ToolException {
-        String toolName = toolCall.name();
-        String arguments = toolCall.arguments();
-
-        // 查找对应的工具
-        AgentTool tool = availableTools.stream()
-                .filter(t -> toolName.equals(t.getSpec().getName()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("未找到工具: " + toolName));
-
-        // 将工具参数设置到上下文中
-        if (arguments != null && !arguments.trim().isEmpty()) {
-            try {
-                // 解析JSON参数并设置到context.args中
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> argsMap = mapper.readValue(arguments, Map.class);
-                context.getToolArgs().clear();
-                context.getToolArgs().putAll(argsMap);
-            } catch (Exception e) {
-//                log.warn("解析工具参数失败，使用原始字符串: {}", arguments, e);
-                context.getToolArgs().clear();
-                context.getToolArgs().put("input", arguments);
-            }
-        } else {
-            context.getToolArgs().clear();
-        }
-
-        // 执行工具
-        ToolResult result = tool.execute(context);
-
-        // 检查是否是任务完成工具
-        if (NounConstants.TASK_DONE.equals(toolName)) {
-            context.setTaskCompleted(true);
-        }
-
-        return result.getData();
-    }
+//    public Object executeToolCall(ToolCall toolCall, AgentContext context, List<AgentTool> availableTools) throws ToolException {
+//        String toolName = toolCall.name();
+//        String arguments = toolCall.arguments();
+//
+//        // 查找对应的工具
+//        AgentTool tool = availableTools.stream()
+//                .filter(t -> toolName.equals(t.getSpec().getName()))
+//                .findFirst()
+//                .orElseThrow(() -> new RuntimeException("未找到工具: " + toolName));
+//
+//        // 将工具参数设置到上下文中
+//        if (arguments != null && !arguments.trim().isEmpty()) {
+//                // 解析JSON参数并设置到context.args中
+//                ObjectMapper mapper = new ObjectMapper();
+//                Map<String, Object> argsMap = mapper.readValue(arguments, Map.class);
+//                context.setToolArgs(argsMap);
+//
+//        }
+//        // 执行工具
+//        ToolResult result = tool.execute(context);
+//
+//        // 检查是否是任务完成工具
+//        if (NounConstants.TASK_DONE.equals(toolName)) {
+//            context.setTaskCompleted(true);
+//        }
+//
+//        return result.getData();
+//    }
 
 
     /**
@@ -179,8 +167,10 @@ public class ToolUtils {
             toolCallbacks[i] = MethodToolCallback.builder()
                     .toolDefinition(
                             ToolDefinitions.builder(executeMethod)
+                                    // refer to some doc, tool name of function calling should not have actual meaning
                                     .name(agentTool.getSpec().getName())
                                     .description(agentTool.getSpec().getDescription())
+                                    .inputSchema(agentTool.getSpec().getInputSchema())
                                     .build())
                         .toolMethod(executeMethod)
                         .toolObject(agentTool)
@@ -216,12 +206,13 @@ public class ToolUtils {
                                     McpToolSpec
                                             .builder()
                                             .server(((McpAsyncClient)ReflectionUtils.findField(toolCallback.getClass(), "mcpClient").get(toolCallback)).getServerInfo().name())
-                                            .server(((McpAsyncClient)ReflectionUtils.findField(toolCallback.getClass(), "mcpClient").get(toolCallback)).getClientInfo().name())
+                                            // 去除 mcpAsyncClient.getClientInfo().name() 里的最后一个 " - " + mcpAsyncClient.getServerInfo().name()
+                                            .client(((McpAsyncClient)ReflectionUtils.findField(toolCallback.getClass(), "mcpClient").get(toolCallback)).getClientInfo().name())
                                             .build());
                 }
 
                 @Override
-                public ToolResult<String> execute(AgentContext ctx) throws ToolException {
+                public ToolResult<String> execute(AgentContext<Object> ctx) throws ToolException {
                     try {
                         long l = System.currentTimeMillis();
                         String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
@@ -231,6 +222,7 @@ public class ToolUtils {
                     }
                 }
 
+
             };
             agentTools.add(agentTool);
         }
@@ -238,19 +230,6 @@ public class ToolUtils {
     }
 
 
-
-    /**
-     * 通过spring 源码 逆向出解决方案
-     * @param name
-     * @return
-     */
-    private static String exactPrefixedName(String name) {
-        int index = name.indexOf(".");
-        if (index > 0) {
-            return name.substring(index + 1);
-        }
-        return name;
-    }
 
     /**
      * convert toolCallback to AgentTool
@@ -267,8 +246,6 @@ public class ToolUtils {
 
                 @Override
                 public ToolSpec getSpec() {
-
-
                     return new ToolSpec()
                             .setName(toolCallback.getToolDefinition().name())
                             .setDescription(toolCallback.getToolDefinition().description())
@@ -286,13 +263,14 @@ public class ToolUtils {
                 @Override
                 public ToolResult<String> execute(AgentContext ctx) throws ToolException {
                     try {
-                        long l = System.currentTimeMillis();
+                        long startTime = System.currentTimeMillis();
                         String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
-                        return ToolResult.ok(result, l - System.currentTimeMillis(), String.valueOf(this.getId()));
+                        return ToolResult.ok(result, startTime - System.currentTimeMillis(), this.getId());
                     } catch (Exception e) {
                         throw new ToolException("Tool execution failed", e);
                     }
                 }
+
 
             };
     }

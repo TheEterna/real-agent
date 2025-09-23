@@ -1,168 +1,169 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.ai.agent</groupId>
-  <artifactId>real-agent</artifactId>
-  <version>0.0.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
+    <groupId>com.ai.agent</groupId>
+    <artifactId>real-agent</artifactId>
+    <version>0.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-  <url>https://github.com/TheEterna/real-agent</url>
+    <url>https://github.com/TheEterna/real-agent</url>
 
-  <modules>
-    <module>real-agent-web</module>
-    <module>real-agent-common</module>
-    <module>real-agent-contract</module>
-    <module>real-agent-core</module>
-    <module>real-agent-application</module>
-  </modules>
+    <modules>
+        <module>real-agent-web</module>
+        <module>real-agent-common</module>
+        <module>real-agent-contract</module>
+        <module>real-agent-core</module>
+        <module>real-agent-application</module>
+    </modules>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-ai.version>1.1.0-SNAPSHOT</spring-ai.version>
-    <mcp.version>0.13.0-SNAPSHOT</mcp.version>
-    <project.version>0.0.0-SNAPSHOT</project.version>
-    <spring-boot.version>3.4.4</spring-boot.version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-ai.version>1.1.0-SNAPSHOT</spring-ai.version>
+        <mcp.version>0.11.0</mcp.version>
+        <project.version>0.0.0-SNAPSHOT</project.version>
+        <spring-boot.version>3.4.4</spring-boot.version>
 
-    <r2dbc.version>1.0.5</r2dbc.version>
-    <server2mcp.version>1.1.0-SNAPSHOT</server2mcp.version>
+        <r2dbc.version>1.0.5</r2dbc.version>
+        <server2mcp.version>1.1.0-SNAPSHOT</server2mcp.version>
 
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
 
-  </properties>
-
-
-  <repositories>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>https://repo.spring.io/milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
-    <repository>
-      <id>spring-snapshots</id>
-      <name>Spring Snapshots</name>
-      <url>https://repo.spring.io/snapshot</url>
-
-    </repository>
-    <repository>
-      <name>Central Portal Snapshots</name>
-      <id>central-portal-snapshots</id>
-      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-
-    </repository>
-  </repositories>
+    </properties>
 
 
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.ai.agent</groupId>
-        <artifactId>real-agent-tool</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
 
-      <dependency>
-        <groupId>com.ai.agent</groupId>
-        <artifactId>real-agent-agent</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+        </repository>
+        <repository>
+            <name>Central Portal Snapshots</name>
+            <id>central-portal-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
 
-      <dependency>
-        <groupId>com.ai.agent</groupId>
-        <artifactId>real-agent-common</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.ai.agent</groupId>
-        <artifactId>real-agent-contract</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.ai.agent</groupId>
-        <artifactId>real-agent-application</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+        </repository>
+    </repositories>
 
 
-      <dependency>
-        <groupId>com.alibaba.cloud.ai</groupId>
-        <artifactId>spring-ai-alibaba-bom</artifactId>
-        <version>1.0.0.2</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
 
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-tool</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
+            <dependency>
+                <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>io.modelcontextprotocol.sdk</groupId>
-        <artifactId>mcp-bom</artifactId>
-        <version>${mcp.version}</version>
-      </dependency>
+            <dependency>
+                <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
+            <dependency>
+                <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-contract</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-      <dependency>
-        <groupId>org.springframework.ai</groupId>
-        <artifactId>spring-ai-bom</artifactId>
-        <version>${spring-ai.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-
-    </dependencies>
+            <dependency>
+                <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-application</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
 
-  </dependencyManagement>
+            <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-bom</artifactId>
+                <version>1.0.0.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
 
-  <build>
-    <plugins>
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-bom</artifactId>
+                <version>${mcp.version}</version>
+            </dependency>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.source}</target>
-          <compilerArgs><arg>-parameters</arg></compilerArgs>
-        </configuration>
-      </plugin>
 
-      <!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--        <version>3.3.0</version>-->
-<!--        <configuration>-->
-<!--          <configLocation>checkstyle.xml</configLocation> &lt;!&ndash; 自定义规则文件 &ndash;&gt;-->
-<!--          <failOnViolation>true</failOnViolation> &lt;!&ndash; 违规时构建失败 &ndash;&gt;-->
-<!--        </configuration>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <goals>-->
-<!--              <goal>check</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
-    </plugins>
-  </build>
+
+        </dependencies>
+
+
+    </dependencyManagement>
+
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.source}</target>
+                    <compilerArgs><arg>-parameters</arg></compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!--      <plugin>-->
+            <!--        <groupId>org.apache.maven.plugins</groupId>-->
+            <!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
+            <!--        <version>3.3.0</version>-->
+            <!--        <configuration>-->
+            <!--          <configLocation>checkstyle.xml</configLocation> &lt;!&ndash; 自定义规则文件 &ndash;&gt;-->
+            <!--          <failOnViolation>true</failOnViolation> &lt;!&ndash; 违规时构建失败 &ndash;&gt;-->
+            <!--        </configuration>-->
+            <!--        <executions>-->
+            <!--          <execution>-->
+            <!--            <goals>-->
+            <!--              <goal>check</goal>-->
+            <!--            </goals>-->
+            <!--          </execution>-->
+            <!--        </executions>-->
+            <!--      </plugin>-->
+
+
+        </plugins>
+    </build>
 
 </project>

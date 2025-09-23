@@ -1,5 +1,6 @@
 package com.ai.agent.real.contract.service;
 
+import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.spec.*;
 import reactor.core.publisher.*;
 
@@ -33,9 +34,13 @@ public interface ToolService {
     Mono<List<AgentTool>> listAllMCPToolsAsync();
 
     /**
+     * 根据id获取工具
+     */
+    AgentTool getById(String id);
+    /**
      * 根据名称获取工具
      */
-    AgentTool get(String name);
+    AgentTool getByName(String name);
 
     /**
      * 获取所有注册的工具
@@ -64,7 +69,11 @@ public interface ToolService {
     boolean registerToolsWithKeywords(List<AgentTool> tools, Set<String> keywords);
 
 
-
-
-
+    /**
+     *  execute tool
+     * @param toolId
+     * @param agentContext
+     * @return
+     */
+    Mono<ToolResult<?>> executeToolAsync(String toolId, AgentContext agentContext);
 }
