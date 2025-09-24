@@ -2,8 +2,9 @@ package com.ai.agent.real.web.controller;
 
 
 import com.ai.agent.real.agent.strategy.*;
+import com.ai.agent.real.common.spec.logging.*;
 import com.ai.agent.real.contract.spec.AgentContext;
-import com.ai.agent.real.contract.spec.AgentExecutionEvent;
+import com.ai.agent.real.common.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.spec.message.AgentMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -42,7 +43,7 @@ public class AgentChatController {
 
         try {
             // 创建执行上下文
-            AgentContext context = new AgentContext()
+            AgentContext context = new AgentContext(new TraceInfo())
                     .setSessionId(request.getSessionId())
                     .setTraceId(generateTraceId())
                     .setStartTime(LocalDateTime.now());
@@ -55,8 +56,6 @@ public class AgentChatController {
                         log.error("ReAct执行异常(流内)", error);
                         return Flux.just(AgentExecutionEvent.error(error));
                     })
-                    .concatWith(Flux.just(AgentExecutionEvent.done("任务执行完成，结束时间: " + LocalDateTime.now())))
-//                    .doOnNext(event -> log.debug("ReAct事件: {}", event))
                     .doOnError(error -> log.error("ReAct执行异常", error))
                     .doOnComplete(() -> {
                         context.setEndTime(LocalDateTime.now());

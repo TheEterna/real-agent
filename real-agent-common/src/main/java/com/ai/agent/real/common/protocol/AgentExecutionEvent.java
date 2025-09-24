@@ -1,5 +1,6 @@
-package com.ai.agent.real.contract.spec;
+package com.ai.agent.real.common.protocol;
 
+import com.ai.agent.real.common.spec.logging.*;
 import com.ai.agent.real.contract.spec.logging.*;
 import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 
@@ -36,8 +37,14 @@ public class AgentExecutionEvent extends TraceInfo {
         return new AgentExecutionEvent(EventType.STARTED, message, null, null);
     }
 
-    public static AgentExecutionEvent progress(String message, double progress) {
-        return new AgentExecutionEvent(EventType.PROGRESS, message, progress, null);
+    public static AgentExecutionEvent progress(Traceable traceInfo, String message, Object data) {
+
+        // cause enter each node before entering each node, so we can safely assign values here.
+        // cause 进入每个节点前都会对context进行 copy, filter操作, 所以这里可以大胆赋值
+
+        traceInfo.setNodeId(traceInfo.getNodeId());
+        traceInfo.setAgentId("progress");
+        return new AgentExecutionEvent(EventType.PROGRESS, message, data, traceInfo);
     }
 
     public static AgentExecutionEvent toolApproval(Traceable traceInfo, String message, Object data) {

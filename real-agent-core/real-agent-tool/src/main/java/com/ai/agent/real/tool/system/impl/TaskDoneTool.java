@@ -20,7 +20,7 @@ public class TaskDoneTool implements AgentTool {
     private final String id = "task_done";
     private final ToolSpec spec = new ToolSpec()
             .setName(TASK_DONE)
-            .setDescription("标记任务已完成")
+            .setDescription("当目前的返回结果足以满足用户需求, 则调用此工具标记任务已完成")
             .setCategory("system")
             .setInputSchemaClass(Void.class);
 

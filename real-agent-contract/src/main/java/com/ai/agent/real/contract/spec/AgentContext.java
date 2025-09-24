@@ -24,7 +24,7 @@ public class AgentContext<T> implements Traceable {
     /**
      * 组合的追踪信息对象（推荐使用）
      */
-    private TraceInfo trace;
+    private Traceable trace;
 
     /**
      * 工具执行的参数
@@ -49,9 +49,9 @@ public class AgentContext<T> implements Traceable {
     /**
      * 构造函数
      */
-    public AgentContext() {
+    public AgentContext(Traceable trace) {
         this.toolArgs = null;
-        this.trace = new TraceInfo();
+        this.trace = trace;
         this.conversationHistory = new CopyOnWriteArrayList<>();
     }
 
@@ -66,6 +66,7 @@ public class AgentContext<T> implements Traceable {
      * 添加消息到对话历史
      */
     public AgentContext addMessage(AgentMessage message) {
+        message.setContent( "[" + message.getSenderId() + "] " + message.getText());
         this.conversationHistory.add(message);
         return this;
     }
@@ -124,11 +125,11 @@ public class AgentContext<T> implements Traceable {
         return this;
     }
 
-    public TraceInfo getTrace() {
+    public Traceable getTrace() {
         return trace;
     }
 
-    public AgentContext setTrace(TraceInfo trace) {
+    public AgentContext setTrace(Traceable trace) {
         this.trace = trace;
         return this;
     }
@@ -235,8 +236,8 @@ public class AgentContext<T> implements Traceable {
      * @param toolArgs 工具参数
      * @return 包含工具参数的 AgentContext 对象
      */
-    public static AgentContext of(Map<String, Object> toolArgs) {
-        AgentContext agentContext = new AgentContext();
+    public static AgentContext of(Map<String, Object> toolArgs, Traceable trace) {
+        AgentContext agentContext = new AgentContext(trace);
         agentContext.setToolArgs(toolArgs);
         return agentContext;
     }

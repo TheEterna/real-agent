@@ -6,10 +6,11 @@ import com.ai.agent.real.agent.impl.FinalAgent;
 import com.ai.agent.real.agent.impl.ObservationAgent;
 import com.ai.agent.real.agent.impl.ThinkingAgent;
 import com.ai.agent.real.common.constant.*;
+import com.ai.agent.real.common.protocol.*;
+import com.ai.agent.real.common.spec.logging.*;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.spec.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.model.*;
 import reactor.core.publisher.*;
 
 import java.util.*;
@@ -68,7 +69,7 @@ public class ReActAgentStrategy implements AgentStrategy {
         
         return Flux.concat(
             // 发送开始事件（携带上下文trace信息）
-            Flux.just(AgentExecutionEvent.executing(context, "ReAct任务开始执行")),
+            Flux.just(AgentExecutionEvent.progress(context, "ReAct任务开始执行", null)),
             
             // 执行ReAct循环
             Flux.range(1, MAX_ITERATIONS)
@@ -109,8 +110,6 @@ public class ReActAgentStrategy implements AgentStrategy {
             return false;
         }
         return "DONE".equals(event.getType().toString());
-//        return "DONE".equals(event.getType().toString()) ||
-//               (event.getMessage() != null && event.getMessage().contains(TASK_DONE));
     }
     
     /**
@@ -124,8 +123,7 @@ public class ReActAgentStrategy implements AgentStrategy {
         log.info("[CTX/ITER {}] 思考阶段-开始 | {}", iteration, snapshot(context));
         return Flux.concat(
             // 发送进度事件（使用executing并携带trace信息，避免SSE字段为空）
-            Flux.just(AgentExecutionEvent.executing(context,
-                "ReAct循环第" + iteration + "轮，进度：" + ((double) iteration / MAX_ITERATIONS))),
+            Flux.just(AgentExecutionEvent.progress(context, "ReAct循环第" + iteration + "轮", null)),
             
             // 1. 思考阶段（封装：上下文合并 + 日志回调）
             Flux.defer(() -> {
@@ -184,7 +182,7 @@ public class ReActAgentStrategy implements AgentStrategy {
      * 为Agent创建独立的执行上下文副本
      */
     private AgentContext createAgentContext(AgentContext originalContext, String agentId) {
-        AgentContext newContext = new AgentContext();
+        AgentContext newContext = new AgentContext(new TraceInfo());
 
 
         // 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象

@@ -1,4 +1,6 @@
-package com.ai.agent.real.contract.spec.logging;
+package com.ai.agent.real.common.spec.logging;
+
+import com.ai.agent.real.contract.spec.logging.*;
 
 import java.time.*;
 

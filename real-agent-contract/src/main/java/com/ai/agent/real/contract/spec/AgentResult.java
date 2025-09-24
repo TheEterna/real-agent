@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.spec;
 
-import com.ai.agent.real.contract.spec.logging.TraceInfo;
+import com.ai.agent.real.contract.spec.logging.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -55,7 +55,7 @@ public class AgentResult {
     /**
      * 追踪信息
      */
-    private TraceInfo traceInfo;
+    private Traceable traceInfo;
 
     /**
      * 扩展元数据

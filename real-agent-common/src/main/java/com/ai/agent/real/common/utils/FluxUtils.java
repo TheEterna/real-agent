@@ -1,7 +1,8 @@
 package com.ai.agent.real.common.utils;
 
+import com.ai.agent.real.common.protocol.*;
 import com.ai.agent.real.contract.spec.*;
-import com.ai.agent.real.contract.spec.AgentExecutionEvent.*;
+import com.ai.agent.real.common.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.spec.message.*;
 import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.service.*;
@@ -14,8 +15,6 @@ import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.*;
-import org.springframework.ai.model.tool.*;
-import org.springframework.ai.support.*;
 import reactor.core.publisher.*;
 
 import java.util.*;

@@ -1,4 +1,4 @@
-package com.ai.agent.real.contract.protocol;
+package com.ai.agent.real.common.protocol;
 import java.io.Serializable;
 
 /**

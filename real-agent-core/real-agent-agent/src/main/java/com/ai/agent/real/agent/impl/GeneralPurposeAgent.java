@@ -1,5 +1,6 @@
 package com.ai.agent.real.agent.impl;
 
+import com.ai.agent.real.common.protocol.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.agent.Agent;
