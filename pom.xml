@@ -67,6 +67,7 @@
                 <version>${project.version}</version>
             </dependency>
 
+
             <dependency>
                 <groupId>com.ai.agent</groupId>
                 <artifactId>real-agent-agent</artifactId>
@@ -115,6 +116,11 @@
                 <version>${mcp.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dashscope-sdk-java</artifactId>
+                <version>2.20.9</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.springframework.ai</groupId>
