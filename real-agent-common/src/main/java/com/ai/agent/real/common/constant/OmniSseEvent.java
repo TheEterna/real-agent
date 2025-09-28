@@ -1,4 +1,4 @@
-package com.ai.agent.real.web.service;
+package com.ai.agent.real.common.constant;
 
 /**
  * Constants for SSE event names between backend and frontend.
@@ -6,7 +6,6 @@ package com.ai.agent.real.web.service;
  * @time 2025/9/25 0:01
  */
 public final class OmniSseEvent {
-    private OmniSseEvent() {}
     public static final String ASR_START = "asr_start";
 //    public static final String ASR_PARTIAL = "asr_partial";
     public static final String ASR_FINAL = "asr_final";

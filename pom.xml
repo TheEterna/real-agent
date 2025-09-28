@@ -15,6 +15,7 @@
         <module>real-agent-contract</module>
         <module>real-agent-core</module>
         <module>real-agent-application</module>
+        <module>real-agent-domain</module>
     </modules>
 
     <properties>
@@ -76,6 +77,15 @@
 
             <dependency>
                 <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ai.agent</groupId>
+                <artifactId>real-agent-domain</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>com.ai.agent</groupId>
                 <artifactId>real-agent-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -119,7 +129,7 @@
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>dashscope-sdk-java</artifactId>
-                <version>2.20.9</version>
+                <version>2.21.9</version>
             </dependency>
 
             <dependency>

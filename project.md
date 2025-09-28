@@ -106,3 +106,112 @@ springAi 进行了 封装, 封装代码如下:
 	}
 ```
 可使用optionsBuilder.internalToolExecutionEnabled(false); 使用原生方式, 不进行任何封装
+
+## 项目架构设计
+
+### 模块划分
+
+本项目采用 DDD（领域驱动设计）分层架构，各模块职责如下：
+
+#### real-agent-domain（领域层）
+- **职责**：核心业务实体和数据访问
+- **包含内容**：
+  - `entity/` - 实体类（User, PlaygroundRoleplayRole, PlaygroundRoleplaySession, PlaygroundRoleplaySessionMessage）
+  - `repository/` - 数据访问接口（R2DBC Repository）
+- **技术栈**：Spring Data R2DBC, Reactive Streams
+- **依赖关系**：仅依赖 real-agent-contract
+
+#### real-agent-application（应用层）
+- **职责**：业务逻辑编排和服务实现
+- **包含内容**：
+  - `service/` - 业务服务类（PlaygroundRoleplayRoleService, PlaygroundRoleplaySessionService, PlaygroundRoleplaySessionMessageService）
+  - `dto/` - 数据传输对象（Request/Response DTO）
+- **技术栈**：Spring Boot, Reactor
+- **依赖关系**：依赖 real-agent-domain, real-agent-common, real-agent-contract
+
+#### real-agent-common（通用层）
+- **职责**：通用工具和常量定义
+- **包含内容**：
+  - `util/` - 工具类（JsonUtils, StringUtils 等）
+  - `constant/` - 常量定义
+  - `exception/` - 自定义异常类
+- **技术栈**：Java 基础库, Jackson
+- **依赖关系**：无外部依赖
+
+#### real-agent-contract（契约层）
+- **职责**：接口规范和抽象定义
+- **包含内容**：
+  - `api/` - 接口定义
+  - `model/` - 抽象模型
+  - `enums/` - 枚举定义
+- **技术栈**：Java 接口
+- **依赖关系**：无外部依赖
+
+#### real-agent-core（核心层）
+- **职责**：系统核心功能模块
+- **说明**：该模块为系统核心，暂不涉及角色扮演功能开发
+
+#### real-agent-web（接入层）
+- **职责**：HTTP 接口和 Web 交互
+- **包含内容**：
+  - `controller/` - REST 控制器
+  - `config/` - Web 配置
+  - `interceptor/` - 拦截器
+- **技术栈**：Spring WebFlux, Spring Security
+- **依赖关系**：依赖 real-agent-application, real-agent-common
+
+### 数据库设计
+
+#### 表结构
+1. **users** - 用户基础信息表
+2. **playground_roleplay_roles** - 角色定义表
+3. **playground_roleplay_sessions** - 会话记录表  
+4. **playground_roleplay_session_messages** - 会话消息表
+
+#### 技术选型
+- **数据库**：MySQL 8.0+
+- **连接方式**：R2DBC（响应式数据库连接）
+- **ORM**：Spring Data R2DBC
+- **JSON 处理**：数据库 JSON 字段 + 应用层转换
+
+### API 设计规范
+
+#### RESTful 接口
+```
+# 角色管理
+GET    /api/roles                    # 查询角色列表
+GET    /api/roles/{id}               # 查询单个角色
+POST   /api/roles                    # 创建角色
+PUT    /api/roles/{id}               # 更新角色
+DELETE /api/roles/{id}               # 删除角色
+
+# 会话管理
+POST   /api/sessions                 # 创建会话
+GET    /api/sessions/{sessionCode}   # 查询会话详情
+POST   /api/sessions/{sessionCode}/messages  # 添加消息
+GET    /api/sessions/{sessionCode}/messages  # 查询消息历史
+PUT    /api/sessions/{sessionCode}/end       # 结束会话
+```
+
+#### 响应式编程
+- 所有 Service 方法返回 `Mono<T>` 或 `Flux<T>`
+- Controller 层支持 WebFlux 响应式接口
+- 数据库操作全部异步化
+
+### 开发规范
+
+#### 代码结构
+- 实体类使用 `@Builder` 模式
+- Repository 继承 `ReactiveCrudRepository`
+- Service 使用响应式链式调用
+- 统一异常处理和日志记录
+
+#### JSON 字段处理
+- 数据库存储：JSON 字段作为 VARCHAR 存储
+- 应用层转换：使用 JsonUtils 工具类进行 Map ↔ String 转换
+- 实体类设计：提供 `xxxStr` 持久化字段和 `xxx` 业务字段
+
+#### 前后端对接
+- 前端：Vue 3 + Axios
+- 后端：Spring WebFlux + R2DBC
+- 数据格式：统一 JSON 格式，支持响应式流

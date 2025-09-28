@@ -62,7 +62,7 @@ public class VoiceStreamWebSocketHandler implements WebSocketHandler {
         if (msg.getType() == WebSocketMessage.Type.BINARY) {
             byte[] bytes = new byte[msg.getPayload().readableByteCount()];
             msg.getPayload().read(bytes);
-            log.info("[ws] received audio data: {} bytes for session {}", bytes.length, sessionId);
+            log.debug("[ws] received audio data: {} bytes for session {}", bytes.length, sessionId);
             hub.appendPcm(sessionId, bytes);
         } else if (msg.getType() == WebSocketMessage.Type.TEXT) {
             String text = msg.getPayloadAsText();

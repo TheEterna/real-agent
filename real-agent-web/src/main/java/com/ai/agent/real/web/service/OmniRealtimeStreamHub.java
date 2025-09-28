@@ -1,12 +1,14 @@
 package com.ai.agent.real.web.service;
 
+import com.ai.agent.real.common.constant.*;
+import com.ai.agent.real.application.service.PlaygroundRoleplayRoleService;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeCallback;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeConfig;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeConversation;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeModality;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeParam;
 import com.google.gson.JsonObject;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,18 +16,17 @@ import org.springframework.http.codec.*;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.*;
 
 /**
  * Realtime streaming session hub for Route B:
  * - Manage Omni realtime conversations per sessionId
  * - Receive PCM frames (16k, mono, 16-bit LE) via WebSocket and forward to SDK
  * - Rely on enableTurnDetection(true) and input audio transcription
- * - Broadcast events to SSE subscribers with OmniSseEvent + SsePayloads
+ * - Broadcast events to SSE subscribers with OmniSseEvent
  * @author han
  * @time 2025/9/26 1:38
  */
@@ -35,7 +36,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class OmniRealtimeStreamHub {
 
     private final OmniProperties properties;
-    // 精简版本：去掉持久化服务
+    private final PlaygroundRoleplayRoleService roleService;
+    private final RoleSetupProvider roleSetupProvider;
+
 
     private final Map<String, SessionState> sessions = new ConcurrentHashMap<>();
 
@@ -102,26 +105,15 @@ public class OmniRealtimeStreamHub {
         if (model == null || model.isBlank()) {
             model = "qwen3-omni-flash-realtime";
         }
-
-        String voice = properties.getVoice();
-        if (voice == null || voice.isBlank()) {
-            voice = "Cherry";
-        }
-
         Sinks.Many<ServerSentEvent<String>> out = Sinks.many().multicast().onBackpressureBuffer();
-        StringBuilder llmText = new StringBuilder(); // 用于累积AI回复文本
 
-        // 按照官方示例，添加系统提示词
-        String rolePrompt = getRolePrompt(roleId);
-        String systemPrompt = String.format(
-            "你是%s，请始终使用中文回复。无论用户使用什么语言，你都必须用中文回答。", 
-            rolePrompt
-        );
+        // Accumulate AI reply text deltas for logging/flow control
+        final StringBuilder llmText = new StringBuilder();
+
         OmniRealtimeParam param = OmniRealtimeParam.builder()
                 .model(model)
                 .apikey(apiKey)
                 .build();
-                
 
 
         SessionState state = new SessionState();
@@ -130,78 +122,103 @@ public class OmniRealtimeStreamHub {
         state.out = out;
         state.conversationRef = new AtomicReference<>();
 
+
+        AtomicBoolean systemPromptSet = new AtomicBoolean(false);
+
+        // 直接从启动时预热的缓存中获取角色配置（prompt、voice），无阻塞
+        RoleSetupProvider.RoleSetup setup = roleSetupProvider.getSetup(roleId);
+        String systemPrompt = String.format(
+                "system: 你要扮演%s，请始终使用中文回复, 该提示词将作为系统提示词, 不需要回复",
+                setup.getPrompt()
+        );
+
         OmniRealtimeConversation conversation = new OmniRealtimeConversation(param, new OmniRealtimeCallback() {
-            @Override
-            public void onOpen() { log.info("[hub] omni open sid={}", sessionId); }
+                @Override
+                public void onOpen() { log.info("[hub] omni open sid={}", sessionId); }
 
-            @Override
-            public void onEvent(JsonObject message) {
-                OmniServerEvent event = parseServerEvent(message);
-                switch (event.getType()) {
-                    case SESSION_CREATED:
-                        log.info("[hub] session.created sid={}", sessionId);
-                        out.tryEmitNext(sse(OmniSseEvent.SESSION_CREATED, "ready"));
-                        break;
+                @Override
+                public void onEvent(JsonObject message) {
+                    OmniServerEvent event = parseServerEvent(message);
+                    switch (event.getType()) {
+                        case SESSION_CREATED:
+                            log.info("[hub] session.created sid={}", sessionId);
+                            if (!systemPromptSet.getAndSet(true)) {
+                                try {
+                                    // 发送系统提示词（使用空音频）
+                                    state.conversationRef.get().appendAudio("");
+                                    state.conversationRef.get().createResponse(systemPrompt,
+                                            Arrays.asList(OmniRealtimeModality.TEXT));
 
-                    case CONVERSATION_ITEM_INPUT_AUDIO_TRANSCRIPTION_COMPLETED:
-                        if (event.getTranscript() != null && !event.getTranscript().isEmpty()) {
-                            log.info("[hub] user transcript sid={}: {}", sessionId, event.getTranscript());
-                            out.tryEmitNext(sse(OmniSseEvent.USER_FINAL, event.getTranscript()));
-                        }
-                        break;
-                    case RESPONSE_AUDIO_TRANSCRIPT_DELTA:
-                    case RESPONSE_TEXT_DELTA:
-                        if (event.getDelta() != null) {
-                            // accumulate AI transcript as textual content
-                            llmText.append(event.getDelta());
-                            out.tryEmitNext(sse(OmniSseEvent.LLM_DELTA, event.getDelta()));
-                        }
-                        break;
-                    case INPUT_AUDIO_BUFFER_SPEECH_STARTED:
-                        // VAD检测到用户开始说话，发送打断信号给前端
-                        log.info("[hub] VAD speech started - user interruption detected sid={}", sessionId);
-                        out.tryEmitNext(sse(OmniSseEvent.USER_INTERRUPT, "speech_started"));
-                        break;
-                    case INPUT_AUDIO_BUFFER_SPEECH_STOPPED:
-                        log.info("[hub] VAD speech stopped - user interruption detected sid={}", sessionId);
-                        break;
-                    case INPUT_AUDIO_BUFFER_COMMITTED:
-                        // Buffer committed by server - VAD will handle response automatically
-                        log.info("[hub] audio buffer committed sid={} - waiting for VAD to trigger response", sessionId);
-                        break;
-                    case RESPONSE_AUDIO_DELTA:
-                        String base64 = event.getDelta();
-                        if (base64 == null && event.getAudio() != null) {
-                            base64 = event.getAudio().getDelta();
-                        }
-                        if (base64 != null && !base64.isEmpty()) {
-                            out.tryEmitNext(sse(OmniSseEvent.AUDIO_DELTA, base64));
-                        }
-                        break;
-                        case RESPONSE_DONE:
-                            log.info("[hub] response done sid={}", sessionId);
-                            llmText.setLength(0); // 清空等待下次响应
-                            out.tryEmitNext(sse(OmniSseEvent.DONE, "done"));
+                                    log.info("[hub] system prompt set for session: {}", sessionId);
+                                } catch (Exception e) {
+                                    log.warn("[hub] set system prompt failed: {}", e.toString());
+                                }
+                            }
+                            out.tryEmitNext(sse(OmniSseEvent.SESSION_CREATED, "ready"));
                             break;
-                    default:
-                        // ignore others
-                        log.error("whats up");
+
+                        case CONVERSATION_ITEM_INPUT_AUDIO_TRANSCRIPTION_COMPLETED:
+                            out.tryEmitNext(sse(OmniSseEvent.USER_FINAL, event.getTranscript()));
+                            break;
+                        case RESPONSE_AUDIO_TRANSCRIPT_DELTA:
+                        case RESPONSE_TEXT_DELTA:
+                            if (event.getDelta() != null) {
+                                // accumulate AI transcript as textual content
+                                llmText.append(event.getDelta());
+                                out.tryEmitNext(sse(OmniSseEvent.LLM_DELTA, event.getDelta()));
+                            }
+                            break;
+
+                        // decode user start speech
+                        case INPUT_AUDIO_BUFFER_SPEECH_STARTED:
+                            // VAD检测到用户开始说话，发送打断信号给前端
+                            log.info("[hub] VAD speech started - user interruption detected sid={}", sessionId);
+                            out.tryEmitNext(sse(OmniSseEvent.USER_INTERRUPT, "speech_started"));
+                            break;
+
+                        // detect speech stop user interruption
+                        // VAD检测到用户停止说话，发送打断信号给本系统的后端
+                        case INPUT_AUDIO_BUFFER_SPEECH_STOPPED:
+                            log.info("[hub] VAD speech stopped - user interruption detected sid={}", sessionId);
+                            break;
+
+                        // this is auto in VAD mode
+                        case INPUT_AUDIO_BUFFER_COMMITTED:
+                            // Buffer committed by server - VAD will handle response automatically
+                            log.info("[hub] audio buffer committed sid={} - waiting for VAD to trigger response", sessionId);
+                            break;
+
+                        // voice return handle
+                        case RESPONSE_AUDIO_DELTA:
+                            String base64 = event.getDelta();
+                            if (base64 == null && event.getAudio() != null) {
+                                base64 = event.getAudio().getDelta();
+                            }
+                            if (base64 != null && !base64.isEmpty()) {
+                                out.tryEmitNext(sse(OmniSseEvent.AUDIO_DELTA, base64));
+                            }
+                            break;
+                            case RESPONSE_DONE:
+                                log.info("[hub] response done sid={}", sessionId);
+                                llmText.setLength(0); // 清空等待下次响应
+                                out.tryEmitNext(sse(OmniSseEvent.DONE, "done"));
+                                break;
+                        default:
+                            // ignore others
+                            log.error("unhandled event type: {}", event);
+                    }
+
                 }
 
-            }
-
-            @Override
-            public void onClose(int code, String reason) {
-                try { out.tryEmitComplete(); } catch (Exception ignore) {}
-                state.closed = true;
-                sessions.remove(sessionId);
-            }
-        });
+                @Override
+                public void onClose(int code, String reason) {
+                    try { out.tryEmitComplete(); } catch (Exception ignore) {}
+                    state.closed = true;
+                    sessions.remove(sessionId);
+                }
+            });
 
         state.conversationRef.set(conversation);
-
-
-        // assign conversation into state before any network activity so callbacks can reference it safely
 
         try {
             conversation.connect();
@@ -209,17 +226,19 @@ public class OmniRealtimeStreamHub {
             // 完全按照官方示例配置
             OmniRealtimeConfig cfg = OmniRealtimeConfig.builder()
                     .modalities(Arrays.asList(OmniRealtimeModality.AUDIO, OmniRealtimeModality.TEXT))
-                    .voice(voice)
+                    .voice(setup.getVoice())
                     .enableTurnDetection(true)
                     .enableInputAudioTranscription(true)
                     .InputAudioTranscription("gummy-realtime-v1")
+                    .parameters(Map.of("smooth_output", "true",
+                            "system_prompt", systemPrompt
+                    ))
                     // 降低敏感度，减少噪音干扰
                     .turnDetectionSilenceDurationMs(1000)  // 增加静音时间到1秒
                     .turnDetectionThreshold(0.3f)          // 降低阈值，更容易检测到语音
                     .build();
 
             conversation.updateSession(cfg);
-
 
 
 
@@ -231,33 +250,16 @@ public class OmniRealtimeStreamHub {
             sessions.remove(sessionId);
         }
 
-        // Note: do NOT put into sessions here; insertion is handled by computeIfAbsent in ensureSession()
-
-        // 移除idle cleanup，交给WebSocket和阿里云处理连接生命周期
-
         return state;
     }
 
 
 
-    private String getRolePrompt(String roleId) {
-        if (roleId == null) {
-            return "智能助手";
-        }
-        switch (roleId.toLowerCase()) {
-            case "conan":
-                return "名侦探柯南，擅长推理和解谜，说话简洁有逻辑";
-            case "detective":
-                return "福尔摩斯，观察入微的大侦探，善于分析和推理";
-            default:
-                return "智能助手";
-        }
-    }
+    // 角色配置已由 RoleSetupProvider 统一管理与缓存
 
     private ServerSentEvent<String> sse(String event, String data) {
         return ServerSentEvent.builder(data).event(event).build();
     }
-
     private OmniServerEvent parseServerEvent(JsonObject message) {
         String typeStr = message != null && message.has("type") ? message.get("type").getAsString() : null;
         OmniServerEvent evt = new OmniServerEvent();
