@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.ai.agent</groupId>
+		<artifactId>real-agent</artifactId>
+		<version>0.0.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>real-agent-web</artifactId>
+
+
+	<dependencies>
+
+		<!-- actuator 核心依赖 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dashscope-sdk-java</artifactId>
+		</dependency>
+
+
+		<dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-tool</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-agent</artifactId>
+        </dependency>
+
+		<dependency>
+			<groupId>com.ai.agent</groupId>
+			<artifactId>real-agent-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ai.agent</groupId>
+			<artifactId>real-agent-domain</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ai.agent</groupId>
+			<artifactId>real-agent-application</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ai.agent</groupId>
+			<artifactId>real-agent-contract</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter-websocket</artifactId>-->
+<!--		</dependency>-->
+
+
+		<dependency>
+
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-openai</artifactId>
+		</dependency>
+
+
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.ai</groupId>-->
+<!--			<artifactId>spring-ai-starter-vector-store-milvus</artifactId>-->
+<!--		</dependency>-->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+
+		<!-- 测试依赖 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.victools</groupId>
+			<artifactId>jsonschema-generator</artifactId>
+			<version>4.32.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.victools</groupId>
+			<artifactId>jsonschema-module-jackson</artifactId>
+			<version>4.32.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+
+			<!-- Spring Boot 打包插件 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>3.4.4</version> <!-- 替换为你的 Spring Boot 版本 -->
+				<configuration>
+
+					<mainClass>com.ai.agent.real.web.RealAgentCoreApplication</mainClass>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal> <!-- 关键：重新打包为可执行 JAR -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

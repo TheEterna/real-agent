@@ -45,7 +45,6 @@ logs/
 .env.local
 .env.*.local
 *.properties
-*.xml
 !application*.xml
 !logback*.xml
 
