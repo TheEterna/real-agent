@@ -158,8 +158,7 @@ public class ToolUtils {
      * @param availableTools
      * @return
      */
-    @SneakyThrows
-    public static ToolCallback[] convertAgentTool2ToolCallback(List<AgentTool> availableTools) {
+    public static ToolCallback[] convertAgentTool2ToolCallback(List<AgentTool> availableTools) throws NoSuchMethodException {
         ToolCallback[] toolCallbacks = new ToolCallback[availableTools.size()];
         for (int i = 0; i < availableTools.size(); i++) {
             AgentTool agentTool = availableTools.get(i);
@@ -236,7 +235,6 @@ public class ToolUtils {
      * @param toolCallback
      * @return
      */
-    @SneakyThrows
     public static AgentTool convertToolCallback2AgentTool(ToolCallback toolCallback, McpAsyncClient mcpAsyncClient) {
         return new AgentTool() {
                 @Override

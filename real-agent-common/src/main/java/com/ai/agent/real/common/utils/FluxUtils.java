@@ -19,6 +19,7 @@ import reactor.core.publisher.*;
 
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.*;
 
 /**
  * @author han
@@ -52,6 +53,7 @@ public class FluxUtils {
                                     // 使用传入的工具名称，如果没有则使用默认值
                                     ToolResponse toolResponse = (ToolResponse) event.getData();
                                     Map<String, Object> stringObjectMap = new ObjectMapper().convertValue(toolResponse, new TypeReference<Map<String, Object>>() {});
+                                    stringObjectMap.put("arguments", event.getMeta().get("arguments"));
                                     toolMessages.add(AgentMessage.tool(toolResponse.responseData(), agentId, stringObjectMap));
                                     break;
                                 }
@@ -67,12 +69,40 @@ public class FluxUtils {
                     })
                     .doOnComplete(() -> {
                         // 按正确顺序添加消息到上下文：先AI回复，后工具结果
-                        if (assistantMessageBuf.length() > 0) {
-                            // 根据agentId确定消息类型
-                            AgentMessage assistantMessage = createMessageByAgentType(assistantMessageBuf.toString(), agentId);
-                            context.addMessage(assistantMessage);
-                        }
-                        
+                        // 即使content 为空依然要添加进上下文,因为function calling 要求必须要 如此格式的 assistant 消息存在
+                        /**
+                         *  {
+                         *             "role": "assistant",
+                         *             "content": null,
+                         *             "tool_calls": [
+                         *                 {
+                         *                     "function": {
+                         *                         "arguments": "{\"location\": \"杭州市\"}",
+                         *                         "name": "get_current_weather"
+                         *                     },
+                         *                     "id": "call_e405b0c0cca94b37bee78706",
+                         *                     "index": 0,
+                         *                     "type": "function"
+                         *                 }
+                         *             ]
+                         * }
+                         */
+
+                        // 根据agentId确定消息类型
+                        AgentMessage assistantMessage = createMessageByAgentType(assistantMessageBuf.toString(), agentId);
+                        // add function calling
+
+                        List<ToolCall> toolCalls = toolMessages.stream()
+                                .map(toolMessage -> {
+                                    Map<String, Object> metadata = toolMessage.getMetadata();
+                                    log.info("metadata: {}", metadata);
+                                    return new ToolCall(metadata.get("id").toString(), "function", metadata.get("name").toString(), metadata.get("arguments").toString());
+                                })
+                                .collect(Collectors.toList());
+                        assistantMessage.setMetadata(Collections.singletonMap("tool_calls", toolCalls));
+
+                        context.addMessage(assistantMessage);
+
                         // 然后添加工具消息
                         for (AgentMessage toolMessage : toolMessages) {
                             context.addMessage(toolMessage);
@@ -115,30 +145,23 @@ public class FluxUtils {
                 .map(toolResult -> {
                     if (toolResult != null && toolResult.isOk()) {
                         String dataStr = String.valueOf(toolResult.getData());
-                        // 不再直接添加到上下文，让 handleContext 统一管理
-                        // context.addMessage(AgentMessage.tool(dataStr, toolName));
-                        
+
                         if (NounConstants.TASK_DONE.equals(toolId)) {
                             context.setTaskCompleted(true);
                             return AgentExecutionEvent.done(dataStr);
                         }
 
                         ToolResponse toolResponse = new ToolResponse(toolCallId, toolName, dataStr);
-                        // 创建TOOL事件，工具名称通过消息传递给handleContext
-
-                        return AgentExecutionEvent.tool(context, toolResponse, toolName);
+                        // 创建TOOL事件，工具名称通过消息传递给 agentContext
+                        return AgentExecutionEvent.tool(context, toolResponse, toolName, Map.of("arguments", ModelOptionsUtils.toJsonString(context.getToolArgs())));
                     } else if (toolResult != null) {
                         String errorMessage = toolResult.getMessage();
-                        // 不再直接添加到上下文
-                        // context.addMessage(AgentMessage.tool(errorMessage, toolName));
                         return AgentExecutionEvent.error("tool executed faild1: " + errorMessage);
                     } else {
                         return AgentExecutionEvent.error("tool executed faild: 未知错误");
                     }
                 })
                 .onErrorResume(ex -> {
-                    // 不再直接添加到上下文
-                    // context.addMessage(AgentMessage.tool("异常: " + ex.getMessage(), toolName));
                     return Mono.just(AgentExecutionEvent.error("工具执行异常: " + ex.getMessage()));
                 });
     }

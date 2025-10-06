@@ -74,12 +74,6 @@ public class ReActAgentStrategy implements AgentStrategy {
             // 执行ReAct循环
             Flux.range(1, MAX_ITERATIONS)
                 .concatMap(iteration -> executeReActIteration(task, context, iteration)
-//                    .doOnNext(event -> {
-//                        // 依据上下文的任务完成标记进行短路，而非等待 DONE 事件
-//                        if () {
-//                            taskCompleted.set(true);
-//                        }
-//                    }))
                 // 结束条件：收到DONE事件 或 已由上下文标记任务完成（例如ObservationAgent调用task_done后设置的标记）
                 .takeUntil(event -> context.isTaskCompleted())
 

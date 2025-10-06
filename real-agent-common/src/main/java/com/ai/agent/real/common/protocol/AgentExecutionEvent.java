@@ -4,6 +4,8 @@ import com.ai.agent.real.common.spec.logging.*;
 import com.ai.agent.real.contract.spec.logging.*;
 import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 
+import java.util.*;
+
 /**
  * Agent执行事件
  * 用于流式执行中传递实时状态和结果
@@ -18,10 +20,14 @@ public class AgentExecutionEvent extends TraceInfo {
     private final String message;
     private final Object data;
 
+    private Map<String, Object> meta;
+
+
     private AgentExecutionEvent(EventType type, String message, Object data, Traceable traceInfo) {
         this.type = type;
         this.message = message;
         this.data = data;
+
         if (traceInfo != null) {
             this.setSessionId(traceInfo.getSessionId());
             this.setTraceId(traceInfo.getTraceId());
@@ -63,8 +69,10 @@ public class AgentExecutionEvent extends TraceInfo {
         return new AgentExecutionEvent(EventType.ACTING, action, null, traceInfo);
     }
 
-    public static AgentExecutionEvent tool(Traceable traceInfo, ToolResponse toolResponse, String message) {
-        return new AgentExecutionEvent(EventType.TOOL, message, toolResponse, traceInfo);
+    public static AgentExecutionEvent tool(Traceable traceInfo, ToolResponse toolResponse, String message, Map<String, Object> meta) {
+        return new AgentExecutionEvent(EventType.TOOL, message, toolResponse, traceInfo) {{
+            setMeta(meta);
+        }};
     }
 
     public static AgentExecutionEvent observing(Traceable traceInfo, String observation) {
@@ -108,6 +116,12 @@ public class AgentExecutionEvent extends TraceInfo {
 
     public Object getData() {
         return data;
+    }
+    public Map<String, Object> getMeta() {
+        return meta;
+    }
+    public void setMeta(Map<String, Object> meta) {
+        this.meta = meta;
     }
 
 

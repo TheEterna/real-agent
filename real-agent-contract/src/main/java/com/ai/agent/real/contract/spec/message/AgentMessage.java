@@ -21,7 +21,6 @@ import java.util.Map;
  */
 
 @Data
-@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AgentMessage implements Message {
 
@@ -163,41 +162,6 @@ public class AgentMessage implements Message {
     public static AgentMessage tool(String content, String agentId, Map<String, Object> metadata) {
         return new AgentMessage(content, AgentMessageType.TOOL, agentId, metadata);
     }
-
-
-    /**
-     * 转换为字符串格式（兼容原有的StringBuilder格式）
-     */
-//    default String toFormattedString() {
-//        StringBuilder sb = new StringBuilder();
-//
-//        if (iteration != null) {
-//            sb.append(getMessageTypeDisplayName()).append(iteration).append(": ");
-//        } else {
-//            sb.append("[").append(messageType.getValue()).append("] ");
-//        }
-//
-//        sb.append(content);
-//
-//        return sb.toString();
-//    }
-
-    /**
-     * 获取消息类型的显示名称
-     */
-//    private String getMessageTypeDisplayName() {
-//        switch (messageType) {
-//            case THINKING: return "思考";
-//            case ACTION: return "行动";
-//            case OBSERVING: return "观察";
-//            case SYSTEM: return "系统";
-//            case USER: return "用户";
-//            case ASSISTANT: return "助手";
-//            case TOOL: return "工具";
-//            case ERROR: return "错误";
-//            default: return messageType.getValue();
-//        }
-//    }
 
     /**
      * 消息类型枚举，扩展Spring AI的MessageType

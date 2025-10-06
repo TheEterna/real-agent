@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ai.agent</groupId>
-    <artifactId>real-agent</artifactId>
+    <artifactId>real-agent-parent</artifactId>
     <version>0.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -21,7 +21,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-ai.version>1.1.0-SNAPSHOT</spring-ai.version>
-        <mcp.version>0.11.0</mcp.version>
+        <mcp.version>0.13.1</mcp.version>
         <project.version>0.0.0-SNAPSHOT</project.version>
         <spring-boot.version>3.4.4</spring-boot.version>
 
@@ -62,6 +62,7 @@
 
     <dependencyManagement>
         <dependencies>
+
             <dependency>
                 <groupId>com.ai.agent</groupId>
                 <artifactId>real-agent-tool</artifactId>
@@ -80,10 +81,7 @@
                 <artifactId>real-agent-domain</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-domain</artifactId>
-            </dependency>
+
             <dependency>
                 <groupId>com.ai.agent</groupId>
                 <artifactId>real-agent-common</artifactId>
@@ -103,22 +101,15 @@
             </dependency>
 
 
-            <dependency>
-                <groupId>com.alibaba.cloud.ai</groupId>
-                <artifactId>spring-ai-alibaba-bom</artifactId>
-                <version>1.0.0.2</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
 
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
-                <version>1.0.2</version>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -133,6 +124,8 @@
                 <groupId>io.modelcontextprotocol.sdk</groupId>
                 <artifactId>mcp-bom</artifactId>
                 <version>${mcp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>

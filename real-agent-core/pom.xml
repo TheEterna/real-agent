@@ -3,8 +3,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>real-agent</artifactId>
         <groupId>com.ai.agent</groupId>
+        <artifactId>real-agent-parent</artifactId>
         <version>0.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -20,12 +20,6 @@
     </modules>
 
     <dependencies>
-        <!-- lombok -->
-<!--        <dependency>-->
-<!--            <groupId>org.projectlombok</groupId>-->
-<!--            <artifactId>lombok</artifactId>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-model</artifactId>
@@ -35,17 +29,14 @@
         <dependency>
             <groupId>com.ai.agent</groupId>
             <artifactId>real-agent-common</artifactId>
+            <optional>true</optional>
         </dependency>
 
 
         <dependency>
             <groupId>com.ai.agent</groupId>
             <artifactId>real-agent-contract</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+            <optional>true</optional>
         </dependency>
 
 

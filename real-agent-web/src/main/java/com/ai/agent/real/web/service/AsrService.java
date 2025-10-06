@@ -33,7 +33,7 @@ public class AsrService {
 
     private final VoiceProperties voiceProperties;
 
-    @Value("${spring.ai.dashscope.api-key}")
+    @Value("${spring.ai.openai.api-key}")
     private String dashscopeApiKey;
 
     private final WebClient webClient = WebClient.builder()

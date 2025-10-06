@@ -5,6 +5,7 @@ import com.ai.agent.real.contract.spec.message.*;
 import com.fasterxml.jackson.databind.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.*;
+import org.springframework.ai.chat.messages.AssistantMessage.*;
 import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 import org.springframework.ai.chat.prompt.*;
 import org.springframework.ai.model.tool.*;
@@ -35,31 +36,45 @@ public class AgentUtils {
                             agentMessage.getText() != null ? agentMessage.getText().substring(0, Math.min(50, agentMessage.getText().length())) + "..." : "null",
                             agentMessage.getMetadata());
                     
-                    switch (agentMessage.getAgentMessageType()) {
+                    switch (agentMessage.getMessageType()) {
                         case SYSTEM:
                             log.debug("创建SystemMessage");
                             return new SystemMessage(agentMessage.getText());
                         case USER:
                             log.debug("创建UserMessage");
-                            return new UserMessage(agentMessage.getText());
+                            return UserMessage.builder()
+                                    .text(agentMessage.getText())
+                                    .build();
                         case ASSISTANT:
                             log.debug("创建AssistantMessage");
-                            return new AssistantMessage(agentMessage.getText());
+
+                            /**
+                             *
+                             public ToolCall(String id, String type, String name, String arguments) {
+                             this.id = id;
+                             this.type = type;
+                             this.name = name;
+                             this.arguments = arguments;
+                             }
+                             */
+
+
+                            return AssistantMessage.builder()
+                                    .content(agentMessage.getText())
+                                    .toolCalls((List<ToolCall>) agentMessage.getMetadata().get("tool_calls"))
+                                    .build();
                         case TOOL:
 //                            log.debug("开始处理TOOL类型消息");
                             Map<String, Object> metadata = agentMessage.getMetadata();
 //                            log.debug("TOOL消息metadata: {}", metadata);
-//
-//                            // read Object from map
-//                            log.debug("成功转换ToolResponse: id={}, name={}, content={}",
-//                                    metadata.get("id"), metadata.get("name"),
-//                                    metadata.get("responseData") != null ? metadata.get("responseData").toString().substring(0, Math.min(50, metadata.get("responseData").toString().length())) + "..." : "null");
-//
+
+                            String id = metadata.get("id").toString();
                             String toolName = metadata.get("name").toString();
-//                            ToolResponseMessage toolResponseMessage = new ToolResponseMessage(List.of(new ToolResponse(, metadata.get("name").toString(), metadata.get("responseData").toString())));
-//                            log.debug("成功创建ToolResponseMessage");
-//                            return toolResponseMessage;
-                            return new AssistantMessage("调用工具" + toolName + "，结果：" + metadata.get("responseData").toString());
+                            String responseData = metadata.get("responseData").toString();
+                            ToolResponseMessage toolResponseMessage = new ToolResponseMessage(List.of(new ToolResponse(id, toolName, responseData)));
+                            log.debug("成功创建ToolResponseMessage");
+                            return toolResponseMessage;
+//                            return new AssistantMessage("调用工具" + toolName + "，结果：" + metadata.get("responseData").toString());
 
                         default:
                             log.debug("使用默认AssistantMessage处理未知类型: {}", agentMessage.getAgentMessageType());
@@ -76,7 +91,7 @@ public class AgentUtils {
             List<AgentTool> availableTools,
             AgentContext context,
             String systemPrompt,
-            String userPrompt) {
+            String userPrompt) throws NoSuchMethodException {
 
         log.debug("开始构建Prompt，可用工具数量: {}, 对话历史数量: {}", 
                 availableTools != null ? availableTools.size() : 0,
