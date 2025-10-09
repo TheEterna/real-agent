@@ -9,10 +9,12 @@ import java.util.*;
 
 public class CommonUtils {
 
-    public static String getTraceId() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-    public static String getNodeId() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
+	public static String getTraceId() {
+		return UUID.randomUUID().toString().replace("-", "");
+	}
+
+	public static String getNodeId() {
+		return UUID.randomUUID().toString().replace("-", "");
+	}
+
 }

@@ -11,16 +11,17 @@ import java.util.Map;
  */
 @Data
 public class MessageCreateRequest {
-    
-    @NotNull(message = "消息类型不能为空")
-    private PlaygroundRoleplaySessionMessage.MessageType messageType;
-    
-    @NotNull(message = "角色不能为空")
-    private PlaygroundRoleplaySessionMessage.MessageRole role;
-    
-    private String content;
-    
-    private Map<String, Object> payload;
-    
-    private String assetUri;
+
+	@NotNull(message = "消息类型不能为空")
+	private PlaygroundRoleplaySessionMessage.MessageType messageType;
+
+	@NotNull(message = "角色不能为空")
+	private PlaygroundRoleplaySessionMessage.MessageRole role;
+
+	private String content;
+
+	private Map<String, Object> payload;
+
+	private String assetUri;
+
 }

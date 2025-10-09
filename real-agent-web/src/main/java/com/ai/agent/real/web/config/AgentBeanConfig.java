@@ -16,34 +16,33 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class AgentBeanConfig {
 
+	@Bean
+	public ThinkingAgent thinkingAgent(ChatModel chatModel, ToolService toolService, Environment env) {
+		String mode = env.getProperty("agent.action.tools.approval-mode", "AUTO");
+		return new ThinkingAgent(chatModel, toolService, ToolApprovalMode.from(mode));
+	}
 
+	@Bean
+	public ActionAgent actionAgent(ChatModel chatModel, ToolService toolService, Environment env) {
+		String mode = env.getProperty("agent.action.tools.approval-mode", "AUTO");
+		return new ActionAgent(chatModel, toolService, ToolApprovalMode.from(mode));
+	}
 
+	@Bean
+	public ObservationAgent observationAgent(ChatModel chatModel, ToolService toolService, Environment env) {
+		String mode = env.getProperty("agent.action.tools.approval-mode", "AUTO");
+		return new ObservationAgent(chatModel, toolService, ToolApprovalMode.from(mode));
+	}
 
+	@Bean
+	public FinalAgent finalAgent(ChatModel chatModel, ToolService toolService) {
+		return new FinalAgent(chatModel, toolService);
+	}
 
-    @Bean
-    public ThinkingAgent thinkingAgent(ChatModel chatModel, ToolService toolService, Environment env) {
-        String mode = env.getProperty("agent.action.tools.approval-mode", "AUTO");
-        return new ThinkingAgent(chatModel, toolService, ToolApprovalMode.from(mode));
-    }
+	@Bean
+	public ReActAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
+			ObservationAgent observationAgent, FinalAgent finalAgent) {
+		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent);
+	}
 
-    @Bean
-    public ActionAgent actionAgent(ChatModel chatModel, ToolService toolService, Environment env) {
-        String mode = env.getProperty("agent.action.tools.approval-mode", "AUTO");
-        return new ActionAgent(chatModel, toolService, ToolApprovalMode.from(mode));
-    }
-
-    @Bean
-    public ObservationAgent observationAgent(ChatModel chatModel, ToolService toolService, Environment env) {
-        String mode = env.getProperty("agent.action.tools.approval-mode", "AUTO");
-        return new ObservationAgent(chatModel, toolService, ToolApprovalMode.from(mode));
-    }
-
-    @Bean
-    public FinalAgent finalAgent(ChatModel chatModel, ToolService toolService) {
-        return new FinalAgent(chatModel, toolService);
-    }
-    @Bean
-    public ReActAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent, ObservationAgent observationAgent, FinalAgent finalAgent) {
-        return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent);
-    }
 }

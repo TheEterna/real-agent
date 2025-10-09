@@ -16,5 +16,4 @@ import java.util.*;
 @Configuration
 public class SpringAiConfig {
 
-
 }

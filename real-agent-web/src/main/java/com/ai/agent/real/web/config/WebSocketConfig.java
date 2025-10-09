@@ -14,20 +14,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WebSocketConfig {
 
-    private final VoiceStreamWebSocketHandler voiceStreamWebSocketHandler;
+	private final VoiceStreamWebSocketHandler voiceStreamWebSocketHandler;
 
-    @Bean
-    public SimpleUrlHandlerMapping webSocketMapping() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("/ws/voice/stream", voiceStreamWebSocketHandler);
-        SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
-        mapping.setOrder(1); // higher priority than annotated controllers
-        mapping.setUrlMap(map);
-        return mapping;
-    }
+	@Bean
+	public SimpleUrlHandlerMapping webSocketMapping() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("/ws/voice/stream", voiceStreamWebSocketHandler);
+		SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
+		mapping.setOrder(1); // higher priority than annotated controllers
+		mapping.setUrlMap(map);
+		return mapping;
+	}
 
-    @Bean
-    public WebSocketHandlerAdapter handlerAdapter() {
-        return new WebSocketHandlerAdapter();
-    }
+	@Bean
+	public WebSocketHandlerAdapter handlerAdapter() {
+		return new WebSocketHandlerAdapter();
+	}
+
 }

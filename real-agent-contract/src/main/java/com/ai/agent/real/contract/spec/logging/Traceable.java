@@ -4,30 +4,35 @@ import java.time.*;
 
 public interface Traceable {
 
+	String getSessionId();
 
-    String getSessionId();
-    Traceable setSessionId(String sessionId);
+	Traceable setSessionId(String sessionId);
 
-    String getTraceId();
-    Traceable setTraceId(String traceId);
+	String getTraceId();
 
-    LocalDateTime getStartTime();
-    Traceable setStartTime(LocalDateTime startTime);
+	Traceable setTraceId(String traceId);
 
-    LocalDateTime getEndTime();
-    Traceable setEndTime(LocalDateTime endTime);
+	LocalDateTime getStartTime();
 
-    String getSpanId();
-    Traceable setSpanId(String spanId);
+	Traceable setStartTime(LocalDateTime startTime);
 
-    String getNodeId();
-    Traceable setNodeId(String nodeId);
+	LocalDateTime getEndTime();
 
-//    String getParentSpanId();
-//    Traceable setParentSpanId(String parentSpanId);
+	Traceable setEndTime(LocalDateTime endTime);
 
+	String getSpanId();
 
-    String getAgentId();
-    Traceable setAgentId(String agentId);
+	Traceable setSpanId(String spanId);
+
+	String getNodeId();
+
+	Traceable setNodeId(String nodeId);
+
+	// String getParentSpanId();
+	// Traceable setParentSpanId(String parentSpanId);
+
+	String getAgentId();
+
+	Traceable setAgentId(String agentId);
 
 }

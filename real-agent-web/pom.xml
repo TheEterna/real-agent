@@ -136,18 +136,7 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
-				</configuration>
-			</plugin>
 
-
-			<!-- Spring Boot 打包插件 -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>3.4.4</version> <!-- 替换为你的 Spring Boot 版本 -->
-				<configuration>
-
-					<mainClass>com.ai.agent.real.web.RealAgentCoreApplication</mainClass>
 				</configuration>
 				<executions>
 					<execution>
@@ -157,6 +146,19 @@
 					</execution>
 				</executions>
 			</plugin>
+
+
+			<!-- Spring Boot 打包插件 -->
+<!--			<plugin>-->
+<!--				<groupId>org.springframework.boot</groupId>-->
+<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--				<version>3.4.4</version> &lt;!&ndash; 替换为你的 Spring Boot 版本 &ndash;&gt;-->
+<!--				<configuration>-->
+
+<!--					<mainClass>com.ai.agent.real.web.RealAgentCoreApplication</mainClass>-->
+<!--				</configuration>-->
+<!--				-->
+<!--			</plugin>-->
 		</plugins>
 	</build>
 

@@ -11,15 +11,16 @@ import reactor.core.publisher.Mono;
  */
 @Repository
 public interface UserRepository extends ReactiveCrudRepository<User, Long> {
-    
-    /**
-     * 根据外部ID查找用户
-     */
-    Mono<User> findByExternalId(String externalId);
-    
-    /**
-     * 检查外部ID是否存在
-     */
-    @Query("SELECT COUNT(*) > 0 FROM users WHERE external_id = :externalId")
-    Mono<Boolean> existsByExternalId(String externalId);
+
+	/**
+	 * 根据外部ID查找用户
+	 */
+	Mono<User> findByExternalId(String externalId);
+
+	/**
+	 * 检查外部ID是否存在
+	 */
+	@Query("SELECT COUNT(*) > 0 FROM users WHERE external_id = :externalId")
+	Mono<Boolean> existsByExternalId(String externalId);
+
 }

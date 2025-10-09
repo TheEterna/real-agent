@@ -6,9 +6,11 @@ package com.ai.agent.real.common.constant;
  */
 
 public class AgentConstants {
-    public final static String FINAL_AGENT = "FinalAgent";
-    public final static String Thought_AGENT = "ThoughtAgent";
-    public final static String ACTION_AGENT = "ActionAgent";
 
+	public final static String FINAL_AGENT = "FinalAgent";
+
+	public final static String Thought_AGENT = "ThoughtAgent";
+
+	public final static String ACTION_AGENT = "ActionAgent";
 
 }

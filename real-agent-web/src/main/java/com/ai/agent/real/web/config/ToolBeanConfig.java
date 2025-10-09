@@ -19,25 +19,21 @@ import static com.ai.agent.real.common.constant.NounConstants.TASK_DONE;
 @Configuration
 public class ToolBeanConfig {
 
-    @Bean
-    public ToolService toolService(List<McpAsyncClient> mcpAsyncClients) {
+	@Bean
+	public ToolService toolService(List<McpAsyncClient> mcpAsyncClients) {
 
-        ToolService toolService = new ToolServiceImpl(mcpAsyncClients);
+		ToolService toolService = new ToolServiceImpl(mcpAsyncClients);
 
-        // custom handle tool register
+		// custom handle tool register
 
-        toolService.registerToolWithKeywords(new TaskDoneTool(), Set.of(TASK_DONE));
+		toolService.registerToolWithKeywords(new TaskDoneTool(), Set.of(TASK_DONE));
 
+		// register mcp tools
+		List<AgentTool> agentToolList = toolService.listAllMCPToolsAsync().block();
 
-        // register mcp tools
-        List<AgentTool> agentToolList = toolService.listAllMCPToolsAsync().block();
+		toolService.registerToolsWithKeywords(agentToolList, Set.of(NounConstants.MCP));
 
-        toolService.registerToolsWithKeywords(agentToolList, Set.of(NounConstants.MCP));
-
-
-        return toolService;
-    }
-
-
+		return toolService;
+	}
 
 }

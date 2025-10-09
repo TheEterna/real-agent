@@ -11,30 +11,32 @@ import reactor.core.publisher.Mono;
  * 角色扮演会话消息数据访问层 (R2DBC)
  */
 @Repository
-public interface PlaygroundRoleplaySessionMessageRepository extends ReactiveCrudRepository<PlaygroundRoleplaySessionMessage, Long> {
-    
-    /**
-     * 根据会话ID查找消息列表（按时间顺序）
-     */
-    @Query("SELECT * FROM playground_roleplay_session_messages WHERE session_id = :sessionId ORDER BY created_at")
-    Flux<PlaygroundRoleplaySessionMessage> findBySessionIdOrderBySeq(Long sessionId);
-    
-    
-    /**
-     * 根据会话ID和消息类型查找消息（按时间顺序）
-     */
-    @Query("SELECT * FROM playground_roleplay_session_messages WHERE session_id = :sessionId AND message_type = :messageType ORDER BY created_at")
-    Flux<PlaygroundRoleplaySessionMessage> findBySessionIdAndMessageTypeOrderBySeq(Long sessionId, String messageType);
-    
-    /**
-     * 统计会话消息数量
-     */
-    @Query("SELECT COUNT(*) FROM playground_roleplay_session_messages WHERE session_id = :sessionId")
-    Mono<Long> countBySessionId(Long sessionId);
-    
-    /**
-     * 查找会话的分页消息（按时间倒序）
-     */
-    @Query("SELECT * FROM playground_roleplay_session_messages WHERE session_id = :sessionId ORDER BY created_at ASC LIMIT :limit OFFSET :offset")
-    Flux<PlaygroundRoleplaySessionMessage> findBySessionIdOrderByCreatedAtAscWithPaging(Long sessionId, int limit, int offset);
+public interface PlaygroundRoleplaySessionMessageRepository
+		extends ReactiveCrudRepository<PlaygroundRoleplaySessionMessage, Long> {
+
+	/**
+	 * 根据会话ID查找消息列表（按时间顺序）
+	 */
+	@Query("SELECT * FROM playground_roleplay_session_messages WHERE session_id = :sessionId ORDER BY created_at")
+	Flux<PlaygroundRoleplaySessionMessage> findBySessionIdOrderBySeq(Long sessionId);
+
+	/**
+	 * 根据会话ID和消息类型查找消息（按时间顺序）
+	 */
+	@Query("SELECT * FROM playground_roleplay_session_messages WHERE session_id = :sessionId AND message_type = :messageType ORDER BY created_at")
+	Flux<PlaygroundRoleplaySessionMessage> findBySessionIdAndMessageTypeOrderBySeq(Long sessionId, String messageType);
+
+	/**
+	 * 统计会话消息数量
+	 */
+	@Query("SELECT COUNT(*) FROM playground_roleplay_session_messages WHERE session_id = :sessionId")
+	Mono<Long> countBySessionId(Long sessionId);
+
+	/**
+	 * 查找会话的分页消息（按时间倒序）
+	 */
+	@Query("SELECT * FROM playground_roleplay_session_messages WHERE session_id = :sessionId ORDER BY created_at ASC LIMIT :limit OFFSET :offset")
+	Flux<PlaygroundRoleplaySessionMessage> findBySessionIdOrderByCreatedAtAscWithPaging(Long sessionId, int limit,
+			int offset);
+
 }

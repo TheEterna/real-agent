@@ -12,15 +12,16 @@ import reactor.core.publisher.Flux;
 @Repository
 public interface PlaygroundRoleplayRoleRepository extends ReactiveCrudRepository<PlaygroundRoleplayRole, Long> {
 
-    /**
-     * 查找启用状态的角色
-     */
-    @Query("SELECT * FROM `playground_roleplay_roles` WHERE status = 1 ORDER BY created_at DESC")
-    Flux<PlaygroundRoleplayRole> findActiveRoles();
-    
-    /**
-     * 根据状态查找角色
-     */
-    @Query("SELECT * FROM playground_roleplay_roles WHERE status = :status ORDER BY created_at DESC")
-    Flux<PlaygroundRoleplayRole> findByStatusOrderByCreatedAtDesc(Integer status);
+	/**
+	 * 查找启用状态的角色
+	 */
+	@Query("SELECT * FROM `playground_roleplay_roles` WHERE status = 1 ORDER BY created_at DESC")
+	Flux<PlaygroundRoleplayRole> findActiveRoles();
+
+	/**
+	 * 根据状态查找角色
+	 */
+	@Query("SELECT * FROM playground_roleplay_roles WHERE status = :status ORDER BY created_at DESC")
+	Flux<PlaygroundRoleplayRole> findByStatusOrderByCreatedAtDesc(Integer status);
+
 }

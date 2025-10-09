@@ -10,11 +10,11 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 public class SessionCreateRequest {
-    
-    @NotNull(message = "用户ID不能为空")
-    private Long userId;
-    
-    @NotNull(message = "角色ID不能为空")
-    private Long roleId;
-    
+
+	@NotNull(message = "用户ID不能为空")
+	private Long userId;
+
+	@NotNull(message = "角色ID不能为空")
+	private Long roleId;
+
 }

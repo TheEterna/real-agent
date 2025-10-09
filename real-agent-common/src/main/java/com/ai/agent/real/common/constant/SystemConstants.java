@@ -7,6 +7,6 @@ package com.ai.agent.real.common.constant;
 
 public class SystemConstants {
 
-    public static final String SYSTEM_PROPERTY_PREFIX = "kit.agent";
+	public static final String SYSTEM_PROPERTY_PREFIX = "kit.agent";
 
 }

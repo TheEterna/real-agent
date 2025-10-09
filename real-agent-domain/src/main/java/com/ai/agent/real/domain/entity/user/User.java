@@ -22,42 +22,45 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table("users")
 public class User implements Persistable<Long> {
-    
-    public static class UserBuilder {
-        private boolean isNew = true;
-    }
-    
-    @Id
-    private Long id;
-    
-    @Column("external_id")
-    private String externalId;
-    
-    @Column("nickname")
-    private String nickname;
-    
-    @Column("avatar_url")
-    private String avatarUrl;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Column("created_at")
-    private LocalDateTime createdAt;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Column("updated_at")
-    private LocalDateTime updatedAt;
-    
-    @Transient
-    private boolean isNew = true;
-    
-    @Override
-    public Long getId() {
-        return id;
-    }
-    
-    @Override
-    @Transient
-    public boolean isNew() {
-        return isNew;
-    }
+
+	public static class UserBuilder {
+
+		private boolean isNew = true;
+
+	}
+
+	@Id
+	private Long id;
+
+	@Column("external_id")
+	private String externalId;
+
+	@Column("nickname")
+	private String nickname;
+
+	@Column("avatar_url")
+	private String avatarUrl;
+
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@Column("created_at")
+	private LocalDateTime createdAt;
+
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@Column("updated_at")
+	private LocalDateTime updatedAt;
+
+	@Transient
+	private boolean isNew = true;
+
+	@Override
+	public Long getId() {
+		return id;
+	}
+
+	@Override
+	@Transient
+	public boolean isNew() {
+		return isNew;
+	}
+
 }

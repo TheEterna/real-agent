@@ -10,38 +10,40 @@ import reactor.core.publisher.*;
  */
 
 public interface PlaygroundRoleplayRoleService {
-    /**
-     * 创建角色
-     */
-    Mono<PlaygroundRoleplayRole> createRole(RoleCreateRequest request);
 
-    /**
-     * 更新角色
-     */
-    Mono<PlaygroundRoleplayRole> updateRole(Long id, RoleCreateRequest request);
+	/**
+	 * 创建角色
+	 */
+	Mono<PlaygroundRoleplayRole> createRole(RoleCreateRequest request);
 
-    /**
-     * 删除角色
-     */
-    Mono<Void> deleteRole(Long id);
+	/**
+	 * 更新角色
+	 */
+	Mono<PlaygroundRoleplayRole> updateRole(Long id, RoleCreateRequest request);
 
-    /**
-     * 查找所有角色
-     */
-    Flux<PlaygroundRoleplayRole> findAllRoles();
+	/**
+	 * 删除角色
+	 */
+	Mono<Void> deleteRole(Long id);
 
-    /**
-     * 查找启用的角色
-     */
-    Flux<PlaygroundRoleplayRole> findActiveRoles();
+	/**
+	 * 查找所有角色
+	 */
+	Flux<PlaygroundRoleplayRole> findAllRoles();
 
-    /**
-     * 启用/禁用角色
-     */
-    Mono<PlaygroundRoleplayRole> toggleRoleStatus(Long id);
+	/**
+	 * 查找启用的角色
+	 */
+	Flux<PlaygroundRoleplayRole> findActiveRoles();
 
-    /**
-     * 根据ID查找角色
-     */
-    Mono<PlaygroundRoleplayRole> findById(Long id);
+	/**
+	 * 启用/禁用角色
+	 */
+	Mono<PlaygroundRoleplayRole> toggleRoleStatus(Long id);
+
+	/**
+	 * 根据ID查找角色
+	 */
+	Mono<PlaygroundRoleplayRole> findById(Long id);
+
 }

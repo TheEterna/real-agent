@@ -62,25 +62,21 @@ class RealAgentCoreApplicationTests {
 		Thread.sleep(100000);
 	}
 
-
 	@Test
 	void flexTest() {
 		// 创建一个简单的Flux示例
-		Flux<String> flux = Flux.just("Hello", "World", "Reactor")
-				.map(String::toUpperCase)
-				.filter(s -> s.length() > 3);
+		Flux<String> flux = Flux.just("Hello", "World", "Reactor").map(String::toUpperCase).filter(s -> s.length() > 3);
 		// 订阅并打印结果
-		flux.subscribe(
-				data -> System.out.println("接收到数据：" + data),
-				error -> System.err.println("发生错误：" + error.getMessage()),
-				() -> System.out.println("数据流处理完成")
-		);
+		flux.subscribe(data -> System.out.println("接收到数据：" + data),
+				error -> System.err.println("发生错误：" + error.getMessage()), () -> System.out.println("数据流处理完成"));
 
 		// 阻塞主线程以确保异步处理完成
 		try {
 			Thread.sleep(1000);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
+
 }

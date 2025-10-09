@@ -16,6 +16,7 @@ import java.util.Map;
 
 /**
  * PlaygroundRoleplaySessionController
+ *
  * @time 2025/9/28 05:37
  */
 @Slf4j
@@ -23,61 +24,58 @@ import java.util.Map;
 @RequestMapping("/api/sessions")
 @RequiredArgsConstructor
 public class PlaygroundRoleplaySessionController {
-    
-    private final PlaygroundRoleplaySessionService sessionService;
-    
-    /**
-     * 创建会话
-     */
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ResponseResult<PlaygroundRoleplaySession>> createSession(@Valid @RequestBody SessionCreateRequest request) {
-        return sessionService.createSession(request)
-                .map(ResponseResult::success);
-    }
-    
-    /**
-     * 根据会话编码查询会话详情
-     */
-    @GetMapping("/{sessionCode}")
-    public Mono<ResponseResult<PlaygroundRoleplaySession>> getSession(@PathVariable String sessionCode) {
-        return sessionService.findBySessionCode(sessionCode)
-                .map(ResponseResult::success)
-                .switchIfEmpty(Mono.error(new RuntimeException("会话不存在: " + sessionCode)));
-    }
-    
-    /**
-     * 查询用户的会话列表
-     */
-    @GetMapping("/user/{userId}")
-    public Flux<ResponseResult<PlaygroundRoleplaySession>> getUserSessions(@PathVariable Long userId,
-                                                           @RequestParam(defaultValue = "false") boolean activeOnly) {
-        if (activeOnly) {
-            return sessionService.findActiveUserSessions(userId)
-                    .map(ResponseResult::success);
-        }
-        return sessionService.findUserSessions(userId)
-                .map(ResponseResult::success);
-    }
-    
-    /**
-     * 结束会话
-     */
-    @PutMapping("/{sessionCode}/end")
-    public Mono<ResponseResult<PlaygroundRoleplaySession>> endSession(@PathVariable String sessionCode,
-                                                      @RequestBody(required = false) Map<String, String> requestBody) {
-        String summary = requestBody != null ? requestBody.get("summary") : null;
-        return sessionService.endSession(sessionCode, summary)
-                .map(ResponseResult::success);
-    }
-    
-    /**
-     * 更新会话元数据
-     */
-    @PutMapping("/{sessionCode}/metadata")
-    public Mono<ResponseResult<PlaygroundRoleplaySession>> updateSessionMetadata(@PathVariable String sessionCode,
-                                                                @RequestBody Map<String, Object> metadata) {
-        return sessionService.updateSessionMetadata(sessionCode, metadata)
-                .map(ResponseResult::success);
-    }
+
+	private final PlaygroundRoleplaySessionService sessionService;
+
+	/**
+	 * 创建会话
+	 */
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public Mono<ResponseResult<PlaygroundRoleplaySession>> createSession(
+			@Valid @RequestBody SessionCreateRequest request) {
+		return sessionService.createSession(request).map(ResponseResult::success);
+	}
+
+	/**
+	 * 根据会话编码查询会话详情
+	 */
+	@GetMapping("/{sessionCode}")
+	public Mono<ResponseResult<PlaygroundRoleplaySession>> getSession(@PathVariable String sessionCode) {
+		return sessionService.findBySessionCode(sessionCode)
+			.map(ResponseResult::success)
+			.switchIfEmpty(Mono.error(new RuntimeException("会话不存在: " + sessionCode)));
+	}
+
+	/**
+	 * 查询用户的会话列表
+	 */
+	@GetMapping("/user/{userId}")
+	public Flux<ResponseResult<PlaygroundRoleplaySession>> getUserSessions(@PathVariable Long userId,
+			@RequestParam(defaultValue = "false") boolean activeOnly) {
+		if (activeOnly) {
+			return sessionService.findActiveUserSessions(userId).map(ResponseResult::success);
+		}
+		return sessionService.findUserSessions(userId).map(ResponseResult::success);
+	}
+
+	/**
+	 * 结束会话
+	 */
+	@PutMapping("/{sessionCode}/end")
+	public Mono<ResponseResult<PlaygroundRoleplaySession>> endSession(@PathVariable String sessionCode,
+			@RequestBody(required = false) Map<String, String> requestBody) {
+		String summary = requestBody != null ? requestBody.get("summary") : null;
+		return sessionService.endSession(sessionCode, summary).map(ResponseResult::success);
+	}
+
+	/**
+	 * 更新会话元数据
+	 */
+	@PutMapping("/{sessionCode}/metadata")
+	public Mono<ResponseResult<PlaygroundRoleplaySession>> updateSessionMetadata(@PathVariable String sessionCode,
+			@RequestBody Map<String, Object> metadata) {
+		return sessionService.updateSessionMetadata(sessionCode, metadata).map(ResponseResult::success);
+	}
+
 }

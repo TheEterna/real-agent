@@ -6,39 +6,38 @@ import java.util.Map;
 
 /**
  * @author han
- * @time 2025/8/30 17:05
- * Execute tool request payload
+ * @time 2025/8/30 17:05 Execute tool request payload
  */
 public class ExecuteToolRequest implements Serializable {
-    private static final long serialVersionUID = 1L;
 
-    private String toolName;
-    private Map<String, Object> args = new HashMap<>();
+	private static final long serialVersionUID = 1L;
 
-    public ExecuteToolRequest() {}
+	private String toolName;
 
-    public ExecuteToolRequest(String toolName, Map<String, Object> args) {
-        this.toolName = toolName;
-        this.args = (args != null ? args : new HashMap<>());
-    }
+	private Map<String, Object> args = new HashMap<>();
 
-    public String getToolName() {
-        return toolName;
-    }
+	public ExecuteToolRequest() {
+	}
 
-    public void setToolName(String toolName) {
-        this.toolName = toolName;
-    }
+	public ExecuteToolRequest(String toolName, Map<String, Object> args) {
+		this.toolName = toolName;
+		this.args = (args != null ? args : new HashMap<>());
+	}
 
-    public Map<String, Object> getArgs() {
-        return args;
-    }
+	public String getToolName() {
+		return toolName;
+	}
 
-    public void setArgs(Map<String, Object> args) {
-        this.args = (args != null ? args : new HashMap<>());
-    }
+	public void setToolName(String toolName) {
+		this.toolName = toolName;
+	}
 
+	public Map<String, Object> getArgs() {
+		return args;
+	}
 
-
+	public void setArgs(Map<String, Object> args) {
+		this.args = (args != null ? args : new HashMap<>());
+	}
 
 }
