@@ -66,7 +66,7 @@ public class AgentExecutionEvent extends TraceInfo {
 	}
 
 	public static AgentExecutionEvent action(Traceable traceInfo, String action) {
-		return new AgentExecutionEvent(EventType.ACTING, action, null, traceInfo);
+		return new AgentExecutionEvent(EventType.ACTION, action, null, traceInfo);
 	}
 
 	public static AgentExecutionEvent tool(Traceable traceInfo, ToolResponse toolResponse, String message,
@@ -94,11 +94,15 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.COLLABORATING, message, null, traceInfo);
 	}
 
-	public static AgentExecutionEvent doneWithWarning(String message) {
+	public static AgentExecutionEvent completed() {
+		return new AgentExecutionEvent(EventType.COMPLETED, null, null, null);
+	}
+
+	public static AgentExecutionEvent doneWithWarning(Traceable traceInfo, String message) {
 		return new AgentExecutionEvent(EventType.DONEWITHWARNING, message, null, null);
 	}
 
-	public static AgentExecutionEvent done(String message) {
+	public static AgentExecutionEvent done(Traceable traceInfo, String message) {
 		return new AgentExecutionEvent(EventType.DONE, message, null, null);
 	}
 
@@ -137,7 +141,8 @@ public class AgentExecutionEvent extends TraceInfo {
 		PROGRESS, // 执行进度
 		AGENT_SELECTED, // Agent选择
 		THINKING, // Agent思考中
-		ACTING, // Agent执行行动
+		ACTION, // Agent执行行动
+		ACTING, // 执行行动
 		OBSERVING, // Agent观察结果
 		COLLABORATING, // Agent协作
 		PARTIAL_RESULT, // 部分结果
@@ -147,6 +152,7 @@ public class AgentExecutionEvent extends TraceInfo {
 		TOOL, // 工具调用
 		DONEWITHWARNING, // 执行完成，有警告
 		TOOL_APPROVAL, // 工具审批
+		COMPLETED // 执行完成, all agents completed, notice client close sse connection
 
 	}
 

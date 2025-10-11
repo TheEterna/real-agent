@@ -1,7 +1,6 @@
 package com.ai.agent.real.application.tool;
 
 import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.contract.exception.*;
 import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.protocol.ToolResult.*;
 import com.ai.agent.real.contract.service.*;
@@ -215,21 +214,18 @@ public class ToolServiceImpl implements ToolService {
 	 * @param toolName
 	 * @return
 	 */
-	public Mono<ToolResult<?>> executeToolAsync(String toolName, AgentContext agentContext) {
+	@Override
+	public Mono<ToolResult<Object>> executeToolAsync(String toolName, AgentContext agentContext) {
 
 		// DefaultToolCallingManager toolCallingManager =
 		// ToolCallingManager.builder().build();
 
 		AgentTool tool = this.getByName(toolName);
 		if (tool == null) {
-			return Mono.just(ToolResult.error(ToolResultCode.TOOL_NOT_FOUND, "工具不存在", toolName));
+			return Mono.just(ToolResult.error(ToolResultCode.TOOL_NOT_FOUND, "工具不存在", toolName, -1));
 		}
-		try {
-			return tool.executeAsync(agentContext);
-		}
-		catch (ToolException ex) {
-			return Mono.just(ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, ex.getMessage(), toolName));
-		}
+		return tool.executeAsync(agentContext);
+
 	}
 
 	/**

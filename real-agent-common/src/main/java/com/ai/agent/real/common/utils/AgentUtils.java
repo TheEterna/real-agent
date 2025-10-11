@@ -1,7 +1,9 @@
 package com.ai.agent.real.common.utils;
 
+import com.ai.agent.real.common.spec.logging.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.contract.spec.message.*;
+import io.micrometer.common.util.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.chat.messages.AssistantMessage.*;
@@ -9,6 +11,7 @@ import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 import org.springframework.ai.chat.prompt.*;
 import org.springframework.ai.model.tool.*;
 
+import java.time.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -62,12 +65,13 @@ public class AgentUtils {
 					// log.debug("开始处理TOOL类型消息");
 					Map<String, Object> metadata = agentMessage.getMetadata();
 					// log.debug("TOOL消息metadata: {}", metadata);
-
 					String id = metadata.get("id").toString();
 					String toolName = metadata.get("name").toString();
 					String responseData = metadata.get("responseData").toString();
-					ToolResponseMessage toolResponseMessage = new ToolResponseMessage(
-							List.of(new ToolResponse(id, toolName, responseData)));
+					ToolResponseMessage toolResponseMessage = ToolResponseMessage.builder()
+						.responses(List.of(new ToolResponse(id, toolName, responseData)))
+						.build();
+					log.info("开始处理TOOL类型消息，id: {}, toolName: {}, responseData: {}", id, toolName, responseData);
 					log.debug("成功创建ToolResponseMessage");
 					return toolResponseMessage;
 				// return new AssistantMessage("调用工具" + toolName + "，结果：" +
@@ -105,6 +109,7 @@ public class AgentUtils {
 			optionsBuilder.toolCallbacks(ToolUtils.convertAgentTool2ToolCallback(availableTools));
 			optionsBuilder.internalToolExecutionEnabled(false);
 		}
+
 		var options = optionsBuilder.build();
 
 		// 构建消息
@@ -164,12 +169,74 @@ public class AgentUtils {
 		List<Message> convertedMessages = AgentUtils.toSpringAiMessages(conversationHistory);
 		messages.addAll(convertedMessages);
 
-		messages.add(new UserMessage(userPrompt));
+		if (StringUtils.isNotBlank(userPrompt)) {
+			messages.add(new UserMessage(userPrompt));
+		}
 
 		log.debug("Message list build completed，total message size: {}", messages.size());
 
 		// 3. return the completed message list
 		return messages;
+	}
+
+	/**
+	 * 为Agent创建独立的执行上下文副本
+	 */
+	public static AgentContext createAgentContext(AgentContext originalContext, String agentId) {
+		AgentContext newContext = new AgentContext(new TraceInfo());
+
+		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
+		newContext.setSessionId(originalContext.getSessionId());
+		newContext.setTraceId(originalContext.getTraceId());
+		newContext.setSpanId(originalContext.getSpanId());
+		// start/end time 由各 Agent 生命周期自行设置，这里不复制 endTime
+		newContext.setEndTime(null);
+
+		// 复制对话历史与参数（浅拷贝集合内容），确保不共享可变集合引用
+		newContext.setConversationHistory(originalContext.getConversationHistory());
+		newContext.setToolArgs(originalContext.getToolArgs());
+		newContext.setCurrentIteration(originalContext.getCurrentIteration());
+		newContext.setTaskCompleted(originalContext.getTaskCompleted());
+
+		// 为新上下文设置独立的 Agent 与 node 标识
+		newContext.setAgentId(agentId);
+		newContext.setNodeId(CommonUtils.getNodeId());
+		newContext.setStartTime(LocalDateTime.now());
+
+		return newContext;
+	}
+
+	/**
+	 * 打印上下文快照，辅助排查“模型未遵循上下文”的问题。
+	 */
+	public static String snapshot(AgentContext ctx) {
+		try {
+			int msgSize = ctx.getConversationHistory() != null ? ctx.getConversationHistory().size() : 0;
+			String lastMsg = "";
+			if (msgSize > 0) {
+				Object tail = ctx.getConversationHistory().get(msgSize - 1);
+				lastMsg = safeHead(String.valueOf(tail), 200);
+			}
+			String toolArgKeys = "";
+			if (ctx.getToolArgs() != null) {
+				toolArgKeys = String.join(",", ctx.getToolArgs().toString());
+			}
+			return String.format(
+					"session=%s trace=%s node=%s agent=%s iter=%d done=%s msgs=%d last=%s toolArgKeys=[%s]",
+					ctx.getSessionId(), ctx.getTraceId(), ctx.getNodeId(), ctx.getAgentId(), ctx.getCurrentIteration(),
+					ctx.isTaskCompleted(), msgSize, lastMsg, toolArgKeys);
+		}
+		catch (Exception e) {
+			return "<snapshot-error>";
+		}
+	}
+
+	public static String safeHead(String s, int max) {
+		if (s == null) {
+			return "";
+		}
+		String t = s.replaceAll("\n", " ");
+		return t.length() > max ? t.substring(0, max) + "..." : t;
 	}
 
 }

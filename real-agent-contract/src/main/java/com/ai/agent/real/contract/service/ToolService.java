@@ -74,6 +74,6 @@ public interface ToolService {
 	 * @param agentContext
 	 * @return
 	 */
-	Mono<ToolResult<?>> executeToolAsync(String toolId, AgentContext agentContext);
+	Mono<ToolResult<Object>> executeToolAsync(String toolId, AgentContext agentContext);
 
 }

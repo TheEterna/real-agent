@@ -24,12 +24,18 @@ public class PromptUtils {
 
 		// 2. 构建工具列表字符串
 		StringBuilder stringBuilder = new StringBuilder();
-		for (AgentTool tool : availableTools) {
 
-			stringBuilder.append("- ")
+		for (int i = 0; i < availableTools.size(); i++) {
+			AgentTool tool = availableTools.get(i);
+			// 3. 构建工具列表字符串
+			stringBuilder.append(i + 1)
+				.append(". ")
 				.append(tool.getSpec().getName())
 				.append(": ")
 				.append(tool.getSpec().getDescription())
+				.append("\n")
+				.append("参数: \n")
+				.append(tool.getSpec().getInputSchema())
 				.append("\n");
 		}
 		String toolsContent = stringBuilder.toString().strip();

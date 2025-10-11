@@ -1,16 +1,11 @@
 package com.ai.agent.real.contract.spec.message;
 
-import com.fasterxml.jackson.core.type.*;
-import com.fasterxml.jackson.databind.*;
-import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.MessageType;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.*;
+import lombok.*;
+import org.springframework.ai.chat.messages.*;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.*;
+import java.util.*;
 
 /**
  * Agent系统的消息类，扩展Spring AI的Message接口 支持Agent间的对话历史记录和上下文管理
@@ -135,7 +130,7 @@ public class AgentMessage implements Message {
 	/**
 	 * 创建结束消息
 	 */
-	public static AgentMessage done(String content, String agentId) {
+	public static AgentMessage completed(String content, String agentId) {
 		return new AgentMessage(content, AgentMessageType.DONE, agentId);
 	}
 

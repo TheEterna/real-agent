@@ -1,6 +1,5 @@
 package com.ai.agent.real.tool.system.impl.MathEvalTool;
 
-import com.ai.agent.real.contract.exception.*;
 import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.spec.*;
 import org.springframework.ai.tool.annotation.*;
@@ -27,7 +26,7 @@ public class MathEvalTool implements AgentTool {
 
 	@Override
 	@Tool(description = "数学计算", name = "数学计算")
-	public ToolResult<?> execute(AgentContext ctx) throws ToolException {
+	public ToolResult<Object> execute(AgentContext ctx) {
 		// long start = System.currentTimeMillis();
 		// String expr = String.valueOf(.getOrDefault("expr",""));
 		// if(expr.isEmpty()) {

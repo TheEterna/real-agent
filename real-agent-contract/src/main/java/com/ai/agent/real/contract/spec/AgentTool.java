@@ -26,12 +26,12 @@ public interface AgentTool {
 	ToolSpec getSpec();
 
 	/**
-	 * execute tool
+	 * execute tool, note: should catch Exception to cast ToolResult
 	 * @param ctx 上下文
 	 * @return 工具执行结果
 	 * @throws ToolException 工具执行异常
 	 */
-	ToolResult<?> execute(AgentContext<Object> ctx) throws ToolException;
+	ToolResult<Object> execute(AgentContext ctx);
 
 	/**
 	 * execute tool async
@@ -39,8 +39,8 @@ public interface AgentTool {
 	 * @return 工具执行结果
 	 * @throws ToolException 工具执行异常
 	 */
-	default Mono<? extends ToolResult<?>> executeAsync(AgentContext<Object> ctx) throws ToolException {
-		return Mono.fromCallable(() -> (ToolResult<?>) this.execute(ctx)).subscribeOn(Schedulers.boundedElastic());
+	default Mono<ToolResult<Object>> executeAsync(AgentContext ctx) {
+		return Mono.fromCallable(() -> this.execute(ctx)).subscribeOn(Schedulers.boundedElastic());
 	}
 
 }

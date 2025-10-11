@@ -3,6 +3,7 @@ package com.ai.agent.real.agent.impl;
 import com.ai.agent.real.agent.*;
 
 import com.ai.agent.real.common.protocol.*;
+import com.ai.agent.real.common.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.spec.*;
@@ -65,21 +66,13 @@ public class FinalAgent extends Agent {
 			log.debug("FinalAgent开始流式执行行动: {}", task);
 
 			// 构建消息
-			Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, SYSTEM_PROMPT,
+			Prompt prompt = AgentUtils.buildPromptWithContextAndTools(null, context, SYSTEM_PROMPT,
 					"你将对会执行的结果进行整合，形成最终的输出");
 
 			// 流式调用LLM
-			return chatModel.stream(prompt)
-				.map(response -> response.getResult().getOutput().getText())
-				.filter(content -> content != null && !content.trim().isEmpty())
-				.doOnNext(content -> {
-					log.debug("FinalAgent流式输出: {}", content);
-				})
-				.map(content -> AgentExecutionEvent.executing(context, content))
-				.doOnError(e -> {
-					// handle error
-					log.error("FinalAgent流式执行异常", e);
-				})
+			return FluxUtils
+				.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
+						EventType.ACTING)
 				.onErrorResume(e -> {
 					// handle error
 					return Flux.just(AgentExecutionEvent.error("FinalAgent流式执行异常"));
@@ -87,9 +80,7 @@ public class FinalAgent extends Agent {
 				.doOnComplete(() -> {
 					// after handle
 					afterHandle(context);
-				})
-
-				.concatWith(Flux.just(AgentExecutionEvent.executing(context, "\n")));
+				});
 
 		}
 		catch (Exception e) {

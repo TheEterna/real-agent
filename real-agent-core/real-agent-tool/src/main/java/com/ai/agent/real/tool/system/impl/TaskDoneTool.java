@@ -48,7 +48,7 @@ public class TaskDoneTool implements AgentTool {
 	 */
 
 	@Override
-	public ToolResult<?> execute(AgentContext<Object> ctx) throws ToolException {
+	public ToolResult<Object> execute(AgentContext ctx) {
 		long start = System.currentTimeMillis();
 		try {
 			String finishContent = ctx.getStructuralToolArgs(TaskDoneToolDto.class).getFinishContent();
@@ -59,7 +59,8 @@ public class TaskDoneTool implements AgentTool {
 
 		}
 		catch (Exception e) {
-			return ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, e.getMessage(), getId());
+			return ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, e.getMessage(), getId(),
+					System.currentTimeMillis() - start);
 		}
 	}
 
@@ -71,7 +72,12 @@ public class TaskDoneTool implements AgentTool {
 	@NoArgsConstructor
 	public static class TaskDoneToolDto {
 
-		@ToolParam(required = true, description = "任务完成时需要传递的内容, 也许是需要输出的内容, 或许是被要求输出的内容")
+		@ToolParam(required = true, description = """
+				** 任务完成时需要传递的内容 **
+				- 也许是需要输出的内容, 陈述一下任务状态 等等, 比如 任务已完成, 但仍然需要注意该数据由于数据过于异常, 可能是因为用户输入错误, 请注意
+				- 或许是被要求输出的内容, 比如 用户要求任务结束时, 输出查询结果
+				- 也可能是任务结束的原因, 比如 因要调用身份证查询工具, 但用户未提供该信息, 无法完成任务, 故任务结束
+				""")
 		String finishContent;
 
 	}

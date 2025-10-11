@@ -37,7 +37,7 @@ public class TimeNowTool implements AgentTool {
 	 * @throws ToolException 工具执行异常
 	 */
 	@Override
-	public ToolResult<Map<String, Object>> execute(AgentContext<Object> ctx) throws ToolException {
+	public ToolResult<Object> execute(AgentContext ctx) {
 		long start = System.currentTimeMillis();
 		try {
 			ZonedDateTime now = ZonedDateTime.now(ZoneId.of(ctx.getStructuralToolArgs(TimeNowToolDto.class).zone));
@@ -46,7 +46,8 @@ public class TimeNowTool implements AgentTool {
 					System.currentTimeMillis() - start, getId());
 		}
 		catch (Exception e) {
-			return ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, e.getMessage(), getId());
+			return ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, e.getMessage(), getId(),
+					System.currentTimeMillis() - start);
 		}
 	}
 

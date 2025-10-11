@@ -1,8 +1,8 @@
 package com.ai.agent.real.common.utils;
 
 import com.ai.agent.real.common.constant.*;
-import com.ai.agent.real.contract.exception.*;
 import com.ai.agent.real.contract.protocol.*;
+import com.ai.agent.real.contract.protocol.ToolResult.*;
 import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.contract.spec.ToolSpec.*;
 import io.modelcontextprotocol.client.*;
@@ -18,7 +18,7 @@ import org.springframework.util.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-import static com.ai.agent.real.common.constant.NounConstants.MCP;
+import static com.ai.agent.real.common.constant.NounConstants.*;
 
 /**
  * @author han
@@ -215,14 +215,17 @@ public class ToolUtils {
 				}
 
 				@Override
-				public ToolResult<String> execute(AgentContext<Object> ctx) throws ToolException {
+				public ToolResult<Object> execute(AgentContext ctx) {
+					long l = System.currentTimeMillis();
 					try {
-						long l = System.currentTimeMillis();
 						String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
-						return ToolResult.ok(result, l - System.currentTimeMillis(), String.valueOf(this.getId()));
+						return ToolResult.ok(result, l - System.currentTimeMillis(), this.getId());
 					}
 					catch (Exception e) {
-						throw new ToolException("Tool execution failed", e);
+						// throw new ToolException("Tool execution failed", e);
+						return ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, e.getMessage(), this.getId(),
+								l - System.currentTimeMillis());
+
 					}
 				}
 
@@ -259,14 +262,17 @@ public class ToolUtils {
 			}
 
 			@Override
-			public ToolResult<String> execute(AgentContext ctx) throws ToolException {
+			public ToolResult<Object> execute(AgentContext ctx) {
+				long l = System.currentTimeMillis();
 				try {
-					long startTime = System.currentTimeMillis();
 					String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
-					return ToolResult.ok(result, startTime - System.currentTimeMillis(), this.getId());
+					return ToolResult.ok(result, l - System.currentTimeMillis(), this.getId());
 				}
 				catch (Exception e) {
-					throw new ToolException("Tool execution failed", e);
+					// throw new ToolException("Tool execution failed", e);
+					return ToolResult.error(ToolResultCode.TOOL_EXECUTION_ERROR, e.getMessage(), this.getId(),
+							l - System.currentTimeMillis());
+
 				}
 			}
 

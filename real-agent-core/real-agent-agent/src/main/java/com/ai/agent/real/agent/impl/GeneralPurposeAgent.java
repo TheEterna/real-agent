@@ -51,6 +51,4 @@ public class GeneralPurposeAgent extends Agent {
 		return null;
 	}
 
-
-
 }

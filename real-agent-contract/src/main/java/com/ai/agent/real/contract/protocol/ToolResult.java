@@ -10,8 +10,7 @@ import java.util.Map;
 public class ToolResult<T> {
 
 	/**
-	 * // code enum
-	 *
+	 * code enum
 	 */
 	public enum ToolResultCode {
 
@@ -71,11 +70,12 @@ public class ToolResult<T> {
 		return r;
 	}
 
-	public static <T> ToolResult<T> error(ToolResultCode code, String message, String toolId) {
+	public static <T> ToolResult<T> error(ToolResultCode code, String message, String toolId, long elapsed) {
 		ToolResult<T> r = new ToolResult<>();
 		r.ok = false;
 		r.code = code;
 		r.message = message;
+		r.elapsedMs = elapsed;
 		r.meta = new HashMap<>();
 		r.toolId = toolId;
 		return r;

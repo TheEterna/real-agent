@@ -1,19 +1,20 @@
 package com.ai.agent.real.common.utils;
 
+import com.ai.agent.real.common.constant.*;
 import com.ai.agent.real.common.protocol.*;
-import com.ai.agent.real.contract.spec.*;
 import com.ai.agent.real.common.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.contract.spec.message.*;
 import com.ai.agent.real.contract.protocol.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.common.constant.NounConstants;
+import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.spec.message.*;
 import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.exc.*;
+import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.AssistantMessage.*;
 import org.springframework.ai.chat.messages.ToolResponseMessage.*;
 import org.springframework.ai.chat.model.*;
-import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.*;
 import org.springframework.ai.model.*;
 import reactor.core.publisher.*;
 
@@ -21,12 +22,17 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
+import static org.springframework.ai.model.ModelOptionsUtils.*;
+
 /**
  * @author han
  * @time 2025/9/13 21:50
  */
 @Slf4j
 public class FluxUtils {
+
+	private static final TypeReference<HashMap<String, Object>> MAP_TYPE_REF = new TypeReference<HashMap<String, Object>>() {
+	};
 
 	/**
 	 * 处理上下文，支持指定工具名称
@@ -85,17 +91,19 @@ public class FluxUtils {
 				List<ToolCall> toolCalls = toolMessages.stream().map(toolMessage -> {
 					Map<String, Object> metadata = toolMessage.getMetadata();
 					log.info("metadata: {}", metadata);
+					log.info("metadata: {}", metadata.get("arguments").toString());
 					return new ToolCall(metadata.get("id").toString(), "function", metadata.get("name").toString(),
-							metadata.get("arguments").toString());
+							ModelOptionsUtils.toJsonString(metadata.get("arguments")));
 				}).collect(Collectors.toList());
+
+				// this is a must of function calling
 				assistantMessage.setMetadata(Collections.singletonMap("tool_calls", toolCalls));
 
 				context.addMessage(assistantMessage);
 
 				// 然后添加工具消息
-				for (AgentMessage toolMessage : toolMessages) {
-					context.addMessage(toolMessage);
-				}
+				context.addMessages(toolMessages);
+
 			});
 		};
 	}
@@ -112,7 +120,7 @@ public class FluxUtils {
 			case NounConstants.OBSERVATION_AGENT_ID:
 				return AgentMessage.observing(content, agentId);
 			case NounConstants.FINAL_AGENT_ID:
-				return AgentMessage.assistant(content, agentId);
+				return AgentMessage.completed(content, agentId);
 			default:
 				return AgentMessage.assistant(content, agentId);
 		}
@@ -123,15 +131,15 @@ public class FluxUtils {
 	 * 作为主内容，message 作为次要说明）。 - 失败：返回 ERROR 事件。 - 当 toolName == task_done 且 markTaskDone 为
 	 * true 时，设置 context.setTaskCompleted(true)。
 	 */
-	public static Mono<AgentExecutionEvent> mapToolResultToEvent(Mono<ToolResult<?>> resultMono, AgentContext context,
-			String toolId, String toolCallId, String toolName) {
+	public static Mono<AgentExecutionEvent> mapToolResultToEvent(Mono<ToolResult<Object>> resultMono,
+			AgentContext context, String toolId, String toolCallId, String toolName) {
 		return resultMono.map(toolResult -> {
 			if (toolResult != null && toolResult.isOk()) {
 				String dataStr = String.valueOf(toolResult.getData());
 
 				if (NounConstants.TASK_DONE.equals(toolId)) {
 					context.setTaskCompleted(true);
-					return AgentExecutionEvent.done(dataStr);
+					return AgentExecutionEvent.done(context, dataStr);
 				}
 
 				ToolResponse toolResponse = new ToolResponse(toolCallId, toolName, dataStr);
@@ -141,14 +149,12 @@ public class FluxUtils {
 			}
 			else if (toolResult != null) {
 				String errorMessage = toolResult.getMessage();
-				return AgentExecutionEvent.error("tool executed faild1: " + errorMessage);
+				return AgentExecutionEvent.error("tool executed faild: " + errorMessage);
 			}
 			else {
 				return AgentExecutionEvent.error("tool executed faild: 未知错误");
 			}
-		}).onErrorResume(ex -> {
-			return Mono.just(AgentExecutionEvent.error("工具执行异常: " + ex.getMessage()));
-		});
+		}).onErrorResume(ex -> Mono.just(AgentExecutionEvent.error("tool executed faild: " + ex.getMessage())));
 	}
 
 	/**
@@ -189,7 +195,7 @@ public class FluxUtils {
 			log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
 					response.getResult() != null);
 
-			// 检查是否是空的generations（这是您遇到的问题）
+			// 检查是否是空的generations
 			if (response.getResults() != null && response.getResults().isEmpty()) {
 				log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
 				log.warn("ChatResponse详情: {}", response);
@@ -253,36 +259,55 @@ public class FluxUtils {
 
 		String toolName = toolCall.name();
 		String toolCallId = toolCall.id();
-		Map<String, Object> args = ModelOptionsUtils.jsonToMap(toolCall.arguments());
+		log.info(toolCall.arguments());
+		Map<String, Object> args = jsonToMap(toolCall.arguments(), OBJECT_MAPPER);
 		String toolId = "";
+		AgentTool tool = toolService.getByName(toolName);
+		if (tool == null) {
+			log.error("工具 no exist: toolName={}", toolName);
+			return Flux.just(AgentExecutionEvent.error("工具不存在: " + toolName));
+		}
+		toolId = tool.getId();
+
+		switch (toolApprovalMode) {
+			case DISABLED:
+				log.warn("工具执行已禁用: {}", toolName);
+				return Flux.empty();
+
+			case REQUIRE_APPROVAL:
+				log.warn("工具执行需要审批（未实现）: {}, toolId: {}", toolName, toolId);
+				return Flux.empty();
+
+			case AUTO:
+			default:
+				context.setToolArgs(args);
+				return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
+						toolCallId, toolName)
+					.flux();
+		}
+
+	}
+
+	public static Map<String, Object> jsonToMap(String json, ObjectMapper objectMapper) {
+		if (json == null || json.trim().isEmpty()) {
+			return Collections.emptyMap();
+		}
 		try {
-			AgentTool tool = toolService.getByName(toolName);
-			if (tool == null) {
-				log.error("工具 no exist: toolName={}", toolName);
-				return Flux.just(AgentExecutionEvent.error("工具不存在: " + toolName));
+			// 尝试直接解析为 Map
+			return objectMapper.readValue(json, MAP_TYPE_REF);
+		}
+		catch (MismatchedInputException e) {
+			// 如果是字符串套 JSON，先解析成 String，再解析成 Map
+			try {
+				String innerJson = objectMapper.readValue(json, String.class);
+				return objectMapper.readValue(innerJson, MAP_TYPE_REF);
 			}
-			toolId = tool.getId();
-
-			switch (toolApprovalMode) {
-				case DISABLED:
-					log.warn("工具执行已禁用: {}", toolName);
-					return Flux.empty();
-
-				case REQUIRE_APPROVAL:
-					log.warn("工具执行需要审批（未实现）: {}, toolId: {}", toolName, toolId);
-					return Flux.empty();
-
-				case AUTO:
-				default:
-					context.setToolArgs(args);
-					return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
-							toolCallId, toolName)
-						.flux();
+			catch (Exception ex) {
+				throw new RuntimeException("无法解析 JSON 字符串: " + json, ex);
 			}
 		}
 		catch (Exception e) {
-			log.error("工具调用异常: toolId={}, error={}", toolId, e.getMessage());
-			return Flux.just(AgentExecutionEvent.error("工具调用异常: " + e.getMessage()));
+			throw new RuntimeException("无效的 JSON: " + json, e);
 		}
 	}
 

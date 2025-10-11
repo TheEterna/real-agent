@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.*;
  */
 @Data
 @Accessors(chain = true)
-public class AgentContext<T> implements Traceable {
+public class AgentContext implements Traceable {
 
 	/**
 	 * 组合的追踪信息对象（推荐使用）
@@ -40,6 +40,8 @@ public class AgentContext<T> implements Traceable {
 	 * 当前迭代轮次
 	 */
 	private int currentIteration = 0;
+
+	private String task;
 
 	/**
 	 * 任务完成状态
@@ -63,7 +65,7 @@ public class AgentContext<T> implements Traceable {
 	 * 添加消息到对话历史
 	 */
 	public AgentContext addMessage(AgentMessage message) {
-		message.setContent("[" + message.getSenderId() + "] " + message.getText());
+		message.setContent("[" + message.getSenderId() + "]: " + message.getText());
 		this.conversationHistory.add(message);
 		return this;
 	}
@@ -105,17 +107,6 @@ public class AgentContext<T> implements Traceable {
 	 */
 	public AgentContext setTaskCompleted(Boolean taskCompleted) {
 		this.taskCompleted.set(taskCompleted);
-		return this;
-	}
-
-	/**
-	 * 链接任务完成标记引用： 将本上下文的 taskCompleted 原子布尔替换为入参上下文的同一引用， 以便多个阶段上下文对任务完成状态进行共享与联动。
-	 * 注意：这是引用共享而非值拷贝。
-	 */
-	public AgentContext linkTaskCompletedFrom(AgentContext<?> other) {
-		if (other != null && other.taskCompleted != null) {
-			this.taskCompleted = other.taskCompleted;
-		}
 		return this;
 	}
 

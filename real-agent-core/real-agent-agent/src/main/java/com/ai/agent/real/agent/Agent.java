@@ -133,7 +133,6 @@ public abstract class Agent {
 		context.setEndTime(LocalDateTime.now());
 	}
 
-
 	/**
 	 * 判断当前Agent是否能够处理指定任务
 	 * @param task 任务描述
