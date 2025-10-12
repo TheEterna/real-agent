@@ -1,0 +1,175 @@
+# MCP (Model Context Protocol) 配置
+# 外部工具服务器连接配置
+
+spring:
+  ai:
+    mcp:
+      client:
+        # 启用 MCP 客户端
+        enabled: ${MCP_CLIENT_ENABLED:true}
+
+        # 客户端标识
+        name: ${MCP_CLIENT_NAME:real-agent-mcp-client}
+        version: ${MCP_CLIENT_VERSION:1.0.0}
+
+        # 请求超时
+        request-timeout: ${MCP_REQUEST_TIMEOUT:100s}
+
+        # 客户端类型
+        type: ${MCP_CLIENT_TYPE:ASYNC}
+
+        # 工具回调配置
+        toolcallback:
+          enabled: ${MCP_TOOLCALLBACK_ENABLED:true}
+
+        # SSE 连接配置
+        sse:
+          # 连接池配置
+          connection-pool:
+            max-connections: ${MCP_SSE_MAX_CONNECTIONS:10}
+            connection-timeout: ${MCP_SSE_CONNECTION_TIMEOUT:30s}
+            read-timeout: ${MCP_SSE_READ_TIMEOUT:60s}
+            write-timeout: ${MCP_SSE_WRITE_TIMEOUT:30s}
+
+          # 重连配置
+          reconnect:
+            enabled: ${MCP_SSE_RECONNECT_ENABLED:true}
+            max-attempts: ${MCP_SSE_RECONNECT_MAX_ATTEMPTS:5}
+            initial-delay: ${MCP_SSE_RECONNECT_INITIAL_DELAY:1s}
+            max-delay: ${MCP_SSE_RECONNECT_MAX_DELAY:30s}
+            backoff-multiplier: ${MCP_SSE_RECONNECT_BACKOFF_MULTIPLIER:2.0}
+
+          # 心跳配置
+          heartbeat:
+            enabled: ${MCP_SSE_HEARTBEAT_ENABLED:true}
+            interval: ${MCP_SSE_HEARTBEAT_INTERVAL:30s}
+            timeout: ${MCP_SSE_HEARTBEAT_TIMEOUT:10s}
+
+          # 服务器连接配置
+          connections:
+            # 百度地图服务器
+            baidu-maps:
+              enabled: ${MCP_BAIDU_MAPS_ENABLED:false}
+              url: https://mcp.map.baidu.com?ak=${BAIDU_MAP_API_KEY:}
+              sse-endpoint: /sse
+              description: "百度地图工具服务器"
+
+              # 连接特定配置
+              connection-timeout: ${MCP_BAIDU_MAPS_CONNECTION_TIMEOUT:15s}
+              read-timeout: ${MCP_BAIDU_MAPS_READ_TIMEOUT:30s}
+
+              # 工具配置
+              tools:
+                enabled: ${MCP_BAIDU_MAPS_TOOLS_ENABLED:true}
+                categories: ${MCP_BAIDU_MAPS_TOOLS_CATEGORIES:map,navigation,location}
+
+            # 自定义测试服务器
+            test-server:
+              enabled: ${MCP_TEST_SERVER_ENABLED:false}
+              url: ${MCP_TEST_SERVER_URL:http://localhost:8888}
+              sse-endpoint: ${MCP_TEST_SERVER_ENDPOINT:/sse}
+              description: "测试用 MCP 服务器"
+
+              # 认证配置 (如果需要)
+              auth:
+                type: ${MCP_TEST_SERVER_AUTH_TYPE:none} # none, bearer, basic
+                token: ${MCP_TEST_SERVER_AUTH_TOKEN:}
+                username: ${MCP_TEST_SERVER_AUTH_USERNAME:}
+                password: ${MCP_TEST_SERVER_AUTH_PASSWORD:}
+
+            # 天气服务器示例
+            weather-server:
+              enabled: ${MCP_WEATHER_SERVER_ENABLED:false}
+              url: ${MCP_WEATHER_SERVER_URL:}
+              sse-endpoint: ${MCP_WEATHER_SERVER_ENDPOINT:/sse}
+              description: "天气查询工具服务器"
+
+              # 工具配置
+              tools:
+                enabled: ${MCP_WEATHER_TOOLS_ENABLED:true}
+                categories: ${MCP_WEATHER_TOOLS_CATEGORIES:weather,forecast}
+
+        # STDIO 配置 (本地进程通信，可选)
+        stdio:
+          # 启用 STDIO 模式
+          enabled: ${MCP_STDIO_ENABLED:false}
+
+          # 服务器配置文件
+          servers-configuration: ${MCP_STDIO_SERVERS_CONFIG:mcp-servers-config.json}
+
+          # 进程超时
+          process-timeout: ${MCP_STDIO_PROCESS_TIMEOUT:30s}
+
+          # 工作目录
+          working-directory: ${MCP_STDIO_WORKING_DIR:./}
+
+# MCP 工具管理配置
+mcp:
+  # 工具同步配置
+  tools:
+    # 自动同步工具列表
+    auto-sync: ${MCP_TOOLS_AUTO_SYNC:true}
+
+    # 同步间隔
+    sync-interval: ${MCP_TOOLS_SYNC_INTERVAL:5m}
+
+    # 工具缓存
+    cache:
+      enabled: ${MCP_TOOLS_CACHE_ENABLED:true}
+      ttl: ${MCP_TOOLS_CACHE_TTL:10m}
+      max-size: ${MCP_TOOLS_CACHE_MAX_SIZE:1000}
+
+    # 工具过滤
+    filter:
+      # 启用工具过滤
+      enabled: ${MCP_TOOLS_FILTER_ENABLED:true}
+
+      # 允许的工具类型
+      allowed-categories: ${MCP_TOOLS_ALLOWED_CATEGORIES:utility,search,data,communication}
+
+      # 禁用的工具
+      blocked-tools: ${MCP_TOOLS_BLOCKED:}
+
+      # 工具名称模式过滤
+      name-patterns:
+        allowed: ${MCP_TOOLS_NAME_PATTERNS_ALLOWED:}
+        blocked: ${MCP_TOOLS_NAME_PATTERNS_BLOCKED:}
+
+  # 连接监控配置
+  monitoring:
+    # 启用连接监控
+    enabled: ${MCP_MONITORING_ENABLED:true}
+
+    # 监控间隔
+    check-interval: ${MCP_MONITORING_CHECK_INTERVAL:30s}
+
+    # 健康检查
+    health-check:
+      enabled: ${MCP_MONITORING_HEALTH_CHECK_ENABLED:true}
+      timeout: ${MCP_MONITORING_HEALTH_CHECK_TIMEOUT:10s}
+      failure-threshold: ${MCP_MONITORING_HEALTH_CHECK_FAILURE_THRESHOLD:3}
+
+    # 性能监控
+    metrics:
+      enabled: ${MCP_MONITORING_METRICS_ENABLED:true}
+      retention: ${MCP_MONITORING_METRICS_RETENTION:1h}
+
+  # 安全配置
+  security:
+    # 启用 SSL/TLS 验证
+    ssl-verification: ${MCP_SECURITY_SSL_VERIFICATION:true}
+
+    # 允许的主机名
+    allowed-hosts: ${MCP_SECURITY_ALLOWED_HOSTS:}
+
+    # 请求大小限制
+    max-request-size: ${MCP_SECURITY_MAX_REQUEST_SIZE:10MB}
+
+    # 响应大小限制
+    max-response-size: ${MCP_SECURITY_MAX_RESPONSE_SIZE:50MB}
+
+    # 速率限制
+    rate-limit:
+      enabled: ${MCP_SECURITY_RATE_LIMIT_ENABLED:true}
+      requests-per-second: ${MCP_SECURITY_RATE_LIMIT_RPS:10}
+      burst-capacity: ${MCP_SECURITY_RATE_LIMIT_BURST:20}

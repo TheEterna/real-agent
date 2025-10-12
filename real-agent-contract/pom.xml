@@ -28,6 +28,10 @@
 
         </dependency>
 
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-common</artifactId>
+        </dependency>
 
     </dependencies>
 

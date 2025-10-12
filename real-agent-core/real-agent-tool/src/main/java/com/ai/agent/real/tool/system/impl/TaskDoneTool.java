@@ -1,9 +1,10 @@
 package com.ai.agent.real.tool.system.impl;
 
 import com.ai.agent.real.contract.exception.*;
-import com.ai.agent.real.contract.protocol.*;
-import com.ai.agent.real.contract.protocol.ToolResult.*;
-import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
+import com.ai.agent.real.contract.model.protocol.ToolResult.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.tool.annotation.*;

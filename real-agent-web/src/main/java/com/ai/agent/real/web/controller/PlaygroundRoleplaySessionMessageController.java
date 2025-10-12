@@ -1,30 +1,26 @@
 package com.ai.agent.real.web.controller;
 
-import com.ai.agent.real.common.protocol.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import com.ai.agent.real.application.dto.*;
 import com.ai.agent.real.application.service.*;
-import com.ai.agent.real.common.constant.RoleplayConstants;
 import com.ai.agent.real.common.utils.JsonUtils;
 import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import com.ai.agent.real.domain.repository.roleplay.PlaygroundRoleplayRoleRepository;
 import com.ai.agent.real.domain.repository.roleplay.PlaygroundRoleplaySessionMessageRepository;
 import com.ai.agent.real.domain.repository.roleplay.PlaygroundRoleplaySessionRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -67,7 +63,7 @@ public class PlaygroundRoleplaySessionMessageController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public Mono<ResponseResult<PlaygroundRoleplaySessionMessage>> addMessage(@PathVariable String sessionCode,
-			@Valid @RequestBody MessageCreateRequest request) {
+                                                                             @Valid @RequestBody MessageCreateRequest request) {
 		return messageService.addMessage(sessionCode, request).map(ResponseResult::success);
 	}
 

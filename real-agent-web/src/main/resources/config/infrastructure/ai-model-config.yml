@@ -1,0 +1,175 @@
+# AI 模型配置
+# Spring AI 和相关模型的配置
+
+spring:
+  ai:
+    # OpenAI 兼容配置 (通义千问)
+    openai:
+      # API 密钥 (从环境变量获取)
+      api-key: ${OPENAI_API_KEY:${DASHSCOPE_API_KEY:}}
+
+      # 基础 URL
+      base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+
+      # 聊天模型配置
+      chat:
+        enabled: ${AI_OPENAI_CHAT_ENABLED:true}
+        options:
+          # 模型名称
+          model: ${AI_OPENAI_CHAT_MODEL:qwen-max}
+
+          # 温度参数 (0.0-2.0)
+          temperature: ${AI_OPENAI_CHAT_TEMPERATURE:0.7}
+
+          # 最大 Token 数
+          max-tokens: ${AI_OPENAI_CHAT_MAX_TOKENS:4096}
+
+          # Top-p 采样
+          top-p: ${AI_OPENAI_CHAT_TOP_P:0.9}
+
+          # 频率惩罚
+          frequency-penalty: ${AI_OPENAI_CHAT_FREQUENCY_PENALTY:0.0}
+
+          # 存在惩罚
+          presence-penalty: ${AI_OPENAI_CHAT_PRESENCE_PENALTY:0.0}
+
+          # 停止词
+          stop: ${AI_OPENAI_CHAT_STOP:}
+
+      # 嵌入模型配置
+      embedding:
+        enabled: ${AI_OPENAI_EMBEDDING_ENABLED:false}
+        options:
+          model: ${AI_OPENAI_EMBEDDING_MODEL:text-embedding-v2}
+
+    # 向量存储配置
+    vectorstore:
+      # Milvus 配置
+      milvus:
+        client:
+          # 连接配置
+          host: ${MILVUS_HOST:localhost}
+          port: ${MILVUS_PORT:19530}
+          username: ${MILVUS_USERNAME:root}
+          password: ${MILVUS_PASSWORD:milvus}
+
+          # 连接超时
+          connect-timeout: ${MILVUS_CONNECT_TIMEOUT:10s}
+
+          # 保持连接
+          keep-alive-time: ${MILVUS_KEEP_ALIVE_TIME:30s}
+
+          # 空闲超时
+          idle-timeout: ${MILVUS_IDLE_TIMEOUT:24h}
+
+        # 数据库配置
+        database-name: ${MILVUS_DATABASE:default}
+        collection-name: ${MILVUS_COLLECTION:vector_store}
+
+        # 向量配置
+        embedding-dimension: ${MILVUS_EMBEDDING_DIMENSION:1536}
+        index-type: ${MILVUS_INDEX_TYPE:IVF_FLAT}
+        metric-type: ${MILVUS_METRIC_TYPE:COSINE}
+
+        # 搜索配置
+        search:
+          # 搜索参数
+          nprobe: ${MILVUS_SEARCH_NPROBE:10}
+
+          # 最大结果数
+          max-results: ${MILVUS_SEARCH_MAX_RESULTS:100}
+
+          # 相似度阈值
+          similarity-threshold: ${MILVUS_SEARCH_SIMILARITY_THRESHOLD:0.7}
+
+# AI 语音功能配置
+ai:
+  voice:
+    # 启用语音功能
+    enabled: ${AI_VOICE_ENABLED:true}
+
+    # LLM 模型
+    llm-model: ${AI_VOICE_LLM_MODEL:qwen-max}
+
+    # ASR (语音识别) 配置
+    asr:
+      model: ${AI_VOICE_ASR_MODEL:paraformer-v2}
+      language: ${AI_VOICE_ASR_LANGUAGE:zh-CN}
+      sample-rate: ${AI_VOICE_ASR_SAMPLE_RATE:16000}
+
+    # TTS (语音合成) 配置
+    tts:
+      model: ${AI_VOICE_TTS_MODEL:cosyvoice}
+      default-voice: ${AI_VOICE_DEFAULT:longxia}
+      speed: ${AI_VOICE_TTS_SPEED:1.0}
+      pitch: ${AI_VOICE_TTS_PITCH:0.0}
+
+      # 角色声音映射
+      role-voices:
+        conan: ${AI_VOICE_ROLE_CONAN:longxia}
+        detective: ${AI_VOICE_ROLE_DETECTIVE:xiaogang}
+        assistant: ${AI_VOICE_ROLE_ASSISTANT:longxia}
+
+  # Omni 多模态配置
+  omni:
+    # 启用 Omni 功能
+    enabled: ${AI_OMNI_ENABLED:true}
+
+    # 模型配置
+    model: ${AI_OMNI_MODEL:qwen3-omni-flash-realtime}
+    voice: ${AI_OMNI_VOICE:Cherry}
+
+    # 实时配置
+    realtime:
+      # 采样率
+      sample-rate: ${AI_OMNI_SAMPLE_RATE:24000}
+
+      # 缓冲区大小
+      buffer-size: ${AI_OMNI_BUFFER_SIZE:4096}
+
+      # 延迟阈值
+      latency-threshold: ${AI_OMNI_LATENCY_THRESHOLD:200ms}
+
+# 模型性能配置
+model:
+  # 并发配置
+  concurrency:
+    # 最大并发请求
+    max-concurrent-requests: ${MODEL_MAX_CONCURRENT_REQUESTS:10}
+
+    # 请求队列大小
+    request-queue-size: ${MODEL_REQUEST_QUEUE_SIZE:100}
+
+    # 请求超时
+    request-timeout: ${MODEL_REQUEST_TIMEOUT:60s}
+
+  # 缓存配置
+  cache:
+    # 启用响应缓存
+    enabled: ${MODEL_CACHE_ENABLED:true}
+
+    # 缓存大小
+    max-size: ${MODEL_CACHE_MAX_SIZE:1000}
+
+    # 过期时间
+    expire-after-write: ${MODEL_CACHE_EXPIRE_AFTER_WRITE:1h}
+
+    # 缓存键前缀
+    key-prefix: ${MODEL_CACHE_KEY_PREFIX:model:}
+
+  # 重试配置
+  retry:
+    # 启用重试
+    enabled: ${MODEL_RETRY_ENABLED:true}
+
+    # 最大重试次数
+    max-attempts: ${MODEL_RETRY_MAX_ATTEMPTS:3}
+
+    # 重试延迟
+    delay: ${MODEL_RETRY_DELAY:1s}
+
+    # 退避倍数
+    backoff-multiplier: ${MODEL_RETRY_BACKOFF_MULTIPLIER:2.0}
+
+    # 最大延迟
+    max-delay: ${MODEL_RETRY_MAX_DELAY:30s}

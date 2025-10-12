@@ -1,11 +1,11 @@
 package com.ai.agent.real.agent.impl;
 
-import com.ai.agent.real.common.protocol.*;
+import com.ai.agent.real.contract.model.agent.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.contract.spec.*;
-import com.ai.agent.real.agent.Agent;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.model.ChatModel;
+import lombok.extern.slf4j.*;
+import org.springframework.ai.chat.model.*;
 import reactor.core.publisher.*;
 
 import java.util.*;

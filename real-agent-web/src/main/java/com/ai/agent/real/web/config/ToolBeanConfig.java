@@ -2,7 +2,7 @@ package com.ai.agent.real.web.config;
 
 import com.ai.agent.real.application.tool.*;
 import com.ai.agent.real.common.constant.*;
-import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.model.*;
 import com.ai.agent.real.contract.service.ToolService;
 import com.ai.agent.real.tool.system.impl.*;
 import io.modelcontextprotocol.client.*;

@@ -1,7 +1,9 @@
 package com.ai.agent.real.contract.service;
 
-import com.ai.agent.real.contract.protocol.*;
-import com.ai.agent.real.contract.spec.*;
+
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import reactor.core.publisher.*;
 
 import java.util.*;

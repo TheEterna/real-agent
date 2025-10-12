@@ -1,13 +1,14 @@
 package com.ai.agent.real.tool.system.impl.TimeNowTool;
 
 import com.ai.agent.real.contract.exception.*;
-import com.ai.agent.real.contract.protocol.*;
-import com.ai.agent.real.contract.protocol.ToolResult.*;
-import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
+import com.ai.agent.real.contract.model.protocol.ToolResult.*;
 
 import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
+import java.time.format.*;
+import java.util.*;
 
 public class TimeNowTool implements AgentTool {
 

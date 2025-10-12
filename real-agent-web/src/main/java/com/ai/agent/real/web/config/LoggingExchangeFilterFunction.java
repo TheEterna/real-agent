@@ -1,21 +1,15 @@
 package com.ai.agent.real.web.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Publisher;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.reactive.ClientHttpRequest;
-import org.springframework.http.client.reactive.ClientHttpRequestDecorator;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.client.ClientRequest;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.ExchangeFunction;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import lombok.extern.slf4j.*;
+import org.reactivestreams.*;
+import org.springframework.core.io.buffer.*;
+import org.springframework.http.*;
+import org.springframework.http.client.reactive.*;
+import org.springframework.stereotype.*;
+import org.springframework.web.reactive.function.client.*;
+import reactor.core.publisher.*;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.*;
 
 /**
  * WebClient请求体日志拦截器 通过装饰ClientHttpRequest来捕获实际发送的请求体内容
@@ -24,6 +18,7 @@ import java.nio.charset.StandardCharsets;
  * @time 2025/10/6 5:10
  */
 @Slf4j
+@Component
 public class LoggingExchangeFilterFunction implements ExchangeFilterFunction {
 
 	@Override

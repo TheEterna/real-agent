@@ -1,13 +1,13 @@
 package com.ai.agent.real.agent.impl;
 
-import com.ai.agent.real.agent.*;
-import com.ai.agent.real.common.protocol.*;
+import com.ai.agent.real.contract.model.agent.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.contract.spec.*;
-import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.*;
 import reactor.core.publisher.*;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * 代码生成专家Agent 专门处理代码编写、生成、实现等任务

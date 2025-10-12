@@ -1,17 +1,17 @@
 package com.ai.agent.real.web.controller;
 
 import com.ai.agent.real.agent.strategy.*;
-import com.ai.agent.real.common.spec.logging.*;
-import com.ai.agent.real.contract.spec.AgentContext;
-import com.ai.agent.real.common.protocol.AgentExecutionEvent;
-import com.ai.agent.real.contract.spec.message.AgentMessage;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.logging.*;
+import com.ai.agent.real.contract.model.message.*;
+import com.ai.agent.real.contract.model.protocol.*;
+import lombok.extern.slf4j.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.*;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.*;
+import java.util.*;
 
 /**
  * Agent对话控制器 提供ReAct框架的Web接口
@@ -41,7 +41,7 @@ public class AgentChatController {
 		try {
 			// 创建执行上下文
 			AgentContext context = new AgentContext(new TraceInfo()).setSessionId(request.getSessionId())
-				.setTraceId(generateTraceId())
+				.setTurnId(generateTraceId())
 				.setStartTime(LocalDateTime.now());
 
 			// 执行ReAct流式任务

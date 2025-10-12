@@ -1,10 +1,9 @@
 package com.ai.agent.real.agent;
 
 import com.ai.agent.real.agent.impl.*;
-import com.ai.agent.real.common.protocol.*;
-import com.ai.agent.real.common.spec.logging.*;
-import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.logging.*;
+import com.ai.agent.real.contract.utils.*;
 import lombok.extern.slf4j.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.*;
@@ -41,7 +40,7 @@ public class ReActAgentStrategyTests {
 
 		// 创建执行上下文
 		AgentContext context = new AgentContext(new TraceInfo()).setSessionId("1")
-			.setTraceId(generateTraceId())
+			.setTurnId(generateTraceId())
 			.setStartTime(LocalDateTime.now());
 
 		String task = "请用中文写一个关于机器学习算法的简介";
@@ -57,7 +56,7 @@ public class ReActAgentStrategyTests {
 										.map(AgentExecutionEvent::getMessage)
 										.map(msg -> AgentUtils.safeHead(msg, 256))
 										.orElse(null)),
-							() -> log.info("思考阶段结束: {}", context.getConversationHistory()));
+							() -> log.info("思考阶段结束: {}", context.getMessageHistory()));
 				}),
 
 				// 2. 行动阶段（封装：上下文合并 + 日志回调）
@@ -71,7 +70,7 @@ public class ReActAgentStrategyTests {
 										.map(AgentExecutionEvent::getMessage)
 										.map(msg -> AgentUtils.safeHead(msg, 256))
 										.orElse(null)),
-							() -> log.info("行动阶段结束: {}", context.getConversationHistory()));
+							() -> log.info("行动阶段结束: {}", context.getMessageHistory()));
 				}),
 
 				// 3. 观察阶段（封装：先过滤DONE，再应用上下文合并与日志回调）
@@ -87,7 +86,7 @@ public class ReActAgentStrategyTests {
 										.map(AgentExecutionEvent::getMessage)
 										.map(msg -> AgentUtils.safeHead(msg, 256))
 										.orElse(null)),
-							() -> log.info("观察阶段结束: {}", context.getConversationHistory()));
+							() -> log.info("观察阶段结束: {}", context.getMessageHistory()));
 				}));
 	}
 

@@ -1,6 +1,6 @@
 package com.ai.agent.real.web.controller;
 
-import com.ai.agent.real.common.protocol.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import com.ai.agent.real.application.dto.*;
 import com.ai.agent.real.application.service.*;
@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;

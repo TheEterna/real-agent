@@ -1,10 +1,10 @@
 package com.ai.agent.real.application.tool;
 
-import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.contract.protocol.*;
-import com.ai.agent.real.contract.protocol.ToolResult.*;
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
+import com.ai.agent.real.contract.model.protocol.ToolResult.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.contract.spec.*;
 import io.modelcontextprotocol.client.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.mcp.*;

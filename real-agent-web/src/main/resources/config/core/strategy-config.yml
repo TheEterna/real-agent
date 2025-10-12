@@ -1,0 +1,96 @@
+# Agent 策略配置
+# 各种 Agent 执行策略的配置
+
+strategy:
+  # ReAct 策略配置
+  react:
+    enabled: ${STRATEGY_REACT_ENABLED:true}
+    priority: ${STRATEGY_REACT_PRIORITY:100}
+
+    # 策略参数
+    config:
+      max-iterations: ${STRATEGY_REACT_MAX_ITERATIONS:10}
+      thinking-agent-id: ${STRATEGY_REACT_THINKING_AGENT:thinking-agent}
+      action-agent-id: ${STRATEGY_REACT_ACTION_AGENT:action-agent}
+      observation-agent-id: ${STRATEGY_REACT_OBSERVATION_AGENT:observation-agent}
+      final-agent-id: ${STRATEGY_REACT_FINAL_AGENT:final-agent}
+
+    # 流控制配置
+    stream:
+      back-pressure-strategy: ${STRATEGY_REACT_BACKPRESSURE:BUFFER}
+      buffer-size: ${STRATEGY_REACT_BUFFER_SIZE:256}
+
+  # 单 Agent 策略配置
+  single:
+    enabled: ${STRATEGY_SINGLE_ENABLED:true}
+    priority: ${STRATEGY_SINGLE_PRIORITY:50}
+
+    # 默认单 Agent 配置
+    config:
+      default-agent-id: ${STRATEGY_SINGLE_DEFAULT_AGENT:general-purpose-agent}
+      timeout: ${STRATEGY_SINGLE_TIMEOUT:2m}
+
+  # 协作策略配置 (实验性)
+  collaborative:
+    enabled: ${STRATEGY_COLLABORATIVE_ENABLED:false}
+    priority: ${STRATEGY_COLLABORATIVE_PRIORITY:75}
+
+    # 协作参数
+    config:
+      max-agents: ${STRATEGY_COLLABORATIVE_MAX_AGENTS:5}
+      coordination-timeout: ${STRATEGY_COLLABORATIVE_COORDINATION_TIMEOUT:1m}
+      consensus-threshold: ${STRATEGY_COLLABORATIVE_CONSENSUS_THRESHOLD:0.8}
+
+  # 竞争策略配置 (实验性)
+  competitive:
+    enabled: ${STRATEGY_COMPETITIVE_ENABLED:false}
+    priority: ${STRATEGY_COMPETITIVE_PRIORITY:60}
+
+    # 竞争参数
+    config:
+      max-competitors: ${STRATEGY_COMPETITIVE_MAX_COMPETITORS:3}
+      competition-timeout: ${STRATEGY_COMPETITIVE_TIMEOUT:1m}
+      selection-criteria: ${STRATEGY_COMPETITIVE_SELECTION:QUALITY}
+
+  # 管道策略配置 (实验性)
+  pipeline:
+    enabled: ${STRATEGY_PIPELINE_ENABLED:false}
+    priority: ${STRATEGY_PIPELINE_PRIORITY:70}
+
+    # 管道参数
+    config:
+      max-stages: ${STRATEGY_PIPELINE_MAX_STAGES:10}
+      stage-timeout: ${STRATEGY_PIPELINE_STAGE_TIMEOUT:30s}
+      failure-strategy: ${STRATEGY_PIPELINE_FAILURE_STRATEGY:FAIL_FAST}
+
+  # 策略选择配置
+  selection:
+    # 自动策略选择
+    auto-selection: ${STRATEGY_AUTO_SELECTION:true}
+
+    # 策略选择算法
+    algorithm: ${STRATEGY_SELECTION_ALGORITHM:PRIORITY_BASED} # PRIORITY_BASED | LOAD_BASED | CONTEXT_BASED
+
+    # 负载均衡配置
+    load-balancing:
+      enabled: ${STRATEGY_LOAD_BALANCING_ENABLED:false}
+      threshold: ${STRATEGY_LOAD_BALANCING_THRESHOLD:0.8}
+
+  # 策略执行配置
+  execution:
+    # 超时配置
+    default-timeout: ${STRATEGY_EXECUTION_DEFAULT_TIMEOUT:5m}
+    max-timeout: ${STRATEGY_EXECUTION_MAX_TIMEOUT:30m}
+
+    # 重试配置
+    retry:
+      enabled: ${STRATEGY_EXECUTION_RETRY_ENABLED:true}
+      max-attempts: ${STRATEGY_EXECUTION_RETRY_MAX:2}
+      delay: ${STRATEGY_EXECUTION_RETRY_DELAY:1s}
+
+    # 断路器配置
+    circuit-breaker:
+      enabled: ${STRATEGY_CIRCUIT_BREAKER_ENABLED:true}
+      failure-threshold: ${STRATEGY_CIRCUIT_BREAKER_FAILURE_THRESHOLD:5}
+      timeout: ${STRATEGY_CIRCUIT_BREAKER_TIMEOUT:1m}
+      reset-timeout: ${STRATEGY_CIRCUIT_BREAKER_RESET_TIMEOUT:30s}

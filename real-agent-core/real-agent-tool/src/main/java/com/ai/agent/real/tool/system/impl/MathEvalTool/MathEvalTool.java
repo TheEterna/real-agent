@@ -1,7 +1,8 @@
 package com.ai.agent.real.tool.system.impl.MathEvalTool;
 
-import com.ai.agent.real.contract.protocol.*;
-import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import org.springframework.ai.tool.annotation.*;
 
 public class MathEvalTool implements AgentTool {

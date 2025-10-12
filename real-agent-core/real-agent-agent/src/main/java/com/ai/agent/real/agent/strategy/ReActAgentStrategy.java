@@ -1,11 +1,14 @@
 package com.ai.agent.real.agent.strategy;
 
-import com.ai.agent.real.agent.*;
+
 import com.ai.agent.real.agent.impl.*;
-import com.ai.agent.real.common.protocol.*;
 import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.contract.spec.*;
-import com.ai.agent.real.contract.spec.message.*;
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.agent.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.message.*;
+import com.ai.agent.real.contract.model.protocol.*;
+import com.ai.agent.real.contract.utils.*;
 import lombok.extern.slf4j.*;
 import reactor.core.publisher.*;
 
@@ -50,7 +53,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 		log.debug("ReActAgentStrategy executeStream task: {}", task);
 
 		// 设置上下文
-		context.setTraceId(CommonUtils.getTraceId());
+		context.setTurnId(CommonUtils.getTraceId());
 		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
 		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
 			context.setSessionId("default");
@@ -114,7 +117,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 										.map(AgentExecutionEvent::getMessage)
 										.map(msg -> AgentUtils.safeHead(msg, 256))
 										.orElse(null)),
-							() -> log.info("思考阶段结束: {}", context.getConversationHistory()));
+							() -> log.info("思考阶段结束: {}", context.getMessageHistory()));
 				}),
 
 				// 2. 行动阶段（封装：上下文合并 + 日志回调）
@@ -129,7 +132,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 										.map(AgentExecutionEvent::getMessage)
 										.map(msg -> AgentUtils.safeHead(msg, 256))
 										.orElse(null)),
-							() -> log.info("行动阶段结束: {}", context.getConversationHistory()));
+							() -> log.info("行动阶段结束: {}", context.getMessageHistory()));
 				}),
 
 				// 3. 观察阶段（封装：先过滤DONE，再应用上下文合并与日志回调）
@@ -145,7 +148,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 										.map(AgentExecutionEvent::getMessage)
 										.map(msg -> AgentUtils.safeHead(msg, 256))
 										.orElse(null)),
-							() -> log.info("观察阶段结束: {}", context.getConversationHistory()));
+							() -> log.info("观察阶段结束: {}", context.getMessageHistory()));
 				})
 
 		);

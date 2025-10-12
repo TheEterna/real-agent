@@ -266,3 +266,7 @@ PUT    /api/sessions/{sessionCode}/end       # 结束会话
 2. 但这个和 最后的总结节点还是有一些区别的，因为这个观察节点是一个循环里的结论，而总结节点是针对整个任务，以及整个回答链的总结
 
 
+### git commit 规范 
+
+1. 双语编写：英文在前，中文在后
+2. 格式规范：使用 type(scope): description 格式

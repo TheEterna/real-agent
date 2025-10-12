@@ -31,5 +31,9 @@
             <groupId>com.ai.agent</groupId>
             <artifactId>real-agent-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-contract</artifactId>
+        </dependency>
     </dependencies>
 </project>

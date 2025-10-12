@@ -1,10 +1,10 @@
 package com.ai.agent.real.web.controller;
 
-import com.ai.agent.real.common.protocol.*;
-import com.ai.agent.real.common.spec.logging.*;
-import com.ai.agent.real.contract.protocol.*;
+import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.logging.*;
+import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.contract.spec.*;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.*;
 

@@ -1,12 +1,11 @@
 package com.ai.agent.real.agent.impl;
 
-import com.ai.agent.real.agent.*;
-
-import com.ai.agent.real.common.protocol.*;
-import com.ai.agent.real.common.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.common.utils.*;
+import com.ai.agent.real.contract.model.agent.*;
+import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.model.protocol.*;
+import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.contract.spec.*;
+import com.ai.agent.real.contract.utils.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
@@ -14,9 +13,10 @@ import reactor.core.publisher.*;
 
 import java.util.*;
 
-import static com.ai.agent.real.common.constant.NounConstants.FINAL_AGENT_ID;
+import static com.ai.agent.real.common.constant.NounConstants.*;
 
 /**
+ * 完成任务必须使用 该节点, 因为 ZIP 模式下, 使用的就是该Agent的AGENT_ID 和 message_type 去做 == 运算
  * @author han
  * @time 2025/9/9 14:40
  */

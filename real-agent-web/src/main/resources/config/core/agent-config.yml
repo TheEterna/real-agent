@@ -1,0 +1,93 @@
+# Agent 核心配置
+# real-agent-core/real-agent-agent 模块相关配置
+
+# Real-Agent 自定义配置（对应 IRealAgentProperties）
+real-agent:
+  action:
+    # 审批模式: AUTO(自动执行) | REQUIRE_APPROVAL(需要审批) | DISABLED(禁用)
+    approval-mode: ${REAL_AGENT_APPROVAL_MODE:AUTO}
+
+    # 执行超时时间
+    execution-timeout: ${REAL_AGENT_EXECUTION_TIMEOUT:120s}
+
+    # 最大并发执行数
+    max-concurrent-executions: ${REAL_AGENT_MAX_CONCURRENT:5}
+
+    # 工具配置
+    tools:
+      approval-mode: ${REAL_AGENT_TOOLS_APPROVAL_MODE:AUTO}
+
+agent:
+  # 动作配置
+  action:
+    tools:
+      # 工具审批模式: AUTO(自动执行) | REQUIRE_APPROVAL(需要审批) | DISABLED(禁用工具)
+      approval-mode: ${AGENT_TOOLS_APPROVAL_MODE:AUTO}
+
+      # 工具执行超时时间
+      execution-timeout: ${AGENT_TOOLS_TIMEOUT:30s}
+
+      # 最大并发工具执行数
+      max-concurrent-executions: ${AGENT_TOOLS_MAX_CONCURRENT:5}
+
+      # 工具执行重试配置
+      retry:
+        max-attempts: ${AGENT_TOOLS_RETRY_MAX:3}
+        delay: ${AGENT_TOOLS_RETRY_DELAY:1s}
+        backoff-multiplier: ${AGENT_TOOLS_RETRY_BACKOFF:2.0}
+
+  # ReAct 策略配置
+  react:
+    # 最大迭代次数
+    max-iterations: ${AGENT_REACT_MAX_ITERATIONS:10}
+
+    # 思考阶段超时
+    thinking-timeout: ${AGENT_REACT_THINKING_TIMEOUT:30s}
+
+    # 观察阶段超时
+    observation-timeout: ${AGENT_REACT_OBSERVATION_TIMEOUT:15s}
+
+    # 最终阶段超时
+    final-timeout: ${AGENT_REACT_FINAL_TIMEOUT:30s}
+
+  # Agent 实例配置
+  instances:
+    thinking:
+      enabled: ${AGENT_THINKING_ENABLED:true}
+      keywords: ${AGENT_THINKING_KEYWORDS:思考,分析,推理,planning}
+
+    action:
+      enabled: ${AGENT_ACTION_ENABLED:true}
+      keywords: ${AGENT_ACTION_KEYWORDS:执行,工具,action,tool}
+
+    observation:
+      enabled: ${AGENT_OBSERVATION_ENABLED:true}
+      keywords: ${AGENT_OBSERVATION_KEYWORDS:观察,结果,分析,observation}
+
+    final:
+      enabled: ${AGENT_FINAL_ENABLED:true}
+      keywords: ${AGENT_FINAL_KEYWORDS:总结,完成,final,summary}
+
+  # Agent 上下文配置
+  context:
+    # 最大对话历史长度
+    max-conversation-history: ${AGENT_CONTEXT_MAX_HISTORY:50}
+
+    # 上下文超时时间
+    timeout: ${AGENT_CONTEXT_TIMEOUT:10m}
+
+    # 追踪信息保留时间
+    trace-retention: ${AGENT_CONTEXT_TRACE_RETENTION:1d}
+
+  # Agent 流控制配置
+  stream:
+    # 背压缓冲区大小
+    buffer-size: ${AGENT_STREAM_BUFFER_SIZE:256}
+
+    # 流超时时间
+    timeout: ${AGENT_STREAM_TIMEOUT:5m}
+
+    # 错误重试配置
+    error-retry:
+      max-attempts: ${AGENT_STREAM_ERROR_RETRY_MAX:3}
+      delay: ${AGENT_STREAM_ERROR_RETRY_DELAY:500ms}
