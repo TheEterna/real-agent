@@ -20,46 +20,44 @@ import java.util.*;
 @Slf4j
 public class AgentService implements IAgentService {
 
-    private final ReActAgentStrategy reactAgentStrategy;
-    private final AgentMemory agentMemory;
+	private final ReActAgentStrategy reactAgentStrategy;
 
-    public AgentService(ReActAgentStrategy reactAgentStrategy,
-                        AgentMemory agentMemory) {
-        this.reactAgentStrategy = reactAgentStrategy;
-        this.agentMemory = agentMemory;
-    }
+	private final AgentMemory agentMemory;
 
-    /**
-     * 流式执行策略（推荐）
-     *
-     * @param task    任务描述
-     * @param agents  可用的Agent列表
-     * @param context 执行上下文
-     * @return 流式执行结果
-     */
-    @Override
-    public Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContext context) {
+	public AgentService(ReActAgentStrategy reactAgentStrategy, AgentMemory agentMemory) {
+		this.reactAgentStrategy = reactAgentStrategy;
+		this.agentMemory = agentMemory;
+	}
 
-        // get sessionId to get messageHistory from memory
-        String sessionId = context.getSessionId();
-        List<AgentMessage> messageHistory = agentMemory.getMessageHistory(sessionId);
-        context.setMessageHistory(messageHistory);
+	/**
+	 * 流式执行策略（推荐）
+	 * @param task 任务描述
+	 * @param agents 可用的Agent列表
+	 * @param context 执行上下文
+	 * @return 流式执行结果
+	 */
+	@Override
+	public Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContext context) {
 
-        // 调用Agent策略执行流式执行
-        return reactAgentStrategy.executeStream(task, agents, context)
-                // 将流中的异常转换为一个错误事件，避免直接以错误终止连接
-                .onErrorResume(error -> {
-                    log.error("ReAct执行异常(流内)", error);
-                    return Flux.just(AgentExecutionEvent.error(error));
-                })
-                .doOnError(error -> log.error("ReAct执行异常", error))
-                .doOnComplete(() -> {
-                    context.setEndTime(LocalDateTime.now());
-                    // 保存上下文
-                    agentMemory.addTurn(
-                            context.getTrace().getSessionId(),
-                            context.getMessageHistory());
-                    log.info("ReAct任务执行完成");
-                });
-    }
+		// get sessionId to get messageHistory from memory
+		String sessionId = context.getSessionId();
+		List<AgentMessage> messageHistory = agentMemory.getMessageHistory(sessionId);
+		context.setMessageHistory(messageHistory);
+
+		// 调用Agent策略执行流式执行
+		return reactAgentStrategy.executeStream(task, agents, context)
+			// 将流中的异常转换为一个错误事件，避免直接以错误终止连接
+			.onErrorResume(error -> {
+				log.error("ReAct执行异常(流内)", error);
+				return Flux.just(AgentExecutionEvent.error(error));
+			})
+			.doOnError(error -> log.error("ReAct执行异常", error))
+			.doOnComplete(() -> {
+				context.setEndTime(LocalDateTime.now());
+				// 保存上下文
+				agentMemory.addTurn(context.getTrace().getSessionId(), context.getMessageHistory());
+				log.info("ReAct任务执行完成");
+			});
+	}
+
 }

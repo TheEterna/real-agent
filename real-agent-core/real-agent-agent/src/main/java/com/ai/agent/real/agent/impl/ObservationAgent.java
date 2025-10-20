@@ -101,17 +101,4 @@ public class ObservationAgent extends Agent {
 			});
 	}
 
-	/**
-	 * 构建观察提示词
-	 */
-	private String buildObservationPrompt(String task, AgentContext context) {
-		StringBuilder promptBuilder = new StringBuilder();
-
-		promptBuilder.append("""
-					请基于上下文，分析工具执行结果并提供观察反馈：
-				""");
-
-		return promptBuilder.toString();
-	}
-
 }

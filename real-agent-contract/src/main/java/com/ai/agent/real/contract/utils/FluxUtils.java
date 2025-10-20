@@ -188,52 +188,74 @@ public class FluxUtils {
 			AgentContext context, String agentId, ToolService toolService, ToolApprovalMode toolApprovalMode,
 			EventType eventType) {
 
-		return chatModel.stream(prompt).doOnSubscribe(subscription -> {
-			log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
-			log.debug("Prompt消息数量: {}, 工具数量: {}", prompt.getInstructions().size(),
-					prompt.getOptions() != null ? "有工具配置" : "无工具配置");
-		}).concatMap(response -> {
-			log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
-					response.getResult() != null);
+		return chatModel.stream(prompt)
+			// 将 sessionId 和 turnId 写入 Reactor Context
+			// MCP 回调时 Context 会丢失 turnId，但可以保留 sessionId
+			// 通过 SessionTurnTracker 可以从 sessionId 查找到当前活跃的 turnId
+			// WebFlux 异步环境下 ThreadLocal 失效，必须通过 Context 传递
+			.contextWrite(ctx -> {
+				String sessionId = context.getSessionId();
+				String turnId = context.getTurnId();
+				
+				if (sessionId != null && !sessionId.isBlank()) {
+					ctx = ctx.put("sessionId", sessionId);
+					log.debug("将 sessionId={} 写入 Reactor Context", sessionId);
+				}
+				
+				if (turnId != null && !turnId.isBlank()) {
+					ctx = ctx.put("turnId", turnId);
+					log.debug("将 turnId={} 写入 Reactor Context", turnId);
+				}
+				
+				return ctx;
+			})
+			.doOnSubscribe(subscription -> {
+				log.debug("开始流式调用LLM，agentId: {}, eventType: {}, turnId: {}", agentId, eventType, context.getTurnId());
+				log.debug("Prompt消息数量: {}, 工具数量: {}", prompt.getInstructions().size(),
+						prompt.getOptions() != null ? "有工具配置" : "无工具配置");
+			})
+			.concatMap(response -> {
+				log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
+						response.getResult() != null);
 
-			// 检查是否是空的generations
-			if (response.getResults() != null && response.getResults().isEmpty()) {
-				log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
-				log.warn("ChatResponse详情: {}", response);
-				return Flux.empty();
-			}
+				// 检查是否是空的generations
+				if (response.getResults() != null && response.getResults().isEmpty()) {
+					log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
+					log.warn("ChatResponse详情: {}", response);
+					return Flux.empty();
+				}
 
-			// 防御性编程：检查response.getResult()是否为null
-			if (response.getResult() == null) {
-				log.debug("收到空结果的流式响应，跳过处理");
-				return Flux.empty();
-			}
+				// 防御性编程：检查response.getResult()是否为null
+				if (response.getResult() == null) {
+					log.debug("收到空结果的流式响应，跳过处理");
+					return Flux.empty();
+				}
 
-			// 进一步检查getOutput()是否为null
-			if (response.getResult().getOutput() == null) {
-				log.debug("收到空输出的流式响应，跳过处理");
-				return Flux.empty();
-			}
+				// 进一步检查getOutput()是否为null
+				if (response.getResult().getOutput() == null) {
+					log.debug("收到空输出的流式响应，跳过处理");
+					return Flux.empty();
+				}
 
-			String content = response.getResult().getOutput().getText();
+				String content = response.getResult().getOutput().getText();
 
-			// 处理文本内容
-			Flux<AgentExecutionEvent> contentFlux = Flux.empty();
-			if (content != null && !content.trim().isEmpty()) {
-				AgentExecutionEvent event = createEventByType(context, content, eventType);
-				contentFlux = Flux.just(event);
-			}
+				// 处理文本内容
+				Flux<AgentExecutionEvent> contentFlux = Flux.empty();
+				if (content != null && !content.trim().isEmpty()) {
+					AgentExecutionEvent event = createEventByType(context, content, eventType);
+					contentFlux = Flux.just(event);
+				}
 
-			// 处理工具调用
-			Flux<AgentExecutionEvent> toolFlux = Flux.empty();
-			if (ToolUtils.hasToolCallingNative(response)) {
-				toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
-					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode));
-			}
+				// 处理工具调用
+				Flux<AgentExecutionEvent> toolFlux = Flux.empty();
+				if (ToolUtils.hasToolCallingNative(response)) {
+					toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
+						.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode));
+				}
 
-			// 合并内容和工具调用结果
-			return Flux.concat(contentFlux, toolFlux);
-		});
+				// 合并内容和工具调用结果
+				return Flux.concat(contentFlux, toolFlux);
+			});
 	}
 
 	/**
@@ -243,7 +265,7 @@ public class FluxUtils {
 		switch (eventType) {
 			case THINKING:
 				return AgentExecutionEvent.thinking(context, content);
-			case ACTING:
+			case ACTION:
 				return AgentExecutionEvent.action(context, content);
 			case OBSERVING:
 				return AgentExecutionEvent.observing(context, content);

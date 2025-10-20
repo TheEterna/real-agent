@@ -28,22 +28,6 @@ import static com.ai.agent.real.common.constant.NounConstants.*;
 
 public class ToolUtils {
 
-	public static String getToolsDescription(List<AgentTool> tools) {
-		if (tools.isEmpty()) {
-			return "无可用工具";
-		}
-
-		StringBuilder desc = new StringBuilder();
-		for (AgentTool tool : tools) {
-			desc.append("- ")
-				.append(tool.getSpec().getName())
-				.append(": ")
-				.append(tool.getSpec().getDescription())
-				.append("\n");
-		}
-		return desc.toString();
-	}
-
 	public static boolean hasToolCallingNative(ChatResponse response) {
 
 		return response.hasToolCalls();

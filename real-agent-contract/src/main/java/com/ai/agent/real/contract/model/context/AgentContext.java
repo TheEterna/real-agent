@@ -65,7 +65,7 @@ public class AgentContext implements Traceable {
 	 * 添加消息到对话历史
 	 */
 	public AgentContext addMessage(AgentMessage message) {
-		message.setContent("[" + message.getSenderId() + "]: " + message.getText());
+		message.setContent(message.getSenderId() + ": " + message.getText());
 		this.messageHistory.add(message);
 		return this;
 	}

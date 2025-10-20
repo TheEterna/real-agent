@@ -29,4 +29,11 @@ public class UuidUtils {
 		return "sess_" + generate32().substring(0, 27);
 	}
 
+	/**
+	 * 生成唯一的elicitation ID
+	 */
+	public static String generateElicitationId() {
+		return "elicit_" + System.currentTimeMillis() + "_" + (int) (Math.random() * 1000);
+	}
+
 }

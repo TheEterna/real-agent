@@ -28,6 +28,15 @@ public class ToolBeanConfig {
 
 		toolService.registerToolWithKeywords(new TaskDoneTool(), Set.of(TASK_DONE));
 
+		// register elicitation test tool
+		toolService.registerToolWithKeywords(new ElicitationTestTool(),
+				Set.of("elicitation", "test", "测试", "输入", "表单", "schema"));
+
+		// register user info collector tool
+		// toolService.registerToolWithKeywords(new UserInfoCollectorTool(),
+		// Set.of("用户", "信息", "收集", "表单", "注册", "资料", "联系", "反馈", "调研", "profile",
+		// "contact", "survey"));
+
 		// register mcp tools
 		List<AgentTool> agentToolList = toolService.listAllMCPToolsAsync().block();
 

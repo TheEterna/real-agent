@@ -86,64 +86,64 @@ public class ThinkingAgent extends Agent {
 			## 示例
 
 			// 1. 示例只是一种特殊情况, 可能在实际场景中, 缺少示例中的工具, 你将要采取其他方案来完成任务, 切记不能虚构, 为确保任务完成, 你可以进行假设, 但一定要通知用户
-			// 2. 实例中的 Thought agent: , user: 等 只是说明该输出的角色, 并非真正的输出, 你只负责Thought节点的输出
+			// 2. 实例中的 ThinkingAgent: , user: 等 只是说明该输出的角色, 并非真正的输出, 你只负责Thought节点的输出
 			### 示例1
 			user: "2024 年巴黎奥运会的主会场是什么？能容纳多少观众？
 
-			Thought agent: 我需要回答关于2024年巴黎奥运会主会场的问题。首先，我应该确认主会场的名称和容量, 需要调用 search 工具查找2024年巴黎奥运会主会场的信息，包括名称和观众容量。
-			Action agent: search("2024年巴黎奥运会主会场 名称 容量")
-			Observation agent: 2024年巴黎奥运会的主会场是法兰西体育场(Stade de France)，可容纳80,698名观众。
+			ThinkingAgent: 我需要回答关于2024年巴黎奥运会主会场的问题。首先，我应该确认主会场的名称和容量, 需要调用 search 工具查找2024年巴黎奥运会主会场的信息，包括名称和观众容量。
+			ActionAgent: search("2024年巴黎奥运会主会场 名称 容量")
+			ObservationAgent: 2024年巴黎奥运会的主会场是法兰西体育场(Stade de France)，可容纳80,698名观众。
 
-			Thought agent: 搜索结果提供了主会场名称和容量信息，但我应该调用 search 工具去确认这些信息的准确性。
-			Action agent: search("法兰西体育场 2024年奥运会 观众容量")
-			Observation agent: 法兰西体育场经过改造后，在2024年奥运会期间的观众容量为80,698人，是开幕式、闭幕式和田径比赛的举办地。
+			ThinkingAgent: 搜索结果提供了主会场名称和容量信息，但我应该调用 search 工具去确认这些信息的准确性。
+			ActionAgent: search("法兰西体育场 2024年奥运会 观众容量")
+			ObservationAgent: 法兰西体育场经过改造后，在2024年奥运会期间的观众容量为80,698人，是开幕式、闭幕式和田径比赛的举办地。
 
-			Thought agent: 现在我有了准确的信息，可以整理成完整的回答, 应该调用 任务结束 工具。
-			Action agent: 调用任务结束工具
+			ThinkingAgent: 现在我有了准确的信息，可以整理成完整的回答, 应该调用 任务结束 工具。
+			ActionAgent: 调用任务结束工具
 			Summary: 2024年巴黎奥运会的主会场是法兰西体育场(Stade de France)，该场馆经过改造后可容纳80,698名观众。它将举办开幕式、闭幕式以及田径比赛等重要赛事活动。
 
 			### 示例2
 			user: "分析近五年全球气温变化趋势"的查询时：
 
-			Thought agent: 这是一个复杂的学习规划问题，需要分步骤分析并制定详细的学习计划, 首先需要了解用户的背景和目标，然后制定个性化的学习路径。用户需要一个3个月的机器学习学习计划，目标是找到工作。我需要考虑：学习基础、实践项目、求职准备等方面, 我应该先调用 search 工具去了解机器学习的学习路径和求职要求。
-			Action agent: search("机器学习学习路径 3个月 求职")
-			Observation agent: 机器学习学习路径通常包括：数学基础→编程技能→机器学习算法→深度学习→项目实践→求职准备。成功求职需要：扎实的理论基础、实际项目经验、技术面试准备。
+			ThinkingAgent: 这是一个复杂的学习规划问题，需要分步骤分析并制定详细的学习计划, 首先需要了解用户的背景和目标，然后制定个性化的学习路径。用户需要一个3个月的机器学习学习计划，目标是找到工作。我需要考虑：学习基础、实践项目、求职准备等方面, 我应该先调用 search 工具去了解机器学习的学习路径和求职要求。
+			ActionAgent: search("机器学习学习路径 3个月 求职")
+			ObservationAgent: 机器学习学习路径通常包括：数学基础→编程技能→机器学习算法→深度学习→项目实践→求职准备。成功求职需要：扎实的理论基础、实际项目经验、技术面试准备。
 
-			Thought agent: 需要调用 plan 工具去制定详细的月度学习计划。
-			Action agent: plan("第一个月：数学基础和编程技能")
-			Observation agent: 第一月重点：Python编程、数据结构、数学基础（线性代数、微积分、概率统计）、数据分析库（pandas、numpy、matplotlib）
+			ThinkingAgent: 需要调用 plan 工具去制定详细的月度学习计划。
+			ActionAgent: plan("第一个月：数学基础和编程技能")
+			ObservationAgent: 第一月重点：Python编程、数据结构、数学基础（线性代数、微积分、概率统计）、数据分析库（pandas、numpy、matplotlib）
 
-			Thought agent: 需要调用 plan 工具去制定第二个月的学习内容。
-			Action agent: plan("第二个月：机器学习算法和实践")
-			Observation agent: 第二月重点：监督学习算法（线性回归、逻辑回归、决策树、随机森林、SVM）、无监督学习、模型评估、scikit-learn库、第一个项目实践
+			ThinkingAgent: 需要调用 plan 工具去制定第二个月的学习内容。
+			ActionAgent: plan("第二个月：机器学习算法和实践")
+			ObservationAgent: 第二月重点：监督学习算法（线性回归、逻辑回归、决策树、随机森林、SVM）、无监督学习、模型评估、scikit-learn库、第一个项目实践
 
-			Thought agent: 需要调用 plan 工具去制定第三个月的学习内容。
-			Action agent: plan("第三个月：深度学习和求职准备")
-			Observation agent: 第三月重点：神经网络基础、深度学习框架（TensorFlow/PyTorch）、深度学习应用、项目实战、简历准备、面试刷题
+			ThinkingAgent: 需要调用 plan 工具去制定第三个月的学习内容。
+			ActionAgent: plan("第三个月：深度学习和求职准备")
+			ObservationAgent: 第三月重点：神经网络基础、深度学习框架（TensorFlow/PyTorch）、深度学习应用、项目实战、简历准备、面试刷题
 
-			Thought agent: 需要调用 calculate 工具 计算具体的每日学习时间安排。
-			Action agent: calculate("假设每天学习6小时，每周学习6天，3个月共72天，总计432小时")
+			ThinkingAgent: 需要调用 calculate 工具 计算具体的每日学习时间安排。
+			ActionAgent: calculate("假设每天学习6小时，每周学习6天，3个月共72天，总计432小时")
 
-			Thought agent: 需要调用 schedule 工具 进行学习时间的分配到各个主题。
-			Action agent: schedule("时间分配：数学基础60小时、编程技能80小时、机器学习算法120小时、深度学习80小时、项目实践60小时、求职准备32小时")
+			ThinkingAgent: 需要调用 schedule 工具 进行学习时间的分配到各个主题。
+			ActionAgent: schedule("时间分配：数学基础60小时、编程技能80小时、机器学习算法120小时、深度学习80小时、项目实践60小时、求职准备32小时")
 
-			Thought agent: 需要调用 search 工具搜索具体的学习资源推荐。
-			Action agent: search("机器学习最佳学习资源 2024年")
-			Observation agent: 推荐资源：Coursera Andrew Ng机器学习课程、Stanford CS229、Python for Data Science Handbook、Scikit-learn官方文档、TensorFlow/PyTorch教程、Kaggle竞赛平台
+			ThinkingAgent: 需要调用 search 工具搜索具体的学习资源推荐。
+			ActionAgent: search("机器学习最佳学习资源 2024年")
+			ObservationAgent: 推荐资源：Coursera Andrew Ng机器学习课程、Stanford CS229、Python for Data Science Handbook、Scikit-learn官方文档、TensorFlow/PyTorch教程、Kaggle竞赛平台
 
-			Thought agent: 需要调用 project 工具来规划具体的项目实践。
-			Action agent: project("项目规划：1.数据分析项目（用pandas分析数据集）2.机器学习项目（预测模型）3.深度学习项目（图像识别/NLP）4.综合项目（端到端ML系统）")
+			ThinkingAgent: 需要调用 project 工具来规划具体的项目实践。
+			ActionAgent: project("项目规划：1.数据分析项目（用pandas分析数据集）2.机器学习项目（预测模型）3.深度学习项目（图像识别/NLP）4.综合项目（端到端ML系统）")
 
-			Thought agent: 需要调用 search 工具去了解当前机器学习的求职市场需求。
-			Action agent: search("机器学习工程师求职要求 技能需求 2024年")
-			Observation agent: 主要技能需求：Python编程、机器学习算法、深度学习框架、数据处理、模型部署、项目经验、沟通能力。热门工具：Scikit-learn、TensorFlow、PyTorch、Docker、Kubernetes、AWS/Azure/GCP。
+			ThinkingAgent: 需要调用 search 工具去了解当前机器学习的求职市场需求。
+			ActionAgent: search("机器学习工程师求职要求 技能需求 2024年")
+			ObservationAgent: 主要技能需求：Python编程、机器学习算法、深度学习框架、数据处理、模型部署、项目经验、沟通能力。热门工具：Scikit-learn、TensorFlow、PyTorch、Docker、Kubernetes、AWS/Azure/GCP。
 
-			Thought agent: 需要调用 search 工具用于搜索准备面试常见问题和算法题。
-			Action agent: search("机器学习面试题 算法题 2024年")
-			Observation agent: 常见面试内容：机器学习理论基础、算法原理、项目经验、编程能力、系统设计、开放性问题。推荐刷题平台：LeetCode、HackerRank、Kaggle。
+			ThinkingAgent: 需要调用 search 工具用于搜索准备面试常见问题和算法题。
+			ActionAgent: search("机器学习面试题 算法题 2024年")
+			ObservationAgent: 常见面试内容：机器学习理论基础、算法原理、项目经验、编程能力、系统设计、开放性问题。推荐刷题平台：LeetCode、HackerRank、Kaggle。
 
-			Thought agent: 现在所有任务已经完成, 任务可以结束了, 应该对所有信息进行整合, 制定完整的学习计划
-			Action agent: 调用任务结束工具
+			ThinkingAgent: 现在所有任务已经完成, 任务可以结束了, 应该对所有信息进行整合, 制定完整的学习计划
+			ActionAgent: 调用任务结束工具
 			Summary: 以下是为您制定的3个月机器学习学习计划：\\n\\n## 第一个月：基础建设期（60天）\\n**数学基础（20天）**\\n- 线性代数：矩阵运算、向量空间、特征值分解\\n- 微积分：导数、梯度下降、多变量优化\\n- 概率统计：概率分布、期望方差、假设检验\\n\\n**编程技能（20天）**\\n- Python基础：语法、数据结构、面向对象\\n- 数据科学库：NumPy、Pandas、Matplotlib、Seaborn\\n- 实践项目：分析一个数据集并生成报告\\n\\n## 第二个月：核心算法期（30天）\\n**机器学习算法（25天）**\\n- 监督学习：线性回归、逻辑回归、决策树、随机森林、SVM、XGBoost\\n- 无监督学习：聚类、降维、异常检测\\n- 模型评估：交叉验证、混淆矩阵、ROC/AUC\\n\\n**项目实践（5天）**\\n- 完成一个预测模型项目（如房价预测、客户流失预测）\\n- 使用Scikit-learn实现完整的ML流程\\n\\n## 第三个月：深度学习与求职期（30天）\\n**深度学习（15天）**\\n- 神经网络基础：激活函数、反向传播、优化器\\n- 深度学习框架：TensorFlow或PyTorch基础\\n- 应用场景：图像识别、自然语言处理\\n\\n**求职准备（15天）**\\n- 项目完善：完成2-3个高质量项目并部署\\n- 简历准备：突出项目经验和技术技能\\n- 面试准备：\\n  - 理论基础：算法原理、数学推导\\n  - 编程能力：LeetCode刷题（至少50题）\\n  - 系统设计：ML系统架构、模型部署\\n\\n## 学习资源推荐\\n- 课程：Coursera Andrew Ng机器学习、Stanford CS229\\n- 书籍：《Python for Data Science Handbook》、《机器学习实战》\\n- 实践：Kaggle竞赛、GitHub项目\\n\\n## 成功关键\\n1. 每天坚持学习6小时以上\\n2. 重视实践，每个算法都要动手实现\\n3. 建立GitHub作品集\\n4. 参与技术社区，分享学习心得\\n5. 提前开始投递简历，积累面试经验\\n\\n这个计划需要很强的执行力，但如果严格按照计划执行，3个月内完全有可能从零基础达到机器学习工程师的入门水平。
 
 			## 请根据具体任务需求，在每次交互中清晰展现思考逻辑与行动决策，确保任务推进的可追溯性和有效性。

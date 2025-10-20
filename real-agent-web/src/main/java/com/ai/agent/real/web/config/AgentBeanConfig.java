@@ -2,6 +2,7 @@ package com.ai.agent.real.web.config;
 
 import com.ai.agent.real.agent.impl.*;
 import com.ai.agent.real.agent.strategy.*;
+import com.ai.agent.real.contract.model.agent.*;
 import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.service.*;
@@ -45,9 +46,16 @@ public class AgentBeanConfig {
 	}
 
 	@Bean
+	public EventSinkManager eventSinkManager() {
+		return new EventSinkManager();
+	}
+
+	@Bean
 	public ReActAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-			ObservationAgent observationAgent, FinalAgent finalAgent) {
-		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent);
+			ObservationAgent observationAgent, FinalAgent finalAgent, EventSinkManager sinkManager,
+			SessionTurnTracker sessionTurnTracker) {
+		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, sinkManager,
+				sessionTurnTracker);
 	}
 
 	/**
@@ -60,6 +68,9 @@ public class AgentBeanConfig {
 		return AgentMemory.builder().build(defaultSessionConfig);
 	}
 
-
+	@Bean
+	public ElicitationService elicitationService(AgentStrategy agentStrategy) {
+		return new ElicitationService(agentStrategy);
+	}
 
 }

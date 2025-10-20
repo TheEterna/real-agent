@@ -14,7 +14,10 @@ import java.time.*;
 import java.util.*;
 
 /**
- * Agent对话控制器 提供ReAct框架的Web接口
+ * Agent对话控制器 - 提供ReAct框架的Web接口
+ *
+ * 职责（Controller 层，不处理业务逻辑）： - 接收前端HTTP请求 - 调用 ReActAgentStrategy 执行业务逻辑（包括 elicitation
+ * 事件流合并） - 返回SSE流式响应给前端 - 转发用户的 elicitation 响应到 ElicitationService
  *
  * @author han
  * @time 2025/9/10 10:45
@@ -27,12 +30,18 @@ public class AgentChatController {
 
 	private final ReActAgentStrategy reActAgentStrategy;
 
-	public AgentChatController(ReActAgentStrategy reActAgentStrategy) {
+	private final ElicitationService elicitationService;
+
+	public AgentChatController(ReActAgentStrategy reActAgentStrategy, ElicitationService elicitationService) {
 		this.reActAgentStrategy = reActAgentStrategy;
+		this.elicitationService = elicitationService;
 	}
 
 	/**
 	 * 执行ReAct任务（流式响应）
+	 *
+	 * Controller 层职责：接收请求，创建上下文，调用 Service 层执行，返回流式响应 业务逻辑（包括 elicitation 事件流合并）在
+	 * ReActAgentStrategy 中处理
 	 */
 	@PostMapping(value = "/react/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public Flux<AgentExecutionEvent> executeReActStream(@RequestBody ChatRequest request) {
@@ -44,7 +53,8 @@ public class AgentChatController {
 				.setTurnId(generateTraceId())
 				.setStartTime(LocalDateTime.now());
 
-			// 执行ReAct流式任务
+			// 调用 ReActAgentStrategy 执行业务逻辑
+			// Strategy 内部会自动合并 elicitation 事件流（如果有的话）
 			return reActAgentStrategy.executeStream(request.getMessage(), null, context)
 				// 将流中的异常转换为一个错误事件，避免直接以错误终止连接
 				.onErrorResume(error -> {
@@ -99,6 +109,29 @@ public class AgentChatController {
 	public Map<String, Object> getAgentTypes() {
 		return Map.of("types", new String[] { "ReActAgentStrategy", "代码编写" }, "default", "ReActAgentStrategy",
 				"description", Map.of("ReActAgentStrategy", "基于推理-行动-观察的智能Agent框架", "代码编写", "专门用于代码生成和编程任务的Agent"));
+	}
+
+	/**
+	 * 提交用户填写的 elicitation 数据
+	 * @param elicitationId elicitation 请求ID
+	 * @param request 用户填写的数据
+	 * @return 提交结果
+	 */
+	@PostMapping("/elicitation/{elicitationId}/response")
+	public ResponseEntity<Map<String, Object>> submitElicitationResponse(@PathVariable String elicitationId,
+			@RequestBody Map<String, Object> request) {
+
+		log.info("收到用户 elicitation 响应: id={}, data={}", elicitationId, request);
+
+		boolean success = elicitationService.submitUserResponse(elicitationId, request);
+
+		if (success) {
+			return ResponseEntity.ok(Map.of("success", true, "message", "数据提交成功", "elicitationId", elicitationId));
+		}
+		else {
+			return ResponseEntity.badRequest()
+				.body(Map.of("success", false, "message", "无效的 elicitation ID 或请求已过期", "elicitationId", elicitationId));
+		}
 	}
 
 	/**

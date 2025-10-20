@@ -105,7 +105,9 @@ public abstract class Agent {
 		this.keywords = keywords;
 		// 需要使用 toolService 去判断有没有工具
 		this.availableTools = toolService.getToolsByKeywords(this.keywords);
-		this.toolApprovalMode = ToolApprovalMode.AUTO;
+
+		// TODO: 后面需要修改成 AUTO
+		this.toolApprovalMode = ToolApprovalMode.DISABLED;
 
 		// if (toolList.isEmpty()) {
 		// log.warn("Agent[{}] 没有可用的工具", agentId);

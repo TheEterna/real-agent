@@ -25,5 +25,4 @@ public class AgentSessionConfig {
 		this.zipMode = zipMode;
 	}
 
-
 }

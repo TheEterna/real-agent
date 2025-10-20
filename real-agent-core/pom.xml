@@ -17,6 +17,7 @@
     <modules>
         <module>real-agent-agent</module>
         <module>real-agent-tool</module>
+        <module>real-agent-interaction</module>
     </modules>
 
     <dependencies>

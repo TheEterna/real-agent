@@ -102,7 +102,7 @@ public class ActionAgent extends Agent {
 
 			return FluxUtils
 				.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
-						EventType.ACTING)
+						EventType.ACTION)
 				.doOnComplete(() -> {
 					afterHandle(context);
 				})

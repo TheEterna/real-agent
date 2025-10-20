@@ -63,7 +63,7 @@ public class PlaygroundRoleplaySessionMessageController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public Mono<ResponseResult<PlaygroundRoleplaySessionMessage>> addMessage(@PathVariable String sessionCode,
-                                                                             @Valid @RequestBody MessageCreateRequest request) {
+			@Valid @RequestBody MessageCreateRequest request) {
 		return messageService.addMessage(sessionCode, request).map(ResponseResult::success);
 	}
 
