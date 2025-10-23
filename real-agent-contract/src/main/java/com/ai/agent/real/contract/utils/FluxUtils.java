@@ -1,6 +1,7 @@
 package com.ai.agent.real.contract.utils;
 
 import com.ai.agent.real.common.constant.*;
+import com.ai.agent.real.contract.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.*;
 import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.message.*;
@@ -187,6 +188,25 @@ public class FluxUtils {
 	public static Flux<AgentExecutionEvent> executeWithToolSupport(ChatModel chatModel, Prompt prompt,
 			AgentContext context, String agentId, ToolService toolService, ToolApprovalMode toolApprovalMode,
 			EventType eventType) {
+		return executeWithToolSupport(chatModel, prompt, context, agentId, toolService, toolApprovalMode, eventType,
+				ToolApprovalCallback.NOOP);
+	}
+
+	/**
+	 * 通用的Agent流式执行包装器，支持工具调用和上下文管理（带审批回调）
+	 * @param chatModel LLM模型
+	 * @param prompt 提示词
+	 * @param context 上下文
+	 * @param agentId Agent ID
+	 * @param toolService 工具服务
+	 * @param toolApprovalMode 工具审批模式
+	 * @param eventType 事件类型（如THINKING、ACTING、OBSERVING）
+	 * @param approvalCallback 工具审批回调
+	 * @return 流式执行结果
+	 */
+	public static Flux<AgentExecutionEvent> executeWithToolSupport(ChatModel chatModel, Prompt prompt,
+			AgentContext context, String agentId, ToolService toolService, ToolApprovalMode toolApprovalMode,
+			EventType eventType, ToolApprovalCallback approvalCallback) {
 
 		return chatModel.stream(prompt).doOnSubscribe(subscription -> {
 			log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
@@ -227,8 +247,12 @@ public class FluxUtils {
 			// 处理工具调用
 			Flux<AgentExecutionEvent> toolFlux = Flux.empty();
 			if (ToolUtils.hasToolCallingNative(response)) {
+				// 优先使用上下文中的回调，如果没有则使用传入的回调
+				ToolApprovalCallback effectiveCallback = context.getToolApprovalCallback() != null
+						? context.getToolApprovalCallback() : approvalCallback;
 				toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
-					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode));
+					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode,
+							effectiveCallback));
 			}
 
 			// 合并内容和工具调用结果
@@ -256,31 +280,44 @@ public class FluxUtils {
 	 * 执行单个工具调用
 	 */
 	private static Flux<AgentExecutionEvent> executeToolCall(ToolCall toolCall, AgentContext context,
-			ToolService toolService, ToolApprovalMode toolApprovalMode) {
+			ToolService toolService, ToolApprovalMode toolApprovalMode, ToolApprovalCallback approvalCallback) {
 
 		String toolName = toolCall.name();
 		String toolCallId = toolCall.id();
-		log.info(toolCall.arguments());
+		log.info("工具调用: toolName={}, toolCallId={}, args={}", toolName, toolCallId, toolCall.arguments());
 		Map<String, Object> args = jsonToMap(toolCall.arguments(), OBJECT_MAPPER);
 		String toolId = "";
 		AgentTool tool = toolService.getByName(toolName);
 		if (tool == null) {
-			log.error("工具 no exist: toolName={}", toolName);
+			log.error("工具不存在: toolName={}", toolName);
 			return Flux.just(AgentExecutionEvent.error("工具不存在: " + toolName));
 		}
 		toolId = tool.getId();
 
 		switch (toolApprovalMode) {
 			case AUTO:
-				log.warn("工具是否执行自动未实现: {}", toolName);
-				return Flux.empty();
+				// TODO: 实现基于权限列表的自动执行逻辑
+				log.info("工具自动执行模式（待实现权限检查）: {}", toolName);
+				context.setToolArgs(args);
+				return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
+						toolCallId, toolName)
+					.flux();
 
 			case REQUIRE_APPROVAL:
-				log.warn("工具执行需要审批（未实现）: {}, toolId: {}", toolName, toolId);
+				// 需要审批：调用回调通知上层，并返回空流（暂停执行）
+				log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
+
+				// 通知上层需要审批
+				approvalCallback.requestApproval(context.getSessionId(), toolCallId, toolName, args, context);
+
+				// 返回空流，暂停当前执行
+				// 注意：这里不会继续执行，需要等待审批后通过其他方式恢复
 				return Flux.empty();
 
 			case DISABLED:
 			default:
+				// 禁用审批：直接执行
+				log.info("工具执行（无审批）: {}", toolName);
 				context.setToolArgs(args);
 				return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
 						toolCallId, toolName)

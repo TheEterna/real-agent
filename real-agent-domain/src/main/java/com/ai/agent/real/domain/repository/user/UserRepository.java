@@ -20,7 +20,7 @@ public interface UserRepository extends ReactiveCrudRepository<User, Long> {
 	/**
 	 * 检查外部ID是否存在
 	 */
-	@Query("SELECT COUNT(*) > 0 FROM users WHERE external_id = :externalId")
+	@Query("SELECT COUNT(*) > 0 FROM app_user.users WHERE external_id = :externalId")
 	Mono<Boolean> existsByExternalId(String externalId);
 
 }

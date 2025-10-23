@@ -27,13 +27,13 @@ public class AgentMemory {
 	 * 缓存 Agent 上下文
 	 */
 	private ConcurrentHashMap<String, Pair<List<AgentMessage>, AgentSessionConfig>> memory;
+
 	/**
 	 * 默认的 session 配置
 	 */
 	private AgentSessionConfig defaultSessionConfig;
 
-	private AgentMemory(
-			ConcurrentHashMap<String, Pair<List<AgentMessage>, AgentSessionConfig>> memory,
+	private AgentMemory(ConcurrentHashMap<String, Pair<List<AgentMessage>, AgentSessionConfig>> memory,
 			AgentSessionConfig defaultSessionConfig) {
 		this.memory = memory;
 		this.defaultSessionConfig = defaultSessionConfig;
@@ -45,10 +45,12 @@ public class AgentMemory {
 		if (this.memory.containsKey(sessionId)) {
 			List<AgentMessage> oldMessages = this.memory.get(sessionId).a;
 			oldMessages.addAll(messages);
-		} else {
+		}
+		else {
 			this.memory.put(sessionId, new Pair<>(new CopyOnWriteArrayList<>(messages), config));
 		}
 	}
+
 	public void addTurn(String sessionId, List<AgentMessage> messages) {
 		addTurn(sessionId, messages, defaultSessionConfig);
 	}
@@ -59,33 +61,38 @@ public class AgentMemory {
 		// TODO, 这里需要 去做 DB 和 缓存, 因为现在的缓存是在 java 内存里的, 不具备 分布式, 也不具备 DDL 等基础功能
 
 		// 目前阶段不存在 DDL, 不会删除, 也不会 GC 掉, 所以 只有第一次会话才会 找不到 该 sessionId
-//		Assert.isTrue(this.memory.containsKey(sessionId), "第一次会话, 需要访问数据库");
+		// Assert.isTrue(this.memory.containsKey(sessionId), "第一次会话, 需要访问数据库");
 
 		// 如果不存在 sessionId, 则返回空列表
-		// TODO 接入中间件之后 就应该是去查 Redis 看有没有这个 sessionId, 就去查 Redis, 没有则去 查数据库 返回, 然后 redis里就存一份, DB insert 后进行 Redis 回填
+		// TODO 接入中间件之后 就应该是去查 Redis 看有没有这个 sessionId, 就去查 Redis, 没有则去 查数据库 返回, 然后
+		// redis里就存一份, DB insert 后进行 Redis 回填
 		if (!this.memory.containsKey(sessionId)) {
 			this.memory.put(sessionId, new Pair<>(new CopyOnWriteArrayList<>(), defaultSessionConfig));
 			return List.of();
 		}
 
-		// 去查一下 sessionConfig, 这里在考虑 是否应该在 缓存 里保存全量数据, 还是 保存 当时状态的数据, 这也有个很致命的缺点, 当 用户偏好更换 缓存即一定程度上失效
+		// 去查一下 sessionConfig, 这里在考虑 是否应该在 缓存 里保存全量数据, 还是 保存 当时状态的数据, 这也有个很致命的缺点, 当 用户偏好更换
+		// 缓存即一定程度上失效
 		// 这里使用 全量
 		Pair<List<AgentMessage>, AgentSessionConfig> agentSessionConfigPair = this.memory.get(sessionId);
 		List<AgentMessage> messageHistory = agentSessionConfigPair.a;
 		AgentSessionConfig config = agentSessionConfigPair.b;
 		if (config.getZipMode() == ContextZipMode.DISABLED) {
 			return messageHistory;
-		} else if (config.getZipMode() == ContextZipMode.ZIP) {
+		}
+		else if (config.getZipMode() == ContextZipMode.ZIP) {
 			// 压缩, 只取 每轮对话 的 最后一句
 			List<AgentMessage> compressedMessages = new CopyOnWriteArrayList<>();
-			messageHistory.stream().filter(message -> NounConstants.FINAL_AGENT_ID.equals(message.getSenderId())
-					&& AgentMessageType.COMPLETED.equals(message.getAgentMessageType()))
-					.forEach(compressedMessages::add);
+			messageHistory.stream()
+				.filter(message -> NounConstants.FINAL_AGENT_ID.equals(message.getSenderId())
+						&& AgentMessageType.COMPLETED.equals(message.getAgentMessageType()))
+				.forEach(compressedMessages::add);
 
 			// todo 可以加一些超长截断等操作
 
 			return compressedMessages;
-		} else if (config.getZipMode() == ContextZipMode.CRAZY_ZIP) {
+		}
+		else if (config.getZipMode() == ContextZipMode.CRAZY_ZIP) {
 			// Crazy 压缩
 			// TODO: 需要引入AI , 暂不实现
 			throw new UnsupportedOperationException("暂不支持 Crazy 压缩");
@@ -94,6 +101,7 @@ public class AgentMemory {
 		return messageHistory;
 
 	}
+
 	public static Builder builder() {
 		return new Builder();
 	}

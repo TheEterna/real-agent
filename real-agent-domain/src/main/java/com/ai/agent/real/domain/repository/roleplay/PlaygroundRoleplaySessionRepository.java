@@ -21,31 +21,31 @@ public interface PlaygroundRoleplaySessionRepository extends ReactiveCrudReposit
 	/**
 	 * 检查会话编码是否存在
 	 */
-	@Query("SELECT COUNT(*) > 0 FROM playground_roleplay_sessions WHERE session_code = :sessionCode")
+	@Query("SELECT COUNT(*) > 0 FROM playground.roleplay_sessions WHERE session_code = :sessionCode")
 	Mono<Boolean> existsBySessionCode(String sessionCode);
 
 	/**
 	 * 查找用户的会话列表
 	 */
-	@Query("SELECT * FROM playground_roleplay_sessions WHERE user_id = :userId ORDER BY created_at DESC")
+	@Query("SELECT * FROM playground.roleplay_sessions WHERE user_id = :userId ORDER BY created_at DESC")
 	Flux<PlaygroundRoleplaySession> findByUserIdOrderByCreatedAtDesc(Long userId);
 
 	/**
 	 * 查找用户的会话列表
 	 */
-	@Query("SELECT * FROM playground_roleplay_sessions WHERE user_id = :userId ORDER BY created_at ASC")
+	@Query("SELECT * FROM playground.roleplay_sessions WHERE user_id = :userId ORDER BY created_at ASC")
 	Flux<PlaygroundRoleplaySession> findByUserIdOrderByCreatedAtAsc(Long userId);
 
 	/**
 	 * 查找用户进行中的会话
 	 */
-	@Query("SELECT * FROM playground_roleplay_sessions WHERE user_id = :userId AND status = 1 ORDER BY created_at DESC")
+	@Query("SELECT * FROM playground.roleplay_sessions WHERE user_id = :userId AND status = 1 ORDER BY created_at DESC")
 	Flux<PlaygroundRoleplaySession> findActiveSessionsByUserId(Long userId);
 
 	/**
 	 * 查找角色的会话列表
 	 */
-	@Query("SELECT * FROM playground_roleplay_sessions WHERE role_id = :roleId ORDER BY created_at DESC")
+	@Query("SELECT * FROM playground.roleplay_sessions WHERE role_id = :roleId ORDER BY created_at DESC")
 	Flux<PlaygroundRoleplaySession> findByRoleIdOrderByCreatedAtDesc(Long roleId);
 
 }

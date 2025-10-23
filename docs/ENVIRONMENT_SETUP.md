@@ -387,8 +387,8 @@ management:
 
 ## 📚 相关文档
 
-- [项目架构文档](project.md)
-- [开发规范](CLAUDE.md)
+- [项目架构文档](../project.md)
+- [开发规范](../CLAUDE.md)
 - [API 文档](docs/api.md)
 - [部署指南](docs/deployment.md)
 

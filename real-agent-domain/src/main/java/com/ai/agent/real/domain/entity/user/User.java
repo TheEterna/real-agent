@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("users")
+@Table(name = "users", schema = "app_user")
 public class User implements Persistable<Long> {
 
 	public static class UserBuilder {

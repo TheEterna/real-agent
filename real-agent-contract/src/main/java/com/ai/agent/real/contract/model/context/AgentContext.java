@@ -1,5 +1,6 @@
 package com.ai.agent.real.contract.model.context;
 
+import com.ai.agent.real.contract.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.message.*;
 import lombok.*;
@@ -49,12 +50,18 @@ public class AgentContext implements Traceable {
 	private AtomicBoolean taskCompleted = new AtomicBoolean(false);
 
 	/**
+	 * 工具审批回调（用于工具执行需要审批时通知上层）
+	 */
+	private ToolApprovalCallback toolApprovalCallback;
+
+	/**
 	 * 构造函数
 	 */
 	public AgentContext(Traceable trace) {
 		this.toolArgs = null;
 		this.trace = trace;
 		this.messageHistory = new CopyOnWriteArrayList<>();
+		this.toolApprovalCallback = ToolApprovalCallback.NOOP;
 	}
 
 	public List<AgentMessage> getMessageHistory() {

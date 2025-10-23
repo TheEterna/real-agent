@@ -21,7 +21,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("playground_roleplay_sessions")
+@Table(name = "roleplay_sessions", schema = "playground")
 public class PlaygroundRoleplaySession implements Persistable<Long> {
 
 	public static class PlaygroundRoleplaySessionBuilder {

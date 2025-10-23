@@ -56,6 +56,13 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.TOOL_APPROVAL, message, data, traceInfo);
 	}
 
+	/**
+	 * 通用交互请求事件 用于请求用户交互（工具审批、缺少信息、用户确认等）
+	 */
+	public static AgentExecutionEvent interaction(Traceable traceInfo, Object interactionRequest) {
+		return new AgentExecutionEvent(EventType.INTERACTION, "用户交互请求", interactionRequest, traceInfo);
+	}
+
 	public static AgentExecutionEvent agentSelected(Traceable traceInfo, String message) {
 		return new AgentExecutionEvent(EventType.AGENT_SELECTED, message, null, traceInfo);
 	}
@@ -151,6 +158,7 @@ public class AgentExecutionEvent extends TraceInfo {
 		TOOL, // 工具调用
 		DONEWITHWARNING, // 执行完成，有警告
 		TOOL_APPROVAL, // 工具审批
+		INTERACTION, // 通用交互请求（工具审批、缺少信息、用户确认等）
 		COMPLETED // 执行完成, all agents completed, notice client close sse connection
 
 	}

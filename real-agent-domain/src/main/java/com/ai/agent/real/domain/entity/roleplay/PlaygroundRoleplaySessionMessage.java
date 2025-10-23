@@ -22,7 +22,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("playground_roleplay_session_messages")
+@Table(name = "roleplay_session_messages", schema = "playground")
 public class PlaygroundRoleplaySessionMessage implements Persistable<Long> {
 
 	public static class PlaygroundRoleplaySessionMessageBuilder {

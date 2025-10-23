@@ -46,8 +46,8 @@ public class AgentBeanConfig {
 
 	@Bean
 	public ReActAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-			ObservationAgent observationAgent, FinalAgent finalAgent) {
-		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent);
+			ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
+		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
 	}
 
 	/**
@@ -59,7 +59,5 @@ public class AgentBeanConfig {
 		AgentSessionConfig defaultSessionConfig = new AgentSessionConfig(zipMode);
 		return AgentMemory.builder().build(defaultSessionConfig);
 	}
-
-
 
 }
