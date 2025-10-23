@@ -16,6 +16,8 @@
         <module>real-agent-core</module>
         <module>real-agent-application</module>
         <module>real-agent-domain</module>
+        <module>real-agent-infrastructure</module>
+        <module>real-agent-bom</module>
     </modules>
 
     <properties>
@@ -65,44 +67,14 @@
     <dependencyManagement>
         <dependencies>
 
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-tool</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
 
             <dependency>
                 <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-agent</artifactId>
+                <artifactId>real-agent-bom</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-domain</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-contract</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-application</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-
 
             <dependency>
                 <groupId>org.springframework.ai</groupId>

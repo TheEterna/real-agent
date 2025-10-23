@@ -1,5 +1,72 @@
 package com.ai.agent.real.web.controller;
 
+import com.ai.agent.real.common.utils.CommonUtils;
+import com.ai.agent.real.contract.model.context.AgentContext;
+import com.ai.agent.real.contract.model.logging.TraceInfo;
+import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
+import com.ai.agent.real.web.service.AgentSessionHub;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+
+import java.time.LocalDateTime;
+
+/**
+ *
+ * @author: han
+ * @time: 2025/10/22 16:46
+ */
+
+@Slf4j
+@RestController
+@RequestMapping("/api/agent/chat")
+@CrossOrigin(origins = "*")
 public class ReActPlusAgentController {
 
+    private final AgentSessionHub agentSessionHub;
+
+    public ReActPlusAgentController(AgentSessionHub agentSessionHub) {
+        this.agentSessionHub = agentSessionHub;
+    }
+
+    /**
+     * 执行ReActPlus任务（流式响应） 使用AgentSessionHub管理会话，支持工具审批中断和恢复
+     */
+    @PostMapping(value = "/react-plus/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<AgentExecutionEvent>> executeReActStream(@RequestBody ReActAgentController.ChatRequest request) {
+        log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
+
+        // 验证sessionId
+        if (request.getSessionId() == null || request.getSessionId().isBlank()) {
+            request.setSessionId("session-" + System.currentTimeMillis());
+            log.info("未提供sessionId，自动生成: {}", request.getSessionId());
+        }
+
+        // 创建执行上下文
+        AgentContext context = new AgentContext(new TraceInfo()).setSessionId(request.getSessionId())
+                .setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
+                .setStartTime(LocalDateTime.now());
+
+        // 设置任务到上下文（用于恢复时使用）
+        context.setTask(request.getMessage());
+
+        // 创建工具审批回调
+        var approvalCallback = (com.ai.agent.real.contract.callback.ToolApprovalCallback) (sessionId, toolCallId,
+                                                                                           toolName, toolArgs,
+                                                                                           ctx) -> agentSessionHub.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
+
+        // 设置回调到上下文
+        context.setToolApprovalCallback(approvalCallback);
+
+        // 通过AgentSessionHub订阅会话
+        return agentSessionHub.subscribe(request.getSessionId(), request.getMessage(), context)
+                .doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
+                .doOnComplete(() -> {
+                    context.setEndTime(LocalDateTime.now());
+                    log.info("ReAct任务执行完成: sessionId={}", request.getSessionId());
+                });
+
+    }
 }

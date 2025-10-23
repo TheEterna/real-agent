@@ -71,7 +71,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 		log.debug("ReActAgentStrategy executeStream task: {}", task);
 
 		// 设置上下文
-		context.setTurnId(CommonUtils.getTraceId());
+		context.setTurnId(CommonUtils.getTraceId("ReAct"));
 		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
 		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
 			context.setSessionId("default");

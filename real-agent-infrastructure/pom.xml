@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>real-agent-parent</artifactId>
         <groupId>com.ai.agent</groupId>
+        <artifactId>real-agent-parent</artifactId>
         <version>0.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>real-agent-application</artifactId>
+    <artifactId>real-agent-infrastructure</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -19,32 +19,17 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.ai.agent</groupId>
-            <artifactId>real-agent-tool</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ai.agent</groupId>
-            <artifactId>real-agent-agent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ai.agent</groupId>
-            <artifactId>real-agent-domain</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.ai.agent</groupId>
             <artifactId>real-agent-contract</artifactId>
         </dependency>
 
 
+        <!-- Redis Reactive 依赖 -->
         <dependency>
-            <groupId>com.ai.agent</groupId>
-            <artifactId>real-agent-infrastructure</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
         </dependency>
-
-
-
-
-
     </dependencies>
 </project>

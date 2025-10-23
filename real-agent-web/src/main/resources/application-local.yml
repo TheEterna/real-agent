@@ -1,9 +1,24 @@
 spring:
   r2dbc:
     url: r2dbc:mysql://localhost:3306/real-agent?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8
-
     username: root
     password: *
+
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
   application:
     name: real-agent-web
   ai:
@@ -38,6 +53,13 @@ spring:
 logging:
   level:
     com.ai.agent: DEBUG
+
+# JWT 配置
+jwt:
+
+  # 访问令牌有效期（秒），默认 2 小时
+  # 刷新令牌有效期（秒），默认 7 天
+
 agent:
   action:
     tools:

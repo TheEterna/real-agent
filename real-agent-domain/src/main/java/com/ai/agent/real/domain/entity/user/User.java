@@ -35,11 +35,17 @@ public class User implements Persistable<Long> {
 	@Column("external_id")
 	private String externalId;
 
+	@Column("password_hash")
+	private String passwordHash;
+
 	@Column("nickname")
 	private String nickname;
 
 	@Column("avatar_url")
 	private String avatarUrl;
+
+	@Column("status")
+	private Integer status;
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	@Column("created_at")
@@ -50,6 +56,7 @@ public class User implements Persistable<Long> {
 	private LocalDateTime updatedAt;
 
 	@Transient
+	@Builder.Default
 	private boolean isNew = true;
 
 	@Override
