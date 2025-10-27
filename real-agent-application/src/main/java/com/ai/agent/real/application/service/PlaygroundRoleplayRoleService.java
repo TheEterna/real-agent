@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.service;
 
-import com.ai.agent.real.application.dto.*;
-import com.ai.agent.real.domain.entity.roleplay.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.contract.dto.RoleCreateRequestDto;
 import reactor.core.publisher.*;
 
 /**
@@ -14,12 +14,12 @@ public interface PlaygroundRoleplayRoleService {
 	/**
 	 * 创建角色
 	 */
-	Mono<PlaygroundRoleplayRole> createRole(RoleCreateRequest request);
+	Mono<PlaygroundRoleplayRole> createRole(RoleCreateRequestDto request);
 
 	/**
 	 * 更新角色
 	 */
-	Mono<PlaygroundRoleplayRole> updateRole(Long id, RoleCreateRequest request);
+	Mono<PlaygroundRoleplayRole> updateRole(Long id, RoleCreateRequestDto request);
 
 	/**
 	 * 删除角色

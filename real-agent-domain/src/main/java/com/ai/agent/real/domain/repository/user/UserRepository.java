@@ -1,6 +1,6 @@
 package com.ai.agent.real.domain.repository.user;
 
-import com.ai.agent.real.domain.entity.user.User;
+import com.ai.agent.real.common.entity.user.User;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;

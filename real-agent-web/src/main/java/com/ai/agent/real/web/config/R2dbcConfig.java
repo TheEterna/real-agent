@@ -1,7 +1,7 @@
 package com.ai.agent.real.web.config;
 
-import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole.*;
-import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySessionMessage.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySessionMessage.*;
 import com.ai.agent.real.web.config.R2dbcConfig.VoiceEnumReadingConverter.*;
 import org.springframework.context.annotation.*;
 import org.springframework.data.r2dbc.convert.*;

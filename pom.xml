@@ -13,7 +13,6 @@
         <module>real-agent-web</module>
         <module>real-agent-common</module>
         <module>real-agent-contract</module>
-        <module>real-agent-core</module>
         <module>real-agent-application</module>
         <module>real-agent-domain</module>
         <module>real-agent-infrastructure</module>

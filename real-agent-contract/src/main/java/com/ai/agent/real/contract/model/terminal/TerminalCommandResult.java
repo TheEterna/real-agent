@@ -1,13 +1,15 @@
 package com.ai.agent.real.contract.model.terminal;
 
+import lombok.Data;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * 终端命令执行结果
  *
- * @author Real Agent Team
- * @since 2025-01-23
+ * @author han
+ * @time 2025/10/23 23:26
  */
 public class TerminalCommandResult {
 
@@ -27,11 +29,6 @@ public class TerminalCommandResult {
 	private Object data;
 
 	/**
-	 * 渲染类型
-	 */
-	private RenderType renderType;
-
-	/**
 	 * 错误信息
 	 */
 	private String error;
@@ -48,14 +45,11 @@ public class TerminalCommandResult {
 
 	/**
 	 * 渲染类型枚举
+	 *
+	 *
+	 * /** 元数据
 	 */
-	public enum RenderType {
-		TEXT, TABLE, JSON, PROGRESS, INTERACTIVE, HTML, MARKDOWN
-	}
-
-	/**
-	 * 元数据
-	 */
+	@Data
 	public static class Metadata {
 
 		/**
@@ -83,47 +77,6 @@ public class TerminalCommandResult {
 		 */
 		private Map<String, Object> extra;
 
-		// Getters and Setters
-		public Long getExecutionTime() {
-			return executionTime;
-		}
-
-		public void setExecutionTime(Long executionTime) {
-			this.executionTime = executionTime;
-		}
-
-		public Integer getExitCode() {
-			return exitCode;
-		}
-
-		public void setExitCode(Integer exitCode) {
-			this.exitCode = exitCode;
-		}
-
-		public List<String> getWarnings() {
-			return warnings;
-		}
-
-		public void setWarnings(List<String> warnings) {
-			this.warnings = warnings;
-		}
-
-		public String getServerTime() {
-			return serverTime;
-		}
-
-		public void setServerTime(String serverTime) {
-			this.serverTime = serverTime;
-		}
-
-		public Map<String, Object> getExtra() {
-			return extra;
-		}
-
-		public void setExtra(Map<String, Object> extra) {
-			this.extra = extra;
-		}
-
 	}
 
 	// Constructors
@@ -133,7 +86,6 @@ public class TerminalCommandResult {
 	public TerminalCommandResult(boolean success, String output) {
 		this.success = success;
 		this.output = output;
-		this.renderType = RenderType.TEXT;
 	}
 
 	public static TerminalCommandResult success(String output) {
@@ -176,14 +128,6 @@ public class TerminalCommandResult {
 
 	public void setData(Object data) {
 		this.data = data;
-	}
-
-	public RenderType getRenderType() {
-		return renderType;
-	}
-
-	public void setRenderType(RenderType renderType) {
-		this.renderType = renderType;
 	}
 
 	public String getError() {

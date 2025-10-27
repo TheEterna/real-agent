@@ -1,10 +1,10 @@
 package com.ai.agent.real.application.service.Impl;
 
-import com.ai.agent.real.application.dto.*;
 import com.ai.agent.real.application.service.*;
 import com.ai.agent.real.common.constant.RoleplayConstants;
 import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySession;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySession;
+import com.ai.agent.real.contract.dto.SessionCreateRequestDto;
 import com.ai.agent.real.domain.repository.roleplay.*;
 import com.ai.agent.real.domain.repository.user.*;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class PlaygroundRoleplaySessionServiceImpl implements PlaygroundRoleplayS
 	 * 创建会话
 	 */
 	@Override
-	public Mono<PlaygroundRoleplaySession> createSession(SessionCreateRequest request) {
+	public Mono<PlaygroundRoleplaySession> createSession(SessionCreateRequestDto request) {
 		// 验证用户和角色是否存在
 		return userRepository.existsById(request.getUserId()).flatMap(userExists -> {
 			if (!userExists) {

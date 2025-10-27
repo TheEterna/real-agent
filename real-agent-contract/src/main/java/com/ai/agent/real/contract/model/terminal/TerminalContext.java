@@ -6,8 +6,8 @@ import java.util.Map;
 /**
  * 终端执行上下文
  *
- * @author Real Agent Team
- * @since 2025-01-23
+ * @author han
+ * @time 2025/10/23 23:25
  */
 public class TerminalContext {
 

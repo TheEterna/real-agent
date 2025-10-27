@@ -22,10 +22,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 public class RedisConfig {
-    @Bean
-    public IRedisService redisService(ReactiveRedisTemplate<String, Object> redisTemplate) {
-        return new RedisService(redisTemplate);
-    }
+
+	@Bean
+	public IRedisService redisService(ReactiveRedisTemplate<String, Object> redisTemplate) {
+		return new RedisService(redisTemplate);
+	}
 
 	/**
 	 * 配置 ReactiveRedisTemplate
@@ -57,6 +58,5 @@ public class RedisConfig {
 
 		return new ReactiveRedisTemplate<>(connectionFactory, serializationContext);
 	}
-
 
 }

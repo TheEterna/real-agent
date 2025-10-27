@@ -12,22 +12,10 @@
     <dependencyManagement>
         <dependencies>
 
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-tool</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>com.ai.agent</groupId>
                 <artifactId>real-agent-</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-agent</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

@@ -29,15 +29,6 @@
 
 
 		<dependency>
-            <groupId>com.ai.agent</groupId>
-            <artifactId>real-agent-tool</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.ai.agent</groupId>
-            <artifactId>real-agent-agent</artifactId>
-        </dependency>
-
-		<dependency>
 			<groupId>com.ai.agent</groupId>
 			<artifactId>real-agent-common</artifactId>
 		</dependency>

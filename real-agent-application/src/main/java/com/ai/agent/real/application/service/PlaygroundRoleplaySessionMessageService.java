@@ -1,8 +1,8 @@
 package com.ai.agent.real.application.service;
 
-import com.ai.agent.real.application.dto.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.domain.entity.roleplay.*;
+import com.ai.agent.real.contract.dto.MessageCreateRequestDto;
 import reactor.core.publisher.*;
 
 /**
@@ -15,7 +15,7 @@ public interface PlaygroundRoleplaySessionMessageService {
 	/**
 	 * 添加消息
 	 */
-	Mono<PlaygroundRoleplaySessionMessage> addMessage(String sessionCode, MessageCreateRequest request);
+	Mono<PlaygroundRoleplaySessionMessage> addMessage(String sessionCode, MessageCreateRequestDto request);
 
 	/**
 	 * 查询会话消息历史
@@ -41,7 +41,7 @@ public interface PlaygroundRoleplaySessionMessageService {
 	 * 批量添加消息（用于导入历史对话）
 	 */
 	Flux<PlaygroundRoleplaySessionMessage> batchAddMessages(String sessionCode,
-			Flux<MessageCreateRequest> messageRequests);
+			Flux<MessageCreateRequestDto> messageRequests);
 
 	/**
 	 * 转换JSON字段为Map对象

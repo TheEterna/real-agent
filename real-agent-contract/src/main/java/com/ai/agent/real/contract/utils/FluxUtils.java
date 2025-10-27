@@ -1,14 +1,14 @@
 package com.ai.agent.real.contract.utils;
 
 import com.ai.agent.real.common.constant.*;
-import com.ai.agent.real.contract.callback.ToolApprovalCallback;
-import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.service.*;
+import com.ai.agent.real.contract.tool.AgentTool;
 import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.exc.*;

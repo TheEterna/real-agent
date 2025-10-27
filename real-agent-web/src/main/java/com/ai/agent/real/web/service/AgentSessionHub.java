@@ -1,16 +1,14 @@
 package com.ai.agent.real.web.service;
 
-import com.ai.agent.real.agent.strategy.ReActAgentStrategy;
+import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
+import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.context.AgentContext;
 import com.ai.agent.real.contract.model.context.ResumePoint;
 import com.ai.agent.real.contract.model.interaction.*;
-import com.ai.agent.real.contract.model.logging.TraceInfo;
-import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
@@ -20,7 +18,6 @@ import reactor.core.publisher.Sinks;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Agent会话管理中心 负责管理每个会话的Sink、上下文和待审批工具
@@ -306,8 +303,8 @@ public class AgentSessionHub {
 		log.info("[AgentSessionHub] 同意并执行: resumeId={}", resumePoint.getResumeId());
 
 		// 创建回调（用于后续可能的工具审批）
-		var approvalCallback = (com.ai.agent.real.contract.callback.ToolApprovalCallback) (sid, tcid, tname, targs,
-				ctx) -> pauseForToolApproval(sid, tcid, tname, targs, ctx);
+		var approvalCallback = (ToolApprovalCallback) (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid,
+				tname, targs, ctx);
 
 		// 调用 ReActAgentStrategy 的 resumeFromToolApproval 方法
 		Disposable execution = reActAgentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
@@ -349,8 +346,8 @@ public class AgentSessionHub {
 		}
 
 		// 创建回调
-		var approvalCallback = (com.ai.agent.real.contract.callback.ToolApprovalCallback) (sid, tcid, tname, targs,
-				ctx) -> pauseForToolApproval(sid, tcid, tname, targs, ctx);
+		var approvalCallback = (ToolApprovalCallback) (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid,
+				tname, targs, ctx);
 
 		// 从当前迭代重新开始（让 Agent 重新思考）
 		Disposable execution = reActAgentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
@@ -394,8 +391,8 @@ public class AgentSessionHub {
 		state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(rejectMessage)));
 
 		// 创建回调
-		var approvalCallback = (com.ai.agent.real.contract.callback.ToolApprovalCallback) (sid, tcid, tname, targs,
-				ctx) -> pauseForToolApproval(sid, tcid, tname, targs, ctx);
+		var approvalCallback = (ToolApprovalCallback) (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid,
+				tname, targs, ctx);
 
 		// 继续执行（跳过当前工具，进入下一轮迭代）
 		Disposable execution = reActAgentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
@@ -458,8 +455,8 @@ public class AgentSessionHub {
 		}
 
 		// 创建回调
-		var approvalCallback = (com.ai.agent.real.contract.callback.ToolApprovalCallback) (sid, tcid, tname, targs,
-				ctx) -> pauseForToolApproval(sid, tcid, tname, targs, ctx);
+		var approvalCallback = (ToolApprovalCallback) (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid,
+				tname, targs, ctx);
 
 		// 继续执行
 		Disposable execution = reActAgentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
@@ -495,8 +492,8 @@ public class AgentSessionHub {
 		state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.progress(state.getContext(), "用户跳过当前操作", null)));
 
 		// 创建回调
-		var approvalCallback = (com.ai.agent.real.contract.callback.ToolApprovalCallback) (sid, tcid, tname, targs,
-				ctx) -> pauseForToolApproval(sid, tcid, tname, targs, ctx);
+		var approvalCallback = (ToolApprovalCallback) (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid,
+				tname, targs, ctx);
 
 		// 继续执行下一步
 		Disposable execution = reActAgentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)

@@ -1,9 +1,8 @@
 package com.ai.agent.real.application.service.auth;
 
 import com.ai.agent.real.common.auth.PasswordUtil;
-import com.ai.agent.real.domain.entity.user.User;
+import com.ai.agent.real.common.entity.user.User;
 import com.ai.agent.real.domain.repository.user.UserRepository;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;

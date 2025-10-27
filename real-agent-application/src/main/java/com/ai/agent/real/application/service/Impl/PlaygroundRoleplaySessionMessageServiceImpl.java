@@ -1,9 +1,10 @@
 package com.ai.agent.real.application.service.Impl;
 
-import com.ai.agent.real.application.dto.*;
 import com.ai.agent.real.common.constant.RoleplayConstants;
-import com.ai.agent.real.domain.entity.roleplay.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import com.ai.agent.real.common.utils.*;
+import com.ai.agent.real.contract.dto.MessageCreateRequestDto;
 import com.ai.agent.real.domain.repository.roleplay.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class PlaygroundRoleplaySessionMessageServiceImpl
 	 * 添加消息
 	 */
 	@Override
-	public Mono<PlaygroundRoleplaySessionMessage> addMessage(String sessionCode, MessageCreateRequest request) {
+	public Mono<PlaygroundRoleplaySessionMessage> addMessage(String sessionCode, MessageCreateRequestDto request) {
 		return sessionRepository.findBySessionCode(sessionCode)
 			.switchIfEmpty(Mono.error(new IllegalArgumentException("会话不存在: " + sessionCode)))
 			.flatMap(session -> {
@@ -173,7 +174,7 @@ public class PlaygroundRoleplaySessionMessageServiceImpl
 	 */
 	@Override
 	public Flux<PlaygroundRoleplaySessionMessage> batchAddMessages(String sessionCode,
-			Flux<MessageCreateRequest> messageRequests) {
+			Flux<MessageCreateRequestDto> messageRequests) {
 		return sessionRepository.findBySessionCode(sessionCode)
 			.switchIfEmpty(Mono.error(new IllegalArgumentException("会话不存在: " + sessionCode)))
 			.flatMapMany(session -> {

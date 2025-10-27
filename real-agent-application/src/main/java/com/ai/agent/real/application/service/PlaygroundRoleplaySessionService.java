@@ -1,8 +1,8 @@
 package com.ai.agent.real.application.service;
 
-import com.ai.agent.real.application.dto.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySession;
 import com.ai.agent.real.common.utils.*;
-import com.ai.agent.real.domain.entity.roleplay.*;
+import com.ai.agent.real.contract.dto.SessionCreateRequestDto;
 import reactor.core.publisher.*;
 
 /**
@@ -15,7 +15,7 @@ public interface PlaygroundRoleplaySessionService {
 	/**
 	 * 创建会话
 	 */
-	Mono<PlaygroundRoleplaySession> createSession(SessionCreateRequest request);
+	Mono<PlaygroundRoleplaySession> createSession(SessionCreateRequestDto request);
 
 	/**
 	 * 根据会话编码查找会话

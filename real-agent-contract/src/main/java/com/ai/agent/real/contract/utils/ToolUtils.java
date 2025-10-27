@@ -1,8 +1,9 @@
 package com.ai.agent.real.contract.utils;
 
 import com.ai.agent.real.common.constant.*;
-import com.ai.agent.real.contract.model.*;
-import com.ai.agent.real.contract.model.ToolSpec.*;
+import com.ai.agent.real.contract.tool.AgentTool;
+import com.ai.agent.real.contract.tool.ToolSpec;
+import com.ai.agent.real.contract.tool.ToolSpec.*;
 import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.ToolResult.*;

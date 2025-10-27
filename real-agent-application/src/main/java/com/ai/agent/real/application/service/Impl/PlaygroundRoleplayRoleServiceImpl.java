@@ -1,9 +1,8 @@
 package com.ai.agent.real.application.service.Impl;
 
-import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
-import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole.*;
+import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.contract.dto.RoleCreateRequestDto;
 import com.ai.agent.real.domain.repository.roleplay.PlaygroundRoleplayRoleRepository;
-import com.ai.agent.real.application.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class PlaygroundRoleplayRoleServiceImpl
 	 * 创建角色
 	 */
 	@Override
-	public Mono<PlaygroundRoleplayRole> createRole(RoleCreateRequest request) {
+	public Mono<PlaygroundRoleplayRole> createRole(RoleCreateRequestDto request) {
 		// 参数验证
 		if (request.getVoice() == null) {
 			return Mono.error(new IllegalArgumentException("角色音色不能为空"));
@@ -41,7 +40,7 @@ public class PlaygroundRoleplayRoleServiceImpl
 			return Mono.error(new IllegalArgumentException("角色名称不能超过100个字符"));
 		}
 
-		VoiceEnum voice = request.getVoice();
+		PlaygroundRoleplayRole.VoiceEnum voice = request.getVoice();
 		String description = request.getDescription();
 		String avatarUrl = request.getAvatarUrl();
 		Integer status = request.getStatus();
@@ -68,7 +67,7 @@ public class PlaygroundRoleplayRoleServiceImpl
 	 * 更新角色
 	 */
 	@Override
-	public Mono<PlaygroundRoleplayRole> updateRole(Long id, RoleCreateRequest request) {
+	public Mono<PlaygroundRoleplayRole> updateRole(Long id, RoleCreateRequestDto request) {
 		if (request.getVoice() == null) {
 			return Mono.error(new IllegalArgumentException("角色音色不能为空"));
 		}
@@ -79,7 +78,7 @@ public class PlaygroundRoleplayRoleServiceImpl
 		if (name.length() > 100) {
 			return Mono.error(new IllegalArgumentException("角色名称不能超过100个字符"));
 		}
-		VoiceEnum voice = request.getVoice();
+		PlaygroundRoleplayRole.VoiceEnum voice = request.getVoice();
 		String description = request.getDescription();
 		String avatarUrl = request.getAvatarUrl();
 		Integer status = request.getStatus();

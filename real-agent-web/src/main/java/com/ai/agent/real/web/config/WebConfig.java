@@ -16,11 +16,10 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class WebConfig {
 
-    @Bean
-    public AuthService authService(UserRepository userRepository, TokenService tokenService) {
-        return new AuthService(userRepository, tokenService);
-    }
-
+	@Bean
+	public AuthService authService(UserRepository userRepository, TokenService tokenService) {
+		return new AuthService(userRepository, tokenService);
+	}
 
 	/**
 	 * 提供RestClient.Builder bean，用于支持需要该依赖的组件（如阿里云DashScope）

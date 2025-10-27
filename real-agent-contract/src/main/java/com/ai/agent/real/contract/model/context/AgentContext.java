@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.model.context;
 
-import com.ai.agent.real.contract.callback.ToolApprovalCallback;
+import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.message.*;
 import lombok.*;

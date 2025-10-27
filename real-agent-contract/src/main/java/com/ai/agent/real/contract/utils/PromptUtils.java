@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.utils;
 
-import com.ai.agent.real.contract.model.*;
+import com.ai.agent.real.contract.tool.AgentTool;
 
 import java.util.*;
 
