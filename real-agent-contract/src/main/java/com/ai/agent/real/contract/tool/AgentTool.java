@@ -1,7 +1,7 @@
 package com.ai.agent.real.contract.tool;
 
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.exception.*;
-import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import reactor.core.publisher.*;
 import reactor.core.scheduler.*;
@@ -32,7 +32,7 @@ public interface AgentTool {
 	 * @return 工具执行结果
 	 * @throws ToolException 工具执行异常
 	 */
-	ToolResult<Object> execute(AgentContext ctx);
+	ToolResult<Object> execute(AgentContextAble ctx);
 
 	/**
 	 * execute tool async
@@ -40,7 +40,7 @@ public interface AgentTool {
 	 * @return 工具执行结果
 	 * @throws ToolException 工具执行异常
 	 */
-	default Mono<ToolResult<Object>> executeAsync(AgentContext ctx) {
+	default Mono<ToolResult<Object>> executeAsync(AgentContextAble ctx) {
 		return Mono.fromCallable(() -> this.execute(ctx)).subscribeOn(Schedulers.boundedElastic());
 	}
 

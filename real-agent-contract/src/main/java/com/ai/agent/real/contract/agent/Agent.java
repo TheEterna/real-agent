@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.agent;
 
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.*;
@@ -125,12 +125,12 @@ public abstract class Agent {
 	 * @param context 执行上下文
 	 * @return 流式执行结果
 	 */
-	public abstract Flux<AgentExecutionEvent> executeStream(String task, AgentContext context);
+	public abstract Flux<AgentExecutionEvent> executeStream(String task, AgentContextAble context);
 
 	/**
 	 * after handle of executeStream method
 	 */
-	protected void afterHandle(AgentContext context) {
+	protected void afterHandle(AgentContextAble context) {
 		context.setEndTime(LocalDateTime.now());
 	}
 

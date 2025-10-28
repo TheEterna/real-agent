@@ -39,7 +39,6 @@ public class ChatCommandHandler implements TerminalCommandHandler {
 		// 获取用户消息
 		String message = String.join(" ", request.getArguments());
 
-
 		// 调用AI模型
 		return Mono.fromCallable(() -> {
 			long startTime = System.currentTimeMillis();

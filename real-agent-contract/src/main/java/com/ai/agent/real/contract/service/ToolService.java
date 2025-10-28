@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.service;
 
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.AgentTool;
 import reactor.core.publisher.*;
@@ -75,6 +75,6 @@ public interface ToolService {
 	 * @param agentContext
 	 * @return
 	 */
-	Mono<ToolResult<Object>> executeToolAsync(String toolId, AgentContext agentContext);
+	Mono<ToolResult<Object>> executeToolAsync(String toolId, AgentContextAble agentContext);
 
 }

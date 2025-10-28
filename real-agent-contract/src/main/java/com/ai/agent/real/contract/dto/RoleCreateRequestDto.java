@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.dto;
 
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import lombok.Data;
 
 import javax.validation.constraints.Size;

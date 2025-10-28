@@ -1,6 +1,6 @@
 package com.ai.agent.real.domain.repository.roleplay;
 
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySessionMessage;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;

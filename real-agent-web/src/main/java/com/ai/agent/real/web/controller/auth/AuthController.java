@@ -1,8 +1,7 @@
 package com.ai.agent.real.web.controller.auth;
 
 import com.ai.agent.real.application.service.auth.AuthService;
-import com.ai.agent.real.application.service.auth.TokenService;
-import com.ai.agent.real.common.auth.UserContextHolder;
+import com.ai.agent.real.entity.auth.UserContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;

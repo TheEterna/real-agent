@@ -1,6 +1,6 @@
 package com.ai.agent.real.application.tool.system;
 
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.common.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.contract.tool.ToolSpec;
@@ -28,7 +28,7 @@ public class MathEvalTool implements AgentTool {
 
 	@Override
 	@Tool(description = "数学计算", name = "数学计算")
-	public ToolResult<Object> execute(AgentContext ctx) {
+	public ToolResult<Object> execute(ReActAgentContext ctx) {
 		// long start = System.currentTimeMillis();
 		// String expr = String.valueOf(.getOrDefault("expr",""));
 		// if(expr.isEmpty()) {

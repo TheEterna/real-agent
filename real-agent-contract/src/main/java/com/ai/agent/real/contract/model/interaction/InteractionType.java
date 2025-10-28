@@ -26,7 +26,7 @@ public enum InteractionType {
 	USER_CONFIRMATION("用户确认", "请确认是否执行该操作"),
 
 	/**
-	 * 用户选择 场景：多个方案供用户选择
+	 * 用户选择 场景：多个方案供用户选择+
 	 */
 	USER_CHOICE("用户选择", "请选择一个方案"),
 

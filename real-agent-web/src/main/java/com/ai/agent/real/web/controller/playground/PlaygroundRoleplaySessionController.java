@@ -2,7 +2,7 @@ package com.ai.agent.real.web.controller.playground;
 
 import com.ai.agent.real.contract.dto.SessionCreateRequestDto;
 import com.ai.agent.real.contract.model.protocol.*;
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySession;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySession;
 import com.ai.agent.real.application.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

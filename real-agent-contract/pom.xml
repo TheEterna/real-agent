@@ -31,6 +31,19 @@
         <dependency>
             <groupId>com.ai.agent</groupId>
             <artifactId>real-agent-common</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-domain</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <optional>true</optional>
         </dependency>
 
     </dependencies>

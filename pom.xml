@@ -11,12 +11,13 @@
 
     <modules>
         <module>real-agent-web</module>
-        <module>real-agent-common</module>
         <module>real-agent-contract</module>
         <module>real-agent-application</module>
+        <module>real-agent-common</module>
         <module>real-agent-domain</module>
         <module>real-agent-infrastructure</module>
         <module>real-agent-bom</module>
+        <module>real-agent-entity</module>
     </modules>
 
     <properties>

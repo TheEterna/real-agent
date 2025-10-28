@@ -1,11 +1,12 @@
 package com.ai.agent.real.application.agent.impl;
 
+import com.ai.agent.real.application.utils.AgentUtils;
+import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.contract.agent.Agent;
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.common.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.contract.utils.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
@@ -61,7 +62,7 @@ public class FinalAgent extends Agent {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
+	public Flux<AgentExecutionEvent> executeStream(String task, ReActAgentContext context) {
 		try {
 
 			log.debug("FinalAgent开始流式执行行动: {}", task);

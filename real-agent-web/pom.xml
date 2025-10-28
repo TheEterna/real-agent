@@ -27,6 +27,10 @@
 			<artifactId>dashscope-sdk-java</artifactId>
 		</dependency>
 
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-entity</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.ai.agent</groupId>

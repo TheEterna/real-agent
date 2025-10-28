@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.tool.system;
 
+import com.ai.agent.real.common.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.exception.*;
-import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.ToolResult.*;
 import com.ai.agent.real.contract.tool.AgentTool;
@@ -39,7 +39,7 @@ public class TimeNowTool implements AgentTool {
 	 * @throws ToolException 工具执行异常
 	 */
 	@Override
-	public ToolResult<Object> execute(AgentContext ctx) {
+	public ToolResult<Object> execute(ReActAgentContext ctx) {
 		long start = System.currentTimeMillis();
 		try {
 			ZonedDateTime now = ZonedDateTime.now(ZoneId.of(ctx.getStructuralToolArgs(TimeNowToolDto.class).zone));

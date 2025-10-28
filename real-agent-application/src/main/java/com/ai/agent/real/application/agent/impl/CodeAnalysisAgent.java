@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.agent.impl;
 
 import com.ai.agent.real.contract.agent.Agent;
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.common.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.*;
 import lombok.extern.slf4j.*;
@@ -46,7 +46,7 @@ public class CodeAnalysisAgent extends Agent {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String task, AgentContext context) {
+	public Flux<AgentExecutionEvent> executeStream(String task, ReActAgentContext context) {
 		return null;
 	}
 

@@ -1,7 +1,8 @@
 package com.ai.agent.real.application.service.Impl;
 
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.application.service.PlaygroundRoleplayRoleService;
 import com.ai.agent.real.contract.dto.RoleCreateRequestDto;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import com.ai.agent.real.domain.repository.roleplay.PlaygroundRoleplayRoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +18,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PlaygroundRoleplayRoleServiceImpl
-		implements com.ai.agent.real.application.service.PlaygroundRoleplayRoleService {
+public class PlaygroundRoleplayRoleServiceImpl implements PlaygroundRoleplayRoleService {
 
 	private final PlaygroundRoleplayRoleRepository roleRepository;
 

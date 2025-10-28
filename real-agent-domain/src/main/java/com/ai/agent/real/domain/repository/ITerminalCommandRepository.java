@@ -1,6 +1,6 @@
 package com.ai.agent.real.domain.repository;
 
-import com.ai.agent.real.common.entity.TerminalCommand;
+import com.ai.agent.real.domain.entity.plguin.TerminalCommand;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.stereotype.Repository;

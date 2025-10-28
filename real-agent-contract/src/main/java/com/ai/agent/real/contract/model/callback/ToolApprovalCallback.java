@@ -1,6 +1,8 @@
 package com.ai.agent.real.contract.model.callback;
 
-import com.ai.agent.real.contract.model.context.AgentContext;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -24,13 +26,15 @@ public interface ToolApprovalCallback {
 	 * @param context 执行上下文
 	 */
 	void requestApproval(String sessionId, String toolCallId, String toolName, Map<String, Object> toolArgs,
-			AgentContext context);
+			AgentContextAble context);
 
 	/**
 	 * 空实现（不需要审批）
 	 */
 	ToolApprovalCallback NOOP = (sessionId, toolCallId, toolName, toolArgs, context) -> {
-		// do nothing
+		// just log
+		final Logger log = LoggerFactory.getLogger(ToolApprovalCallback.class);
+		log.debug("No need to approve tool: {}", toolName);
 	};
 
 }

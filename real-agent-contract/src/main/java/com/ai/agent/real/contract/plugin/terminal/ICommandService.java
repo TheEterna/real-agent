@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.plugin.terminal;
 
-import com.ai.agent.real.common.entity.TerminalCommand;
+import com.ai.agent.real.domain.entity.plguin.TerminalCommand;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

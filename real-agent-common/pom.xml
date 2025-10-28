@@ -13,6 +13,8 @@
     <artifactId>real-agent-common</artifactId>
 
     <dependencies>
+
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -22,6 +24,7 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-model</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -30,12 +33,6 @@
             <version>${mcp.version}</version>
         </dependency>
 
-        
-        <!-- BCrypt 密码加密 -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
-        </dependency>
 
         <!-- Jackson 用于 JSON 序列化 -->
         <dependency>
@@ -43,18 +40,6 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-r2dbc</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>r2dbc-postgresql</artifactId>
-        </dependency>
 
     </dependencies>
 

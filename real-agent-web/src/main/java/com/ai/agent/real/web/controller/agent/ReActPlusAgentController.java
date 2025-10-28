@@ -1,11 +1,11 @@
 package com.ai.agent.real.web.controller.agent;
 
 import com.ai.agent.real.common.utils.CommonUtils;
+import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
-import com.ai.agent.real.contract.model.context.AgentContext;
+import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.TraceInfo;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
-import com.ai.agent.real.web.service.AgentSessionHub;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -25,10 +25,10 @@ import java.time.LocalDateTime;
 @CrossOrigin(origins = "*")
 public class ReActPlusAgentController {
 
-	private final AgentSessionHub agentSessionHub;
+	private final IAgentSessionManagerService agentSessionManagerService;
 
-	public ReActPlusAgentController(AgentSessionHub agentSessionHub) {
-		this.agentSessionHub = agentSessionHub;
+	public ReActPlusAgentController(IAgentSessionManagerService agentSessionManagerService) {
+		this.agentSessionManagerService = agentSessionManagerService;
 	}
 
 	/**
@@ -46,7 +46,7 @@ public class ReActPlusAgentController {
 		}
 
 		// 创建执行上下文
-		AgentContext context = new AgentContext(new TraceInfo()).setSessionId(request.getSessionId())
+		ReActAgentContext context = new ReActAgentContext(new TraceInfo()).setSessionId(request.getSessionId())
 			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
 			.setStartTime(LocalDateTime.now());
 
@@ -55,12 +55,12 @@ public class ReActPlusAgentController {
 
 		// 创建工具审批回调
 		var approvalCallback = (ToolApprovalCallback) (sessionId, toolCallId, toolName, toolArgs,
-				ctx) -> agentSessionHub.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
+				ctx) -> agentSessionManagerService.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
 		// 设置回调到上下文
 		context.setToolApprovalCallback(approvalCallback);
 
 		// 通过AgentSessionHub订阅会话
-		return agentSessionHub.subscribe(request.getSessionId(), request.getMessage(), context)
+		return agentSessionManagerService.subscribe(request.getSessionId(), request.getMessage(), context)
 			.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
 			.doOnComplete(() -> {
 				context.setEndTime(LocalDateTime.now());

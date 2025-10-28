@@ -1,6 +1,8 @@
 package com.ai.agent.real.contract.agent;
 
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import com.ai.agent.real.contract.agent.context.ResumePoint;
+import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.protocol.*;
 import reactor.core.publisher.*;
 
@@ -35,7 +37,7 @@ public interface AgentStrategy {
 	 * @param context 执行上下文
 	 * @return 流式执行结果
 	 */
-	Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContext context);
+	Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context);
 
 	/**
 	 * 同步执行策略（兼容旧版本）
@@ -44,6 +46,14 @@ public interface AgentStrategy {
 	 * @param context 工具执行上下文
 	 * @return 执行结果
 	 */
-	AgentResult execute(String task, List<Agent> agents, AgentContext context);
+	AgentResult execute(String task, List<Agent> agents, AgentContextAble context);
+
+	/**
+	 * 从交互请求后恢复执行 注意：AgentSessionHub 已经根据用户选择的动作做了分发，这里只需要执行工具或继续迭代
+	 * @param resumePoint 恢复点
+	 * @param approvalCallback 工具审批回调
+	 * @return 流式执行结果
+	 */
+	Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint, ToolApprovalCallback approvalCallback);
 
 }

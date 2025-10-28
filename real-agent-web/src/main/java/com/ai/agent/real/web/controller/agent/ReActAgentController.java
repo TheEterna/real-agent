@@ -1,14 +1,16 @@
 package com.ai.agent.real.web.controller.agent;
 
 import com.ai.agent.real.common.utils.CommonUtils;
+import com.ai.agent.real.entity.agent.context.ReActAgentContext;
+import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
-import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.protocol.*;
-import com.ai.agent.real.web.service.AgentSessionHub;
 import lombok.Data;
 import lombok.extern.slf4j.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.*;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
@@ -29,10 +31,11 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 public class ReActAgentController {
 
-	private final AgentSessionHub agentSessionHub;
+	private final IAgentSessionManagerService agentSessionManagerService;
 
-	public ReActAgentController(AgentSessionHub agentSessionHub) {
-		this.agentSessionHub = agentSessionHub;
+	public ReActAgentController(IAgentSessionManagerService agentSessionManagerService,
+			@Qualifier("reactAgentStrategy") AgentStrategy reActAgentStrategy) {
+		this.agentSessionManagerService = agentSessionManagerService.of(reActAgentStrategy);
 	}
 
 	/**
@@ -49,7 +52,7 @@ public class ReActAgentController {
 		}
 
 		// 创建执行上下文
-		AgentContext context = new AgentContext(new TraceInfo()).setSessionId(request.getSessionId())
+		ReActAgentContext context = new ReActAgentContext(new TraceInfo()).setSessionId(request.getSessionId())
 			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
 			.setStartTime(LocalDateTime.now());
 
@@ -57,14 +60,14 @@ public class ReActAgentController {
 		context.setTask(request.getMessage());
 
 		// 创建工具审批回调
-		var approvalCallback = (ToolApprovalCallback) (sessionId, toolCallId, toolName, toolArgs,
-				ctx) -> agentSessionHub.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
+		ToolApprovalCallback approvalCallback = (sessionId, toolCallId, toolName, toolArgs,
+				ctx) -> agentSessionManagerService.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
 
 		// 设置回调到上下文
 		context.setToolApprovalCallback(approvalCallback);
 
 		// 通过AgentSessionHub订阅会话
-		return agentSessionHub.subscribe(request.getSessionId(), request.getMessage(), context)
+		return agentSessionManagerService.subscribe(request.getSessionId(), request.getMessage(), context)
 			.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
 			.doOnComplete(() -> {
 				context.setEndTime(LocalDateTime.now());

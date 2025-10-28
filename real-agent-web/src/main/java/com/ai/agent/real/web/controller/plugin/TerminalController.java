@@ -5,7 +5,7 @@ import com.ai.agent.real.contract.plugin.terminal.ITerminalService;
 import com.ai.agent.real.contract.model.protocol.ResponseResult;
 import com.ai.agent.real.contract.model.terminal.TerminalCommandRequest;
 import com.ai.agent.real.contract.model.terminal.TerminalCommandResult;
-import com.ai.agent.real.common.entity.TerminalCommand;
+import com.ai.agent.real.domain.entity.plguin.TerminalCommand;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 

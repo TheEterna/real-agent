@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.plugin.terminal;
 
-import com.ai.agent.real.common.entity.TerminalCommand;
 import com.ai.agent.real.contract.plugin.terminal.ICommandService;
+import com.ai.agent.real.domain.entity.plguin.TerminalCommand;
 import com.ai.agent.real.domain.repository.ITerminalCommandRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

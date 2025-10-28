@@ -57,7 +57,7 @@ public class TerminalService implements ITerminalService {
 		}))
 			.flatMap(command -> validateAndExecute(request, command, startTime))
 			.doOnSuccess(result -> logger.info("Command executed successfully: {} in {}ms", request.getCommandName(),
-							System.currentTimeMillis() - startTime))
+					System.currentTimeMillis() - startTime))
 			.doOnError(error -> logger.error("Command execution failed: {} - {}", request.getCommandName(),
 					error.getMessage()));
 	}

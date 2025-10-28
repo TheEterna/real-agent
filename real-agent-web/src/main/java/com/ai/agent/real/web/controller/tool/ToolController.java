@@ -1,6 +1,6 @@
 package com.ai.agent.real.web.controller.tool;
 
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.*;
@@ -47,7 +47,8 @@ public class ToolController {
 		if (request == null || request.getToolName() == null || request.getToolName().isBlank()) {
 			return Mono.just(ResponseResult.paramError("参数错误: toolName 不能为空"));
 		}
-		return toolService.executeToolAsync(request.getToolName(), AgentContext.of(request.getArgs(), new TraceInfo()))
+		return toolService
+			.executeToolAsync(request.getToolName(), ReActAgentContext.of(request.getArgs(), new TraceInfo()))
 			.map(res -> {
 				if (res != null && res.isOk()) {
 					return ResponseResult.success(res);

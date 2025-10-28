@@ -29,6 +29,11 @@
             <artifactId>real-agent-contract</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-entity</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>com.ai.agent</groupId>
@@ -53,6 +58,10 @@
         <dependency>
             <groupId>io.modelcontextprotocol.sdk</groupId>
             <artifactId>mcp-spring-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ai.agent</groupId>
+            <artifactId>real-agent-common</artifactId>
         </dependency>
 
     </dependencies>

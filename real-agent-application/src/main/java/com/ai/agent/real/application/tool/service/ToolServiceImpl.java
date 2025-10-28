@@ -1,11 +1,11 @@
 package com.ai.agent.real.application.tool.service;
 
-import com.ai.agent.real.contract.model.context.*;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.ToolResult.*;
 import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.tool.AgentTool;
-import com.ai.agent.real.contract.utils.ToolUtils;
+import com.ai.agent.real.application.utils.ToolUtils;
 import io.modelcontextprotocol.client.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.mcp.*;
@@ -216,7 +216,7 @@ public class ToolServiceImpl implements ToolService {
 	 * @return
 	 */
 	@Override
-	public Mono<ToolResult<Object>> executeToolAsync(String toolName, AgentContext agentContext) {
+	public Mono<ToolResult<Object>> executeToolAsync(String toolName, AgentContextAble agentContext) {
 
 		// DefaultToolCallingManager toolCallingManager =
 		// ToolCallingManager.builder().build();

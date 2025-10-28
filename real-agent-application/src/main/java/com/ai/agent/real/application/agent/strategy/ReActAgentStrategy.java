@@ -4,16 +4,19 @@ import com.ai.agent.real.application.agent.impl.ActionAgent;
 import com.ai.agent.real.application.agent.impl.FinalAgent;
 import com.ai.agent.real.application.agent.impl.ObservationAgent;
 import com.ai.agent.real.application.agent.impl.ThinkingAgent;
+import com.ai.agent.real.application.utils.AgentUtils;
+import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
-import com.ai.agent.real.contract.model.context.*;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.service.ToolService;
-import com.ai.agent.real.contract.utils.*;
+import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse;
 import reactor.core.publisher.*;
@@ -58,8 +61,8 @@ public class ReActAgentStrategy implements AgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContext context) {
-		return executeStream(task, agents, context, ToolApprovalCallback.NOOP);
+	public Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context) {
+		return executeStream(task, agents, (ReActAgentContext) context, ToolApprovalCallback.NOOP);
 	}
 
 	/**
@@ -70,7 +73,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
-	public Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContext context,
+	private Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context,
 			ToolApprovalCallback approvalCallback) {
 		log.debug("ReActAgentStrategy executeStream task: {}", task);
 
@@ -120,12 +123,13 @@ public class ReActAgentStrategy implements AgentStrategy {
 	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
+	@Override
 	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint,
 			ToolApprovalCallback approvalCallback) {
 		log.info("从交互请求后恢复执行: resumeId={}, iteration={}, stage={}", resumePoint.getResumeId(),
 				resumePoint.getCurrentIteration(), resumePoint.getPausedStage());
 
-		AgentContext context = resumePoint.getContext();
+		ReActAgentContext context = (ReActAgentContext) resumePoint.getContext();
 		String task = resumePoint.getOriginalTask();
 		int iteration = resumePoint.getCurrentIteration();
 
@@ -161,7 +165,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	 * 从工具审批后恢复执行（内部方法）
 	 */
 	private Flux<AgentExecutionEvent> resumeFromToolApprovalInternal(ResumePoint resumePoint, String task,
-			AgentContext context, int iteration, ToolApprovalCallback approvalCallback) {
+			ReActAgentContext context, int iteration, ToolApprovalCallback approvalCallback) {
 
 		// 获取工具信息
 		String toolName = (String) resumePoint.getInteractionRequest().getContext().get("toolName");
@@ -196,7 +200,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 2. 执行观察阶段
 				Flux.defer(() -> {
-					AgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
+					ReActAgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
 					return FluxUtils.stage(observationAgent.executeStream(task, observingCtx), context,
 							ObservationAgent.AGENT_ID, evt -> log.debug("[EVT/OBSERVE/RESUME] type={}", evt.getType()),
 							() -> log.info("观察阶段结束（恢复后）"));
@@ -217,7 +221,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	/**
 	 * 继续下一轮迭代（通用方法）
 	 */
-	private Flux<AgentExecutionEvent> continueNextIteration(String task, AgentContext context, int iteration,
+	private Flux<AgentExecutionEvent> continueNextIteration(String task, ReActAgentContext context, int iteration,
 			ToolApprovalCallback approvalCallback) {
 		log.info("继续执行剩余迭代: currentIteration={}", iteration);
 
@@ -237,7 +241,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	/**
 	 * 执行单次ReAct迭代
 	 */
-	private Flux<AgentExecutionEvent> executeReActIteration(String task, AgentContext context, int iteration,
+	private Flux<AgentExecutionEvent> executeReActIteration(String task, ReActAgentContext context, int iteration,
 			ToolApprovalCallback approvalCallback) {
 		log.debug("ReAct循环第{}轮开始", iteration);
 		context.setCurrentIteration(iteration);
@@ -253,7 +257,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 1. 思考阶段（封装：上下文合并 + 日志回调）
 				Flux.defer(() -> {
-					AgentContext thinkingCtx = AgentUtils.createAgentContext(context, ThinkingAgent.AGENT_ID);
+					ReActAgentContext thinkingCtx = AgentUtils.createAgentContext(context, ThinkingAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建思考阶段上下文 | {}", iteration, AgentUtils.snapshot(thinkingCtx));
 					// 注意：思考阶段不需要工具审批回调，因为它不执行工具
 					return FluxUtils.stage(thinkingAgent.executeStream(task, thinkingCtx), context,
@@ -270,7 +274,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 				// 2. 行动阶段（封装：上下文合并 + 日志回调 + 工具审批回调）
 				Flux.defer(() -> {
 					// 此时 context 已包含思考阶段写回的历史
-					AgentContext actionCtx = AgentUtils.createAgentContext(context, ActionAgent.AGENT_ID);
+					ReActAgentContext actionCtx = AgentUtils.createAgentContext(context, ActionAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建行动阶段上下文 | {}", iteration, AgentUtils.snapshot(actionCtx));
 					// 注意：行动阶段需要传递工具审批回调
 					return FluxUtils.stage(actionAgent.executeStream(task, actionCtx), context, ActionAgent.AGENT_ID,
@@ -286,7 +290,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 				// 3. 观察阶段（封装：先过滤DONE，再应用上下文合并与日志回调）
 				Flux.defer(() -> {
 					// 此时 context 已包含行动阶段写回的历史
-					AgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
+					ReActAgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建观察阶段上下文 | {}", iteration, AgentUtils.snapshot(observingCtx));
 					return FluxUtils.stage(observationAgent.executeStream(task, observingCtx), context,
 							ObservationAgent.AGENT_ID,
@@ -310,7 +314,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	 * @return 执行结果
 	 */
 	@Override
-	public AgentResult execute(String task, List<Agent> agents, AgentContext context) {
+	public AgentResult execute(String task, List<Agent> agents, AgentContextAble context) {
 		throw new UnsupportedOperationException("ReActAgentStrategy不支持同步execute方法，请使用executeStream方法");
 	}
 
