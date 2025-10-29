@@ -1,10 +1,10 @@
 package com.ai.agent.real.application.service.Impl;
 
 import com.ai.agent.real.common.constant.RoleplayConstants;
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplayRole;
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.dto.MessageCreateRequestDto;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import com.ai.agent.real.domain.repository.roleplay.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

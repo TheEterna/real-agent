@@ -1,6 +1,6 @@
 package com.ai.agent.real.application.tool.system;
 
-import com.ai.agent.real.common.agent.context.ReActAgentContext;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.exception.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.ToolResult.*;
@@ -50,7 +50,7 @@ public class TaskDoneTool implements AgentTool {
 	 */
 
 	@Override
-	public ToolResult<Object> execute(ReActAgentContext ctx) {
+	public ToolResult<Object> execute(AgentContextAble ctx) {
 		long start = System.currentTimeMillis();
 		try {
 			String finishContent = ctx.getStructuralToolArgs(TaskDoneToolDto.class).getFinishContent();

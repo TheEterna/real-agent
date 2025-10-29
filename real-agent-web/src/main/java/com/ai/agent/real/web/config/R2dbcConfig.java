@@ -1,5 +1,7 @@
 package com.ai.agent.real.web.config;
 
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import org.springframework.context.annotation.*;
 import org.springframework.data.r2dbc.convert.*;
 import org.springframework.core.convert.converter.Converter;
@@ -33,20 +35,20 @@ public class R2dbcConfig {
 
 	// MessageType 转换器
 	@ReadingConverter
-	public class MessageTypeReadingConverter implements Converter<String, MessageType> {
+	public class MessageTypeReadingConverter implements Converter<String, PlaygroundRoleplaySessionMessage.MessageType> {
 
 		@Override
-		public MessageType convert(String source) {
-			return source != null ? MessageType.valueOf(source.toUpperCase()) : null;
+		public PlaygroundRoleplaySessionMessage.MessageType convert(String source) {
+			return source != null ? PlaygroundRoleplaySessionMessage.MessageType.valueOf(source.toUpperCase()) : null;
 		}
 
 	}
 
 	@WritingConverter
-	public class MessageTypeWritingConverter implements Converter<MessageType, String> {
+	public class MessageTypeWritingConverter implements Converter<PlaygroundRoleplaySessionMessage.MessageType, String> {
 
 		@Override
-		public String convert(MessageType source) {
+		public String convert(PlaygroundRoleplaySessionMessage.MessageType source) {
 			return source != null ? source.name() : null;
 		}
 
@@ -54,20 +56,20 @@ public class R2dbcConfig {
 
 	// MessageRole 转换器
 	@ReadingConverter
-	public class MessageRoleReadingConverter implements Converter<String, MessageRole> {
+	public class MessageRoleReadingConverter implements Converter<String, PlaygroundRoleplaySessionMessage.MessageRole> {
 
 		@Override
-		public MessageRole convert(String source) {
-			return source != null ? MessageRole.valueOf(source.toUpperCase()) : null;
+		public PlaygroundRoleplaySessionMessage.MessageRole convert(String source) {
+			return source != null ? PlaygroundRoleplaySessionMessage.MessageRole.valueOf(source.toUpperCase()) : null;
 		}
 
 	}
 
 	@WritingConverter
-	public class MessageRoleWritingConverter implements Converter<MessageRole, String> {
+	public class MessageRoleWritingConverter implements Converter<PlaygroundRoleplaySessionMessage.MessageRole, String> {
 
 		@Override
-		public String convert(MessageRole source) {
+		public String convert(PlaygroundRoleplaySessionMessage.MessageRole source) {
 			return source != null ? source.name() : null;
 		}
 
@@ -75,23 +77,23 @@ public class R2dbcConfig {
 
 	// MessageRole 转换器
 	@ReadingConverter
-	public class VoiceEnumReadingConverter implements Converter<String, VoiceEnum> {
+	public class VoiceEnumReadingConverter implements Converter<String, PlaygroundRoleplayRole.VoiceEnum> {
 
 		@Override
-		public VoiceEnum convert(String source) {
+		public PlaygroundRoleplayRole.VoiceEnum convert(String source) {
 
 			// 加一步操作, 转成大写
-			return source != null ? VoiceEnum.valueOf(source.toUpperCase()) : null;
+			return source != null ? PlaygroundRoleplayRole.VoiceEnum.valueOf(source.toUpperCase()) : null;
 
 		}
 
 	}
 
 	@WritingConverter
-	public class VoiceEnumWritingConverter implements Converter<VoiceEnum, String> {
+	public class VoiceEnumWritingConverter implements Converter<PlaygroundRoleplayRole.VoiceEnum, String> {
 
 		@Override
-		public String convert(VoiceEnum source) {
+		public String convert(PlaygroundRoleplayRole.VoiceEnum source) {
 			// 写库统一存显示值，与现有数据（如 "Marcus"）保持一致
 			return source != null ? source.getValue() : null;
 		}

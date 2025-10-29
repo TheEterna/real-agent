@@ -1,6 +1,7 @@
 package com.ai.agent.real.application.utils;
 
 import com.ai.agent.real.common.constant.*;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.contract.tool.ToolSpec;
@@ -217,7 +218,7 @@ public class ToolUtils {
 				}
 
 				@Override
-				public ToolResult<Object> execute(ReActAgentContext ctx) {
+				public ToolResult<Object> execute(AgentContextAble ctx) {
 					long l = System.currentTimeMillis();
 					try {
 						String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));
@@ -264,7 +265,7 @@ public class ToolUtils {
 			}
 
 			@Override
-			public ToolResult<Object> execute(ReActAgentContext ctx) {
+			public ToolResult<Object> execute(AgentContextAble ctx) {
 				long l = System.currentTimeMillis();
 				try {
 					String result = toolCallback.call(ModelOptionsUtils.toJsonString(ctx.getToolArgs()));

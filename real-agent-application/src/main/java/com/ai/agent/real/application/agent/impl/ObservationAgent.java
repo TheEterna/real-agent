@@ -3,7 +3,7 @@ package com.ai.agent.real.application.agent.impl;
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.contract.agent.Agent;
-import com.ai.agent.real.common.agent.context.ReActAgentContext;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
@@ -80,7 +80,7 @@ public class ObservationAgent extends Agent {
 
 	@SneakyThrows
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String task, ReActAgentContext context) {
+	public Flux<AgentExecutionEvent> executeStream(String task, AgentContextAble context) {
 		log.debug("ObservationAgent开始流式观察分析: {}", task);
 
 		// 构建观察提示
@@ -105,7 +105,7 @@ public class ObservationAgent extends Agent {
 	/**
 	 * 构建观察提示词
 	 */
-	private String buildObservationPrompt(String task, ReActAgentContext context) {
+	private String buildObservationPrompt(String task, AgentContextAble context) {
 		StringBuilder promptBuilder = new StringBuilder();
 
 		promptBuilder.append("""

@@ -1,6 +1,7 @@
 package com.ai.agent.real.application.utils;
 
 import com.ai.agent.real.common.utils.*;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.message.*;
@@ -95,7 +96,7 @@ public class AgentUtils {
 	 * @return Prompt
 	 * @throws NoSuchMethodException
 	 */
-	public static Prompt buildPromptWithContextAndTools(List<AgentTool> availableTools, ReActAgentContext context,
+	public static Prompt buildPromptWithContextAndTools(List<AgentTool> availableTools, AgentContextAble context,
 			String systemPrompt, String userPrompt) throws NoSuchMethodException {
 
 		log.debug("开始构建Prompt，可用工具数量: {}, 对话历史数量: {}", availableTools != null ? availableTools.size() : 0,
@@ -128,7 +129,7 @@ public class AgentUtils {
 	 * @param userPrompt user prompt
 	 * @return Prompt
 	 */
-	public static Prompt buildPromptWithContext(List<AgentTool> availableTools, ReActAgentContext context,
+	public static Prompt buildPromptWithContext(List<AgentTool> availableTools, AgentContextAble context,
 			String systemPrompt, String userPrompt) {
 
 		log.debug("开始构建Prompt, 对话历史数量: {}", context.getMessageHistory().size());
@@ -146,7 +147,7 @@ public class AgentUtils {
 	 * @param userPrompt
 	 * @return List<Message> completed message list
 	 */
-	private static List<Message> buildConversation(List<AgentTool> availableTools, ReActAgentContext context,
+	private static List<Message> buildConversation(List<AgentTool> availableTools, AgentContextAble context,
 			String systemPrompt, String userPrompt) {
 
 		// 1. prepare a empty message container and a conversation history

@@ -73,7 +73,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
-	private Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context,
+	private Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, ReActAgentContext context,
 			ToolApprovalCallback approvalCallback) {
 		log.debug("ReActAgentStrategy executeStream task: {}", task);
 

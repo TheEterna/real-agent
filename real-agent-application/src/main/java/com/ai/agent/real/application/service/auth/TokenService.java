@@ -1,9 +1,9 @@
 package com.ai.agent.real.application.service.auth;
 
-import com.ai.agent.real.common.auth.UserContext;
 import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.infra.redis.IRedisService;
-import com.ai.agent.real.common.entity.user.User;
+import com.ai.agent.real.domain.entity.user.User;
+import com.ai.agent.real.entity.auth.UserContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

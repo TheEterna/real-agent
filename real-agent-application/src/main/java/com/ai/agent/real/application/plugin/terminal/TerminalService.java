@@ -7,7 +7,7 @@ import com.ai.agent.real.contract.plugin.terminal.ITerminalService;
 import com.ai.agent.real.contract.model.terminal.TerminalCommandRequest;
 import com.ai.agent.real.contract.model.terminal.TerminalCommandResult;
 import com.ai.agent.real.contract.plugin.terminal.TerminalCommandHandler;
-import com.ai.agent.real.common.entity.TerminalCommand;
+import com.ai.agent.real.domain.entity.plguin.TerminalCommand;
 import com.ai.agent.real.domain.repository.ITerminalCommandRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

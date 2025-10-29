@@ -1,8 +1,8 @@
 package com.ai.agent.real.application.service;
 
-import com.ai.agent.real.common.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.dto.MessageCreateRequestDto;
+import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplaySessionMessage;
 import reactor.core.publisher.*;
 
 /**
