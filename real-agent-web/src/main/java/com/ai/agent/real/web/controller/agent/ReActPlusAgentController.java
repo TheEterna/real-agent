@@ -1,12 +1,14 @@
 package com.ai.agent.real.web.controller.agent;
 
 import com.ai.agent.real.common.utils.CommonUtils;
+import com.ai.agent.real.contract.agent.AgentStrategy;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.TraceInfo;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +29,10 @@ public class ReActPlusAgentController {
 
 	private final IAgentSessionManagerService agentSessionManagerService;
 
-	public ReActPlusAgentController(IAgentSessionManagerService agentSessionManagerService) {
-		this.agentSessionManagerService = agentSessionManagerService;
+	public ReActPlusAgentController(IAgentSessionManagerService agentSessionManagerService,
+			@Qualifier("reActPlusAgentStrategy") AgentStrategy reActPlusAgentStrategy) {
+
+		this.agentSessionManagerService = agentSessionManagerService.of(reActPlusAgentStrategy);
 	}
 
 	/**
@@ -54,7 +58,7 @@ public class ReActPlusAgentController {
 		context.setTask(request.getMessage());
 
 		// 创建工具审批回调
-		var approvalCallback = (ToolApprovalCallback) (sessionId, toolCallId, toolName, toolArgs,
+		ToolApprovalCallback approvalCallback = (sessionId, toolCallId, toolName, toolArgs,
 				ctx) -> agentSessionManagerService.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
 		// 设置回调到上下文
 		context.setToolApprovalCallback(approvalCallback);

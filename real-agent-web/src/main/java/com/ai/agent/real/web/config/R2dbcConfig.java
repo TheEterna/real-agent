@@ -35,7 +35,8 @@ public class R2dbcConfig {
 
 	// MessageType 转换器
 	@ReadingConverter
-	public class MessageTypeReadingConverter implements Converter<String, PlaygroundRoleplaySessionMessage.MessageType> {
+	public class MessageTypeReadingConverter
+			implements Converter<String, PlaygroundRoleplaySessionMessage.MessageType> {
 
 		@Override
 		public PlaygroundRoleplaySessionMessage.MessageType convert(String source) {
@@ -45,7 +46,8 @@ public class R2dbcConfig {
 	}
 
 	@WritingConverter
-	public class MessageTypeWritingConverter implements Converter<PlaygroundRoleplaySessionMessage.MessageType, String> {
+	public class MessageTypeWritingConverter
+			implements Converter<PlaygroundRoleplaySessionMessage.MessageType, String> {
 
 		@Override
 		public String convert(PlaygroundRoleplaySessionMessage.MessageType source) {
@@ -56,7 +58,8 @@ public class R2dbcConfig {
 
 	// MessageRole 转换器
 	@ReadingConverter
-	public class MessageRoleReadingConverter implements Converter<String, PlaygroundRoleplaySessionMessage.MessageRole> {
+	public class MessageRoleReadingConverter
+			implements Converter<String, PlaygroundRoleplaySessionMessage.MessageRole> {
 
 		@Override
 		public PlaygroundRoleplaySessionMessage.MessageRole convert(String source) {
@@ -66,7 +69,8 @@ public class R2dbcConfig {
 	}
 
 	@WritingConverter
-	public class MessageRoleWritingConverter implements Converter<PlaygroundRoleplaySessionMessage.MessageRole, String> {
+	public class MessageRoleWritingConverter
+			implements Converter<PlaygroundRoleplaySessionMessage.MessageRole, String> {
 
 		@Override
 		public String convert(PlaygroundRoleplaySessionMessage.MessageRole source) {

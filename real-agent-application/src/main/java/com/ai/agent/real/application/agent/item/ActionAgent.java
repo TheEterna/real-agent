@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.agent.impl;
+package com.ai.agent.real.application.agent.item;
 
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
@@ -9,7 +9,6 @@ import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.service.*;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
@@ -88,6 +87,7 @@ public class ActionAgent extends Agent {
 				toolApprovalMode);
 		this.setCapabilities(
 				new String[] { "ReActAgentStrategy", "行动", "Action", NounConstants.MCP, NounConstants.TASK_DONE });
+		this.setSystemPrompt(SYSTEM_PROMPT);
 	}
 
 	@Override
@@ -105,10 +105,8 @@ public class ActionAgent extends Agent {
 			return FluxUtils
 				.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
 						EventType.ACTING)
-				.doOnComplete(() -> {
-					afterHandle(context);
-				})
 				.doFinally(signalType -> {
+					afterHandle(context);
 					log.debug("ActionAgent流式执行结束，信号类型: {}", signalType);
 				});
 		}

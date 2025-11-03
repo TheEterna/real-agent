@@ -1,12 +1,15 @@
 package com.ai.agent.real.application.agent;
 
 import com.ai.agent.real.application.agent.dispatcher.DefaultAgentDispatcher;
-import com.ai.agent.real.application.agent.impl.ActionAgent;
-import com.ai.agent.real.application.agent.impl.FinalAgent;
-import com.ai.agent.real.application.agent.impl.ObservationAgent;
-import com.ai.agent.real.application.agent.impl.ThinkingAgent;
+import com.ai.agent.real.application.agent.item.ActionAgent;
+import com.ai.agent.real.application.agent.item.FinalAgent;
+import com.ai.agent.real.application.agent.item.ObservationAgent;
+import com.ai.agent.real.application.agent.item.ThinkingAgent;
+import com.ai.agent.real.application.agent.item.reactplus.TaskAnalysisAgent;
+import com.ai.agent.real.application.agent.item.reactplus.ThoughtAgent;
 import com.ai.agent.real.application.agent.session.AgentSessionManagerService;
 import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
+import com.ai.agent.real.application.agent.strategy.ReActPlusAgentStrategy;
 import com.ai.agent.real.contract.agent.AgentStrategy;
 import com.ai.agent.real.contract.agent.IAgentDispatcher;
 import com.ai.agent.real.contract.agent.context.AgentMemory;
@@ -83,6 +86,19 @@ public class ApplicationAgentAutoConfiguration {
 		return new FinalAgent(chatModel, toolService);
 	}
 
+	@Bean
+	// TODO: 待完善
+	public TaskAnalysisAgent taskAnalysisAgent(ChatModel chatModel, ToolService toolService,
+			IPropertyService propertyService) {
+		return new TaskAnalysisAgent(chatModel, toolService);
+	}
+
+	@Bean
+	// TODO: 待完善
+	public ThoughtAgent thoughtAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+		return new ThoughtAgent();
+	}
+
 	@Bean("reactAgentStrategy")
 	public AgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
 			ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
@@ -90,12 +106,17 @@ public class ApplicationAgentAutoConfiguration {
 	}
 
 	@Bean
-	@Primary
-	public AgentStrategy reactPlusAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
+	public AgentStrategy reActPlusAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
 			ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
-
-		// TODO: 暂时使用ReActAgentStrategy
 		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
+	}
+
+	@Bean
+	@Primary
+	public AgentStrategy reactPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, ThoughtAgent thoughtAgent,
+			ThinkingAgent thinkingAgent, ActionAgent actionAgent, FinalAgent finalAgent) {
+
+		return new ReActPlusAgentStrategy(taskAnalysisAgent, thoughtAgent, thinkingAgent, actionAgent, finalAgent);
 	}
 
 }

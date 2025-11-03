@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.agent.impl;
+package com.ai.agent.real.application.agent.item;
 
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
@@ -76,6 +76,7 @@ public class ObservationAgent extends Agent {
 				"负责ReAct框架中的观察(Observation)阶段，分析工具执行结果，总结执行效果，为下一轮思考提供输入", chatModel, toolService,
 				Set.of("ReActAgentStrategy", "观察", "Observation"), toolApprovalMode);
 		this.setCapabilities(new String[] { "ReActAgentStrategy", "观察", "Observation" });
+		this.setSystemPrompt(SYSTEM_PROMPT);
 	}
 
 	@SneakyThrows
@@ -94,10 +95,8 @@ public class ObservationAgent extends Agent {
 			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
 					EventType.OBSERVING)
 
-			.doOnComplete(() -> {
-				afterHandle(context);
-			})
 			.doFinally(signalType -> {
+				afterHandle(context);
 				log.debug("ObservationAgent 执行结束，信号类型: {}", signalType);
 			});
 	}

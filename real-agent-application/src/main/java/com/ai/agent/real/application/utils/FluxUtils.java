@@ -133,8 +133,8 @@ public class FluxUtils {
 	 * 作为主内容，message 作为次要说明）。 - 失败：返回 ERROR 事件。 - 当 toolName == task_done 且 markTaskDone 为
 	 * true 时，设置 context.setTaskCompleted(true)。
 	 */
-	public static Mono<AgentExecutionEvent> mapToolResultToEvent(Mono<ToolResult<Object>> resultMono,
-			AgentContextAble context, String toolId, String toolCallId, String toolName) {
+	public static Mono<AgentExecutionEvent> mapToolResultToEvent(Mono<ToolResult> resultMono, AgentContextAble context,
+			String toolId, String toolCallId, String toolName) {
 		return resultMono.map(toolResult -> {
 			if (toolResult != null && toolResult.isOk()) {
 				String dataStr = String.valueOf(toolResult.getData());

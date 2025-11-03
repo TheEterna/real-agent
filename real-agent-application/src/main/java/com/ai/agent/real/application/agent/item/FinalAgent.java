@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.agent.impl;
+package com.ai.agent.real.application.agent.item;
 
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
@@ -53,6 +53,7 @@ public class FinalAgent extends Agent {
 
 		super(AGENT_ID, "FinalAgent", "负责最终结果输出", chatModel, toolService, Set.of("*"));
 		this.setCapabilities(new String[] { "close" });
+		this.setSystemPrompt(SYSTEM_PROMPT);
 	}
 
 	/**
@@ -79,9 +80,9 @@ public class FinalAgent extends Agent {
 					// handle error
 					return Flux.just(AgentExecutionEvent.error("FinalAgent流式执行异常"));
 				})
-				.doOnComplete(() -> {
-					// after handle
+				.doFinally(signalType -> {
 					afterHandle(context);
+					log.debug("FinalAgent 执行结束，信号类型: {}", signalType);
 				});
 
 		}

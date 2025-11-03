@@ -96,10 +96,6 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.PARTIAL_RESULT, result, null, traceInfo);
 	}
 
-	public static AgentExecutionEvent collaborating(Traceable traceInfo, String message) {
-		return new AgentExecutionEvent(EventType.COLLABORATING, message, null, traceInfo);
-	}
-
 	public static AgentExecutionEvent completed() {
 		return new AgentExecutionEvent(EventType.COMPLETED, null, null, null);
 	}
@@ -159,7 +155,9 @@ public class AgentExecutionEvent extends TraceInfo {
 		DONEWITHWARNING, // 执行完成，有警告
 		TOOL_APPROVAL, // 工具审批
 		INTERACTION, // 通用交互请求（工具审批、缺少信息、用户确认等）
-		COMPLETED // 执行完成, all agents completed, notice client close sse connection
+		COMPLETED, // 执行完成, all agents completed, notice client close sse connection
+
+		TASK_ANALYSIS, // 任务难度分析
 
 	}
 

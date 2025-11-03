@@ -159,6 +159,7 @@ public class ToolUtils {
 	// }
 
 	/**
+	 *
 	 * convert AgentTool to toolCallback
 	 * @param availableTools
 	 * @return
@@ -168,7 +169,8 @@ public class ToolUtils {
 		ToolCallback[] toolCallbacks = new ToolCallback[availableTools.size()];
 		for (int i = 0; i < availableTools.size(); i++) {
 			AgentTool agentTool = availableTools.get(i);
-			Method executeMethod = agentTool.getClass().getMethod("execute", ReActAgentContext.class);
+			// notice 这里直接使用 反射，危险系数高，修改相关代码时，需注意
+			Method executeMethod = agentTool.getClass().getMethod("execute", AgentContextAble.class);
 			toolCallbacks[i] = MethodToolCallback.builder()
 				.toolDefinition(ToolDefinitions.builder(executeMethod)
 					// refer to some doc, tool name of function calling should not have

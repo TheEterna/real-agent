@@ -1,5 +1,6 @@
 package com.ai.agent.real.application.agent.session;
 
+import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.AgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
@@ -542,6 +543,7 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 	 */
 	private ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event) {
 		return ServerSentEvent.<AgentExecutionEvent>builder()
+            .id(CommonUtils.getTraceId("sse-"))
 			.event(event.getType() != null ? event.getType().toString() : "message")
 			.data(event)
 			.build();

@@ -216,7 +216,7 @@ public class ToolServiceImpl implements ToolService {
 	 * @return
 	 */
 	@Override
-	public Mono<ToolResult<Object>> executeToolAsync(String toolName, AgentContextAble agentContext) {
+	public Mono<ToolResult> executeToolAsync(String toolName, AgentContextAble agentContext) {
 
 		// DefaultToolCallingManager toolCallingManager =
 		// ToolCallingManager.builder().build();

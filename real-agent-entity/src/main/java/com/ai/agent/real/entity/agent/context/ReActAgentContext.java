@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.*;
  * @time 2025/8/30 17:00
  */
 @Accessors(chain = true)
-public class ReActAgentContext implements AgentContextAble {
+public class ReActAgentContext implements AgentContextAble<Void> {
 
 	/**
 	 * 组合的追踪信息对象（推荐使用）
@@ -75,7 +75,8 @@ public class ReActAgentContext implements AgentContextAble {
 	 */
 	@Override
 	public ReActAgentContext addMessage(AgentMessage message) {
-		message.setContent("[" + message.getSenderId() + "]: " + message.getText());
+		// message.setContent("[" + message.getSenderId() + "]: " + message.getText());
+		message.setContent(message.getText());
 		this.messageHistory.add(message);
 		return this;
 	}
@@ -228,11 +229,12 @@ public class ReActAgentContext implements AgentContextAble {
 
 	/**
 	 * 获取结构化工具参数
+	 * @param toolArgsClass
 	 * @return 结构化工具参数
 	 */
 	@Override
 	public <T> T getStructuralToolArgs(Class<T> toolArgsClass) {
-		return ModelOptionsUtils.mapToClass(toolArgs, toolArgsClass);
+		return AgentContextAble.super.getStructuralToolArgs(toolArgsClass);
 	}
 
 	@Override

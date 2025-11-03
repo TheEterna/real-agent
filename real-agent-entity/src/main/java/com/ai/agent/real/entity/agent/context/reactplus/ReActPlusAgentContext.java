@@ -1,9 +1,11 @@
-package com.ai.agent.real.entity.agent.context;
+package com.ai.agent.real.entity.agent.context.reactplus;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.Traceable;
 import com.ai.agent.real.contract.model.message.AgentMessage;
+import com.ai.agent.real.entity.agent.context.ReActAgentContext;
+import org.springframework.ai.model.ModelOptionsUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author han
  * @time 2025/10/28 23:38
  */
-public class ReActPlusAgentContext implements AgentContextAble {
+public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentContextMeta> {
 
 	/**
 	 * 组合的追踪信息对象（推荐使用）
@@ -52,6 +54,11 @@ public class ReActPlusAgentContext implements AgentContextAble {
 	private ToolApprovalCallback toolApprovalCallback;
 
 	/**
+	 * meta 元数据
+	 */
+	private ReActPlusAgentContextMeta meta;
+
+	/**
 	 * 构造函数
 	 */
 	public ReActPlusAgentContext(Traceable trace) {
@@ -61,6 +68,7 @@ public class ReActPlusAgentContext implements AgentContextAble {
 		this.currentIteration = 0;
 		this.taskCompleted = new AtomicBoolean(false);
 		this.toolApprovalCallback = ToolApprovalCallback.NOOP;
+		this.meta = null;
 	}
 
 	/**
@@ -148,7 +156,7 @@ public class ReActPlusAgentContext implements AgentContextAble {
 	 */
 	@Override
 	public <T> T getStructuralToolArgs(Class<T> toolArgsClass) {
-		return null;
+		return ModelOptionsUtils.mapToClass(toolArgs, toolArgsClass);
 	}
 
 	/**
@@ -301,6 +309,23 @@ public class ReActPlusAgentContext implements AgentContextAble {
 	@Override
 	public void setMessageHistory(List<AgentMessage> messageHistory) {
 		this.messageHistory = messageHistory;
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public ReActPlusAgentContextMeta getMetadata() {
+		return this.meta;
+	}
+
+	/**
+	 * @param metadata
+	 */
+	@Override
+	public void setMetadata(Object metadata) {
+
+		this.meta = (ReActPlusAgentContextMeta) metadata;
 	}
 
 }

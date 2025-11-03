@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.agent.impl;
+package com.ai.agent.real.application.agent.item;
 
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
@@ -165,14 +165,8 @@ public class ThinkingAgent extends Agent {
 				toolApprovalMode);
 		this.setCapabilities(
 				new String[] { "ReActAgentStrategy", "thinking", "思考", NounConstants.MCP, NounConstants.TASK_DONE });
-	}
 
-	/**
-	 * Agent的唯一标识符
-	 */
-	@Override
-	public String getAgentId() {
-		return AGENT_ID;
+		this.setSystemPrompt(SYSTEM_PROMPT);
 	}
 
 	@SneakyThrows
@@ -190,10 +184,8 @@ public class ThinkingAgent extends Agent {
 		return FluxUtils
 			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
 					EventType.THINKING)
-			.doOnComplete(() -> {
-				afterHandle(context);
-			})
 			.doFinally(signalType -> {
+				afterHandle(context);
 				// after handle
 				log.debug("ThinkingAgent流式分析结束，信号类型: {}", signalType);
 			});

@@ -21,8 +21,6 @@ import static com.ai.agent.real.common.constant.NounConstants.*;
 @Slf4j
 public class TaskDoneTool implements AgentTool {
 
-	private final String id = "task_done";
-
 	private final ToolSpec spec = new ToolSpec().setName(TASK_DONE)
 		.setDescription("当目前的返回结果足以满足用户需求, 则调用此工具标记任务已完成")
 		.setCategory("system")
@@ -34,7 +32,7 @@ public class TaskDoneTool implements AgentTool {
 	 */
 	@Override
 	public String getId() {
-		return id;
+		return TASK_DONE;
 	}
 
 	@Override
@@ -50,7 +48,7 @@ public class TaskDoneTool implements AgentTool {
 	 */
 
 	@Override
-	public ToolResult<Object> execute(AgentContextAble ctx) {
+	public ToolResult<Object> execute(AgentContextAble<?> ctx) {
 		long start = System.currentTimeMillis();
 		try {
 			String finishContent = ctx.getStructuralToolArgs(TaskDoneToolDto.class).getFinishContent();

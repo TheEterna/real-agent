@@ -32,7 +32,7 @@ public interface AgentTool {
 	 * @return 工具执行结果
 	 * @throws ToolException 工具执行异常
 	 */
-	ToolResult<Object> execute(AgentContextAble ctx);
+	ToolResult execute(AgentContextAble<?> ctx);
 
 	/**
 	 * execute tool async
@@ -40,7 +40,7 @@ public interface AgentTool {
 	 * @return 工具执行结果
 	 * @throws ToolException 工具执行异常
 	 */
-	default Mono<ToolResult<Object>> executeAsync(AgentContextAble ctx) {
+	default Mono<ToolResult> executeAsync(AgentContextAble ctx) {
 		return Mono.fromCallable(() -> this.execute(ctx)).subscribeOn(Schedulers.boundedElastic());
 	}
 

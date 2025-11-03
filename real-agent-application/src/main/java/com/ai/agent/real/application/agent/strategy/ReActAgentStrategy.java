@@ -1,9 +1,9 @@
 package com.ai.agent.real.application.agent.strategy;
 
-import com.ai.agent.real.application.agent.impl.ActionAgent;
-import com.ai.agent.real.application.agent.impl.FinalAgent;
-import com.ai.agent.real.application.agent.impl.ObservationAgent;
-import com.ai.agent.real.application.agent.impl.ThinkingAgent;
+import com.ai.agent.real.application.agent.item.ActionAgent;
+import com.ai.agent.real.application.agent.item.FinalAgent;
+import com.ai.agent.real.application.agent.item.ObservationAgent;
+import com.ai.agent.real.application.agent.item.ThinkingAgent;
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.common.utils.*;
@@ -83,6 +83,8 @@ public class ReActAgentStrategy implements AgentStrategy {
 		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
 			context.setSessionId("default");
 		}
+
+		// fixme: 这里的 userId 后面可能要修复一下
 		context.addMessage(AgentMessage.user(task, "user"));
 
 		// 设置工具审批回调到上下文

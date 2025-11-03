@@ -3,16 +3,19 @@ package com.ai.agent.real.contract.agent.context;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.Traceable;
 import com.ai.agent.real.contract.model.message.AgentMessage;
+import org.springframework.ai.model.ModelOptionsUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * M 代表的是 meta 的 类型 T 代表的是 tool input schema 的类型
+ *
  * @author han
  * @time 2025/10/28 23:05
  */
-public interface AgentContextAble extends Traceable {
+public interface AgentContextAble<M> extends Traceable {
 
 	List<AgentMessage> getMessageHistory();
 
@@ -53,7 +56,9 @@ public interface AgentContextAble extends Traceable {
 	 * 获取结构化工具参数
 	 * @return 结构化工具参数
 	 */
-	<T> T getStructuralToolArgs(Class<T> toolArgsClass);
+	default <T> T getStructuralToolArgs(Class<T> toolArgsClass) {
+		return ModelOptionsUtils.mapToClass(getToolArgs(), toolArgsClass);
+	}
 
 	void setToolArgs(Map<String, Object> toolArgs);
 
@@ -75,5 +80,13 @@ public interface AgentContextAble extends Traceable {
 	void setToolApprovalCallback(ToolApprovalCallback toolApprovalCallback);
 
 	void setMessageHistory(List<AgentMessage> messageHistory);
+
+	default void setMetadata(Object metadata) {
+		throw new UnsupportedOperationException("not support metadata");
+	}
+
+	default M getMetadata() {
+		throw new UnsupportedOperationException("not support metadata");
+	}
 
 }

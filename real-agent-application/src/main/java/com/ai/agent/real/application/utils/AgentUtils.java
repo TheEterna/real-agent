@@ -158,6 +158,7 @@ public class AgentUtils {
 		// 2. concat the message list,logic: system prompt + conversation history + user
 		// prompt
 		for (int i = 0; i < conversationHistory.size(); i++) {
+
 			AgentMessage msg = conversationHistory.get(i);
 			log.debug("[{}] type={}, sender={}, text={}", i, msg.getAgentMessageType(), msg.getSenderId(),
 					msg.getText() != null ? msg.getText().substring(0, Math.min(100, msg.getText().length())) + "..."

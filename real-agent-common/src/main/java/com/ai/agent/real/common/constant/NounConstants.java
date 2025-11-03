@@ -9,6 +9,14 @@ public class NounConstants {
 
 	public final static String TASK_DONE = "task_done";
 
+	public final static String PLAN_INIT = "plan_init";
+
+	public final static String PLAN_UPDATE = "plan_update";
+
+	public final static String PLAN_ADVANCE = "plan_advance";
+
+	public final static String TASK_ANALYSIS = "task_analysis";
+
 	public final static String TOOL_CALLING = "tool_calling";
 
 	public final static String MCP = "MCP";
@@ -18,6 +26,8 @@ public class NounConstants {
 	public final static String ACTION_AGENT_ID = "ActionAgent";
 
 	public final static String OBSERVATION_AGENT_ID = "ObservationAgent";
+
+	public final static String TASK_ANALYSIS_AGENT_ID = "TaskAnalysisAgent";
 
 	public final static String FINAL_AGENT_ID = "FinalAgent";
 

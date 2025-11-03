@@ -60,8 +60,7 @@ public class ReActAgentController {
 		context.setTask(request.getMessage());
 
 		// 创建工具审批回调
-		ToolApprovalCallback approvalCallback = (sessionId, toolCallId, toolName, toolArgs,
-				ctx) -> agentSessionManagerService.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
+		ToolApprovalCallback approvalCallback = agentSessionManagerService::pauseForToolApproval;
 
 		// 设置回调到上下文
 		context.setToolApprovalCallback(approvalCallback);

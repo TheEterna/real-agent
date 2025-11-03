@@ -43,7 +43,7 @@ public class ToolController {
 	}
 
 	@PostMapping("/tools/execute")
-	public Mono<ResponseResult<? extends ToolResult<?>>> executeTool(@RequestBody ExecuteToolRequest request) {
+	public Mono<ResponseResult<? extends ToolResult>> executeTool(@RequestBody ExecuteToolRequest request) {
 		if (request == null || request.getToolName() == null || request.getToolName().isBlank()) {
 			return Mono.just(ResponseResult.paramError("参数错误: toolName 不能为空"));
 		}
