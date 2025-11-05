@@ -55,27 +55,27 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 	/**
 	 * 流式执行策略 返回实时的执行进度和中间结果
-	 * @param task 任务描述
+	 * @param userInput 用户输入
 	 * @param agents 可用的Agent列表
 	 * @param context 执行上下文
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context) {
-		return executeStream(task, agents, (ReActAgentContext) context, ToolApprovalCallback.NOOP);
+	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
+		return executeStream(userInput, agents, (ReActAgentContext) context, ToolApprovalCallback.NOOP);
 	}
 
 	/**
 	 * 流式执行策略（带工具审批回调）
-	 * @param task 任务描述
+	 * @param userInput 用户输入
 	 * @param agents 可用的Agent列表
 	 * @param context 执行上下文
 	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
-	private Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, ReActAgentContext context,
+	private Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, ReActAgentContext context,
 			ToolApprovalCallback approvalCallback) {
-		log.debug("ReActAgentStrategy executeStream task: {}", task);
+		log.debug("ReActAgentStrategy executeStream userInput: {}", userInput);
 
 		// 设置上下文
 		context.setTurnId(CommonUtils.getTraceId("ReAct"));
@@ -85,7 +85,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 		}
 
 		// fixme: 这里的 userId 后面可能要修复一下
-		context.addMessage(AgentMessage.user(task, "user"));
+		context.addMessage(AgentMessage.user(userInput, "user"));
 
 		// 设置工具审批回调到上下文
 		context.setToolApprovalCallback(approvalCallback);
@@ -96,7 +96,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 执行ReAct循环
 				Flux.range(1, MAX_ITERATIONS)
-					.concatMap(iteration -> executeReActIteration(task, context, iteration, approvalCallback))
+					.concatMap(iteration -> executeReActIteration(userInput, context, iteration, approvalCallback))
 					// 结束条件：收到DONE事件 或
 					// 已由上下文标记任务完成（例如ObservationAgent调用task_done后设置的标记）
 					.takeUntil(event -> context.isTaskCompleted())
@@ -106,7 +106,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 					}),
 				// 收尾：始终保留 FinalAgent 总结，然后由 FinalAgent 阶段发出 DONE/DONEWITHWARNING
 				Flux.defer(() -> finalAgent
-					.executeStream(task, AgentUtils.createAgentContext(context, FinalAgent.AGENT_ID))
+					.executeStream(userInput, AgentUtils.createAgentContext(context, FinalAgent.AGENT_ID))
 					.transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))
 					.concatWith(Flux.defer(() -> {
 						if (!context.isTaskCompleted()) {
@@ -243,7 +243,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 	/**
 	 * 执行单次ReAct迭代
 	 */
-	private Flux<AgentExecutionEvent> executeReActIteration(String task, ReActAgentContext context, int iteration,
+	private Flux<AgentExecutionEvent> executeReActIteration(String userInput, ReActAgentContext context, int iteration,
 			ToolApprovalCallback approvalCallback) {
 		log.debug("ReAct循环第{}轮开始", iteration);
 		context.setCurrentIteration(iteration);
@@ -262,7 +262,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 					ReActAgentContext thinkingCtx = AgentUtils.createAgentContext(context, ThinkingAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建思考阶段上下文 | {}", iteration, AgentUtils.snapshot(thinkingCtx));
 					// 注意：思考阶段不需要工具审批回调，因为它不执行工具
-					return FluxUtils.stage(thinkingAgent.executeStream(task, thinkingCtx), context,
+					return FluxUtils.stage(thinkingAgent.executeStream(userInput, thinkingCtx), context,
 							ThinkingAgent.AGENT_ID,
 							evt -> log.debug("[EVT/THINK/{}] type={}, msg={}...", iteration,
 									Optional.ofNullable(evt).map(AgentExecutionEvent::getType).orElse(null),
@@ -279,7 +279,8 @@ public class ReActAgentStrategy implements AgentStrategy {
 					ReActAgentContext actionCtx = AgentUtils.createAgentContext(context, ActionAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建行动阶段上下文 | {}", iteration, AgentUtils.snapshot(actionCtx));
 					// 注意：行动阶段需要传递工具审批回调
-					return FluxUtils.stage(actionAgent.executeStream(task, actionCtx), context, ActionAgent.AGENT_ID,
+					return FluxUtils.stage(actionAgent.executeStream(userInput, actionCtx), context,
+							ActionAgent.AGENT_ID,
 							evt -> log.debug("[EVT/ACTION/{}] type={}, msg={}...", iteration,
 									Optional.ofNullable(evt).map(AgentExecutionEvent::getType).orElse(null),
 									Optional.ofNullable(evt)
@@ -294,7 +295,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 					// 此时 context 已包含行动阶段写回的历史
 					ReActAgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建观察阶段上下文 | {}", iteration, AgentUtils.snapshot(observingCtx));
-					return FluxUtils.stage(observationAgent.executeStream(task, observingCtx), context,
+					return FluxUtils.stage(observationAgent.executeStream(userInput, observingCtx), context,
 							ObservationAgent.AGENT_ID,
 							evt -> log.debug("[EVT/OBSERVE/{}] type={}, msg={}...", iteration,
 									Optional.ofNullable(evt).map(AgentExecutionEvent::getType).orElse(null),

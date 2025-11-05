@@ -4,6 +4,8 @@ import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.ToolResult;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.contract.tool.ToolSpec;
+import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -60,6 +62,24 @@ public class TaskAnalysisTool implements AgentTool {
 		TaskAnalysisTool.TaskAnalysisToolDto taskAnalysisToolDto = context
 			.getStructuralToolArgs(TaskAnalysisTool.TaskAnalysisToolDto.class);
 
+		int level = taskAnalysisToolDto.getLevel();
+		// ReActPlus 上下文的元数据
+		ReActPlusAgentContextMeta metadata = (ReActPlusAgentContextMeta) context.getMetadata();
+		if (level == 1) {
+			metadata.setAgentMode(AgentMode.SIMPLE);
+		}
+		else if (level == 2) {
+			metadata.setAgentMode(AgentMode.THOUGHT);
+		}
+		else if (level == 3) {
+			metadata.setAgentMode(AgentMode.PLAN);
+		}
+		else if (level == 4) {
+			metadata.setAgentMode(AgentMode.PLAN_THOUGHT);
+		}
+		metadata.setRealTask(taskAnalysisToolDto.getRealTask());
+		metadata.setNote(taskAnalysisToolDto.getNote());
+		context.setMetadata(metadata);
 		return ToolResult.ok(taskAnalysisToolDto, start - System.currentTimeMillis(), getId());
 	}
 

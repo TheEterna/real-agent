@@ -3,7 +3,7 @@
     {
       "name": "real-agent.tool.approval-mode",
       "type": "java.lang.String",
-      "description": "工具执行审批方式"
+      "description": "工具执行审批方式."
     }
   ]
 }

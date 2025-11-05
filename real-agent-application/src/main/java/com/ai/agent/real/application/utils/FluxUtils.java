@@ -54,8 +54,8 @@ public class FluxUtils {
 				}
 				// 处理不同类型的事件
 				else if (event.getType() != null) {
-					switch (event.getType().toString()) {
-						case "TOOL": {
+					switch (event.getType()) {
+						case TOOL: {
 							// 收集工具消息，但不立即添加到上下文
 							// 使用传入的工具名称，如果没有则使用默认值
 							ToolResponse toolResponse = (ToolResponse) event.getData();
@@ -93,7 +93,6 @@ public class FluxUtils {
 				List<ToolCall> toolCalls = toolMessages.stream().map(toolMessage -> {
 					Map<String, Object> metadata = toolMessage.getMetadata();
 					log.info("metadata: {}", metadata);
-					log.info("metadata: {}", metadata.get("arguments").toString());
 					return new ToolCall(metadata.get("id").toString(), "function", metadata.get("name").toString(),
 							ModelOptionsUtils.toJsonString(metadata.get("arguments")));
 				}).collect(Collectors.toList());
@@ -123,6 +122,10 @@ public class FluxUtils {
 				return AgentMessage.observing(content, agentId);
 			case NounConstants.FINAL_AGENT_ID:
 				return AgentMessage.completed(content, agentId);
+			case NounConstants.TASK_ANALYSIS_AGENT_ID:
+				return AgentMessage.taskAnalysis(content, agentId);
+			case NounConstants.THOUGHT_AGENT_ID:
+				return AgentMessage.thought(content, agentId);
 			default:
 				return AgentMessage.assistant(content, agentId);
 		}
@@ -139,9 +142,23 @@ public class FluxUtils {
 			if (toolResult != null && toolResult.isOk()) {
 				String dataStr = String.valueOf(toolResult.getData());
 
-				if (NounConstants.TASK_DONE.equals(toolId)) {
-					context.setTaskCompleted(true);
-					return AgentExecutionEvent.done(context, dataStr);
+				switch (toolId) {
+					case NounConstants.TASK_DONE: {
+						context.setTaskCompleted(true);
+						return AgentExecutionEvent.done(context, dataStr);
+					}
+					case NounConstants.PLAN_INIT: {
+						return AgentExecutionEvent.initPlan(context, dataStr, toolResult.getData());
+					}
+					case NounConstants.PLAN_UPDATE: {
+						return AgentExecutionEvent.updatePlan(context, dataStr, toolResult.getData());
+					}
+					case NounConstants.PLAN_ADVANCE: {
+						return AgentExecutionEvent.advancePlan(context, dataStr, toolResult.getData());
+					}
+					case NounConstants.TASK_ANALYSIS: {
+						return AgentExecutionEvent.taskAnalysis(context, dataStr, toolResult.getData());
+					}
 				}
 
 				ToolResponse toolResponse = new ToolResponse(toolCallId, toolName, dataStr);
@@ -164,6 +181,7 @@ public class FluxUtils {
 	 */
 	public static Flux<AgentExecutionEvent> stage(Flux<AgentExecutionEvent> stageFlux, AgentContextAble context,
 			String agentId, Consumer<AgentExecutionEvent> onNext, Runnable onComplete) {
+		context.setCurrentIteration(context.getCurrentIteration() + 1);
 		Flux<AgentExecutionEvent> wrapped = stageFlux.transform(FluxUtils.handleContext(context, agentId));
 		if (onNext != null) {
 			wrapped = wrapped.doOnNext(onNext);
@@ -217,21 +235,9 @@ public class FluxUtils {
 					response.getResult() != null);
 
 			// 检查是否是空的generations
-			if (response.getResults() != null && response.getResults().isEmpty()) {
+			if (response.getResults().isEmpty()) {
 				log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
 				log.warn("ChatResponse详情: {}", response);
-				return Flux.empty();
-			}
-
-			// 防御性编程：检查response.getResult()是否为null
-			if (response.getResult() == null) {
-				log.debug("收到空结果的流式响应，跳过处理");
-				return Flux.empty();
-			}
-
-			// 进一步检查getOutput()是否为null
-			if (response.getResult().getOutput() == null) {
-				log.debug("收到空输出的流式响应，跳过处理");
 				return Flux.empty();
 			}
 
@@ -240,7 +246,7 @@ public class FluxUtils {
 			// 处理文本内容
 			Flux<AgentExecutionEvent> contentFlux = Flux.empty();
 			if (content != null && !content.trim().isEmpty()) {
-				AgentExecutionEvent event = createEventByType(context, content, eventType);
+				AgentExecutionEvent event = AgentExecutionEvent.common(eventType, context, content);
 				contentFlux = Flux.just(event);
 			}
 
@@ -258,23 +264,6 @@ public class FluxUtils {
 			// 合并内容和工具调用结果
 			return Flux.concat(contentFlux, toolFlux);
 		});
-	}
-
-	/**
-	 * 根据事件类型创建相应的事件
-	 */
-	private static AgentExecutionEvent createEventByType(AgentContextAble context, String content,
-			EventType eventType) {
-		switch (eventType) {
-			case THINKING:
-				return AgentExecutionEvent.thinking(context, content);
-			case ACTING:
-				return AgentExecutionEvent.action(context, content);
-			case OBSERVING:
-				return AgentExecutionEvent.observing(context, content);
-			default:
-				return AgentExecutionEvent.executing(context, content);
-		}
 	}
 
 	/**

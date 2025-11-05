@@ -543,7 +543,7 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 	 */
 	private ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event) {
 		return ServerSentEvent.<AgentExecutionEvent>builder()
-            .id(CommonUtils.getTraceId("sse-"))
+			.id(CommonUtils.getTraceId("sse-"))
 			.event(event.getType() != null ? event.getType().toString() : "message")
 			.data(event)
 			.build();

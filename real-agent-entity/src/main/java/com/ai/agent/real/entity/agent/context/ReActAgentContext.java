@@ -39,7 +39,7 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	/**
 	 * 当前迭代轮次
 	 */
-	private int currentIteration = 0;
+	private int currentIteration;
 
 	private String task;
 
@@ -101,9 +101,8 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	 * @return agent context
 	 */
 	@Override
-	public ReActAgentContext setCurrentIteration(int currentIteration) {
+	public void setCurrentIteration(int currentIteration) {
 		this.currentIteration = currentIteration;
-		return this;
 	}
 
 	/**

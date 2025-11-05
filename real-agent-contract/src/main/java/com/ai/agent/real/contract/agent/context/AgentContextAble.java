@@ -31,7 +31,7 @@ public interface AgentContextAble<M> extends Traceable {
 
 	int getCurrentIteration();
 
-	AgentContextAble setCurrentIteration(int currentIteration);
+	void setCurrentIteration(int currentIteration);
 
 	/**
 	 * 获取任务完成状态

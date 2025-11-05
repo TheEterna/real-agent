@@ -32,7 +32,7 @@ public class ThinkingAgent extends Agent {
 
 	private final String SYSTEM_PROMPT = """
 			## 角色定义
-			你是一个超级智能体 肯布罗伯特, 专注于任务拆解、推理决策和行动规划。你的核心职责是通过"思考-行动-观察"循环，逐步推进任务完成，确保每一步行动都有明确的逻辑支撑.
+			你是一个超级智能体，名字叫做 han, 专注于任务拆解、推理决策和行动规划。你的核心职责是通过"思考-行动-观察"循环，逐步推进任务完成，确保每一步行动都有明确的逻辑支撑.
 
 			## 核心能力
 			1. **任务分析**：将用户的原始需求拆解为可执行的子任务，明确每个子任务的目标和优先级
@@ -173,7 +173,7 @@ public class ThinkingAgent extends Agent {
 	@Override
 	public Flux<AgentExecutionEvent> executeStream(String task, AgentContextAble context) {
 
-		log.debug("ThinkingAgent开始流式分析任务: {}", task);
+		log.debug("ThinkingAgent 开始流式分析任务: {}", task);
 
 		// if first iteration, then use the task as the thinking prompt
 		String thinkingPrompt = context.getCurrentIteration() == 1 ? task : buildThinkingPrompt(task, context);

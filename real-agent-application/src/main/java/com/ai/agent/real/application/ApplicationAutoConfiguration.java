@@ -2,7 +2,7 @@ package com.ai.agent.real.application;
 
 import com.ai.agent.real.application.agent.ApplicationAgentAutoConfiguration;
 import com.ai.agent.real.application.plugin.ApplicationPluginBeanConfiguration;
-import com.ai.agent.real.application.tool.system.TaskDoneTool;
+import com.ai.agent.real.application.tool.system.*;
 import com.ai.agent.real.common.constant.NounConstants;
 import com.ai.agent.real.contract.service.ToolService;
 import com.ai.agent.real.application.tool.service.ToolServiceImpl;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.*;
 import java.util.List;
 import java.util.Set;
 
-import static com.ai.agent.real.common.constant.NounConstants.TASK_DONE;
+import static com.ai.agent.real.common.constant.NounConstants.*;
 
 /**
  * 应用层自动配置类 作为整个应用模块的唯一配置入口，负责注册所有需要的Bean
@@ -38,6 +38,10 @@ public class ApplicationAutoConfiguration {
 		// custom handle tool register
 
 		toolService.registerToolWithKeywords(new TaskDoneTool(), Set.of(TASK_DONE));
+		toolService.registerToolWithKeywords(new TaskAnalysisTool(), Set.of(TASK_ANALYSIS));
+		toolService.registerToolWithKeywords(new PlanInitTool(), Set.of(PLAN_INIT));
+		toolService.registerToolWithKeywords(new PlanUpdateTool(), Set.of(PLAN_UPDATE));
+		toolService.registerToolWithKeywords(new PlanAdvanceTool(), Set.of(PLAN_ADVANCE));
 
 		// register mcp tools
 		List<AgentTool> agentToolList = toolService.listAllMCPToolsAsync().block();

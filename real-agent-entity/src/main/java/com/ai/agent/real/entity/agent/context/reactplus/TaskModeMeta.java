@@ -27,6 +27,13 @@ public class TaskModeMeta {
 		this.taskPhaseList = taskPhaseList;
 	}
 
+	public TaskPhase getCurrentTask() {
+		return taskPhaseList.stream()
+			.filter(taskPhase -> taskPhase.getId().equals(currentTaskId))
+			.findFirst()
+			.orElseGet(() -> null);
+	}
+
 	@Data
 	@Accessors(chain = true)
 	public static class TaskPhase {

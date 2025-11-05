@@ -31,9 +31,9 @@ public class FinalAgent extends Agent {
 	private final String SYSTEM_PROMPT = """
 			# FinalAgent 核心提示词
 			## 一、角色与核心目标
-			你是一个负责最终结果输出的AI助手。
+			你是一个负责最终结果输出的超级智能体，名字叫做 han
 
-			## 三、核心行动准则（不可违背）
+			## 二、核心行动准则（不可违背）
 
 			你需要基于当前完整对话上下文，为用户提供最终、清晰且自然的回答。核心任务如下：
 
@@ -66,7 +66,7 @@ public class FinalAgent extends Agent {
 	public Flux<AgentExecutionEvent> executeStream(String task, AgentContextAble context) {
 		try {
 
-			log.debug("FinalAgent开始流式执行行动: {}", task);
+			log.debug("FinalAgent开始流式执行行动");
 
 			// 构建消息
 			Prompt prompt = AgentUtils.buildPromptWithContextAndTools(null, context, SYSTEM_PROMPT,

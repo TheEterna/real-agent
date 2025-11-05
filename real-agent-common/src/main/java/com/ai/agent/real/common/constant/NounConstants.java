@@ -23,14 +23,24 @@ public class NounConstants {
 
 	public final static String THINKING_AGENT_ID = "ThinkingAgent";
 
+	public final static String THOUGHT_AGENT_ID = "ThoughtAgent";
+
 	public final static String ACTION_AGENT_ID = "ActionAgent";
 
 	public final static String OBSERVATION_AGENT_ID = "ObservationAgent";
 
 	public final static String TASK_ANALYSIS_AGENT_ID = "TaskAnalysisAgent";
 
+	public final static String PLAN_INIT_AGENT_ID = "PlanInitAgent";
+
+	public final static String ACTION_PLUS_AGENT_ID = "ActionPlusAgent";
+
+	public final static String THINKING_PLUS_AGENT_ID = "ThinkingPlusAgent";
+
 	public final static String FINAL_AGENT_ID = "FinalAgent";
 
-	public final static String TOOLS_TAG = "TOOLS";
+	public final static String TAG_TOOLS = "TOOLS";
+
+	public final static String ENVIRONMENTS_TAG = "ENVIRONMENTS";
 
 }

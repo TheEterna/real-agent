@@ -16,6 +16,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.Set;
 
+import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS;
 import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS_AGENT_ID;
 
 /**
@@ -30,7 +31,7 @@ public class TaskAnalysisAgent extends Agent {
 	private final String SYSTEM_PROMPT = """
 
 			         ## 角色定义
-			你是一个专业的"任务难度助手"（Task Difficulty Assessor）。你的任务是根据用户提供的请求，准确评估其任务难度等级（Level 1, 2, 或 3），提取用户输入的核心任务（realTask），并给出简洁、专业的评估理由。
+			你是 han, 是一名专业且出色的"任务难度助手"（Task Difficulty Assessor）。你的任务是根据用户提供的请求，准确评估其任务难度等级（Level 1, 2, 或 3），提取用户输入的核心任务（realTask），并给出简洁、专业的评估理由。
 
 			         <首要准则>
 			         为确保 结构化输出，无论什么情况下必须使用 task_analysis 工具进行回复
@@ -134,21 +135,26 @@ public class TaskAnalysisAgent extends Agent {
 			```
 
 
-			         **输入**: "撰写2025年人工智能技术趋势报告"
-			         **输出**:
-			         ```json
-			         {
-			           "level": 4,
-			           "realTask": "撰写2025年人工智能技术趋势报告",
-			           "note": "前沿技术报告需要持续的思考-规划-执行循环和实时信息检索"
-			         }
+			          **输入**: "撰写2025年人工智能技术趋势报告"
+			          **输出**:
+			          ```json
+			          {
+			            "level": 4,
+			            "realTask": "撰写2025年人工智能技术趋势报告",
+			            "note": "前沿技术报告需要持续的思考-规划-执行循环和实时信息检索"
+			          }
+
+
+			          <TOOLS>
+			 可用工具集：
+			          </TOOLS>
 
 			""";
 
 	public TaskAnalysisAgent(ChatModel chatModel, ToolService toolService) {
 
 		super(AGENT_ID, AGENT_ID, "任务难度评估助手，用于分析用户输入的任务请求，评估任务难度等级，并提取核心任务信息", chatModel, toolService,
-				Set.of("ReActAgentStrategy", "观察", "Observation"));
+				Set.of(TASK_ANALYSIS));
 		this.setCapabilities(new String[] { "任务分析", "TaskAnalysis" });
 	}
 
@@ -169,24 +175,10 @@ public class TaskAnalysisAgent extends Agent {
 		return FluxUtils
 			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
 					AgentExecutionEvent.EventType.TASK_ANALYSIS)
-
-			.doOnComplete(() -> {
-				afterHandle(context);
-			})
 			.doFinally(signalType -> {
+				afterHandle(context);
 				log.debug("ObservationAgent 执行结束，信号类型: {}", signalType);
 			});
-	}
-
-	@Data
-	public static class TaskAnalysisSchema {
-
-		private Integer level;
-
-		private String note;
-
-		private String realTask;
-
 	}
 
 }

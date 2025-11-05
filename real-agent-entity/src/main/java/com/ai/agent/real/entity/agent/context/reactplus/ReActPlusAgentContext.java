@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * ReActPlusAgentContext 类定义了 ReActPlus 的上下文信息。
@@ -39,7 +40,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	/**
 	 * 当前迭代轮次
 	 */
-	private int currentIteration;
+	private AtomicInteger currentIteration;
 
 	private String task;
 
@@ -65,7 +66,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 		this.trace = trace;
 		this.toolArgs = Map.of();
 		this.messageHistory = new CopyOnWriteArrayList<>();
-		this.currentIteration = 0;
+		this.currentIteration = new AtomicInteger(0);
 		this.taskCompleted = new AtomicBoolean(false);
 		this.toolApprovalCallback = ToolApprovalCallback.NOOP;
 		this.meta = null;
@@ -102,7 +103,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public int getCurrentIteration() {
-		return 0;
+		return this.currentIteration.get();
 	}
 
 	/**
@@ -110,8 +111,8 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 * @return
 	 */
 	@Override
-	public ReActAgentContext setCurrentIteration(int currentIteration) {
-		return null;
+	public void setCurrentIteration(int currentIteration) {
+		this.currentIteration.set(currentIteration);
 	}
 
 	/**

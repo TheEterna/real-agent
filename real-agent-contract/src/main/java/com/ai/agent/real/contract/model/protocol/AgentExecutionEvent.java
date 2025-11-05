@@ -37,6 +37,10 @@ public class AgentExecutionEvent extends TraceInfo {
 		}
 	}
 
+	public static AgentExecutionEvent common(EventType type, Traceable traceInfo, String message) {
+		return new AgentExecutionEvent(type, message, null, traceInfo);
+	}
+
 	public static AgentExecutionEvent started(String message) {
 		return new AgentExecutionEvent(EventType.STARTED, message, null, null);
 	}
@@ -67,8 +71,20 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.AGENT_SELECTED, message, null, traceInfo);
 	}
 
-	public static AgentExecutionEvent thinking(Traceable traceInfo, String thought) {
-		return new AgentExecutionEvent(EventType.THINKING, thought, null, traceInfo);
+	public static AgentExecutionEvent initPlan(Traceable traceInfo, String message, Object data) {
+		return new AgentExecutionEvent(EventType.INIT_PLAN, message, data, traceInfo);
+	}
+
+	public static AgentExecutionEvent updatePlan(Traceable traceInfo, String message, Object data) {
+		return new AgentExecutionEvent(EventType.UPDATE_PLAN, message, data, traceInfo);
+	}
+
+	public static AgentExecutionEvent advancePlan(Traceable traceInfo, String message, Object data) {
+		return new AgentExecutionEvent(EventType.ADVANCE_PLAN, message, data, traceInfo);
+	}
+
+	public static AgentExecutionEvent taskAnalysis(Traceable traceInfo, String message, Object data) {
+		return new AgentExecutionEvent(EventType.TASK_ANALYSIS, message, data, traceInfo);
 	}
 
 	public static AgentExecutionEvent action(Traceable traceInfo, String action) {
@@ -90,10 +106,6 @@ public class AgentExecutionEvent extends TraceInfo {
 
 	public static AgentExecutionEvent executing(Traceable traceInfo, String execution) {
 		return new AgentExecutionEvent(EventType.EXECUTING, execution, null, traceInfo);
-	}
-
-	public static AgentExecutionEvent partialResult(Traceable traceInfo, String result) {
-		return new AgentExecutionEvent(EventType.PARTIAL_RESULT, result, null, traceInfo);
 	}
 
 	public static AgentExecutionEvent completed() {
@@ -158,6 +170,11 @@ public class AgentExecutionEvent extends TraceInfo {
 		COMPLETED, // 执行完成, all agents completed, notice client close sse connection
 
 		TASK_ANALYSIS, // 任务难度分析
+
+		THOUGHT, // 思维链
+		INIT_PLAN, // 初始化 plan
+		UPDATE_PLAN, // 更新 plan
+		ADVANCE_PLAN, // plan 下一步
 
 	}
 

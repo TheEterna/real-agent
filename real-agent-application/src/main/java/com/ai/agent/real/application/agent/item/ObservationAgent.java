@@ -31,7 +31,7 @@ public class ObservationAgent extends Agent {
 
 	private final String SYSTEM_PROMPT = """
 			## 角色定义
-			你是一个超级智能体肯布罗伯特的观察模块，专注于分析工具执行结果并提供清晰的反馈。你的核心职责是接收完整的上下文信息（用户问题、思考过程、工具执行结果），进行有效分析，并以自然流畅的方式呈现观察结果，为后续的思考过程提供决策依据。
+			你是一个超级智能体，名字叫做 han，专注于分析工具执行结果并提供清晰的反馈。你的核心职责是接收完整的上下文信息（用户问题、思考过程、工具执行结果），进行有效分析，并以自然流畅的方式呈现观察结果，为后续的思考过程提供决策依据。
 
 			## 核心能力
 			1. **结果解析**：准确理解各种工具的执行输出，提取关键信息
@@ -86,9 +86,8 @@ public class ObservationAgent extends Agent {
 
 		// 构建观察提示
 		// String observationPrompt = buildObservationPrompt(task, context);
-		String observationPrompt = null;
 
-		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(null, context, SYSTEM_PROMPT, observationPrompt);
+		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(null, context, SYSTEM_PROMPT, null);
 
 		// 使用通用的工具支持方法
 		return FluxUtils

@@ -143,6 +143,20 @@ public class AgentMessage extends TraceInfo implements Message {
 	}
 
 	/**
+	 * 创建任务分析消息
+	 */
+	public static AgentMessage taskAnalysis(String content, String agentId) {
+		return new AgentMessage(content, AgentMessageType.TASK_ANALYSIS, agentId);
+	}
+
+	/**
+	 * 创建思维链消息
+	 */
+	public static AgentMessage thought(String content, String agentId) {
+		return new AgentMessage(content, AgentMessageType.THOUGHT, agentId);
+	}
+
+	/**
 	 * 创建错误消息
 	 */
 	public static AgentMessage error(String content, String agentId) {
@@ -168,10 +182,10 @@ public class AgentMessage extends TraceInfo implements Message {
 		THINKING("thinking"), // 思考阶段消息
 		ACTION("action"), // 行动阶段消息
 		OBSERVING("observing"), // 观察阶段消息
-		REFLECTION("reflection"), // 反思消息
-		COLLABORATION("collaboration"), // 协作消息
 		ERROR("error"), // 错误消息
-		COMPLETED("completed"); // 结束消息
+		COMPLETED("completed"), // 结束消息
+		TASK_ANALYSIS("task_analysis"), // 任务分析消息
+		THOUGHT("thought");
 
 		private final String value;
 

@@ -140,6 +140,10 @@ public class AgentUtils {
 		return new Prompt(messages);
 	}
 
+	public static Prompt configurePromptOptions(Prompt prompt, ChatOptions chatOptions) {
+		return prompt.mutate().chatOptions(chatOptions).build();
+	}
+
 	/**
 	 * build a message list by system prompt + conversation history + user prompt
 	 * @param context agent context
@@ -155,7 +159,7 @@ public class AgentUtils {
 		List<AgentMessage> conversationHistory = context.getMessageHistory();
 		log.debug("对话历史详情:");
 
-		// 2. concat the message list,logic: system prompt + conversation history + user
+		// 2. concat the message list, logic: system prompt + conversation history + user
 		// prompt
 		for (int i = 0; i < conversationHistory.size(); i++) {
 
@@ -165,7 +169,7 @@ public class AgentUtils {
 							: "null");
 		}
 
-		String systemPromptWithTools = PromptUtils.renderToolList(systemPrompt, availableTools, TOOLS_TAG);
+		String systemPromptWithTools = PromptUtils.renderToolList(systemPrompt, availableTools);
 
 		messages.add(new SystemMessage(systemPromptWithTools));
 
@@ -186,7 +190,7 @@ public class AgentUtils {
 	/**
 	 * 为Agent创建独立的执行上下文副本
 	 */
-	public static ReActAgentContext createAgentContext(ReActAgentContext originalContext, String agentId) {
+	public static ReActAgentContext createAgentContext(AgentContextAble originalContext, String agentId) {
 		ReActAgentContext newContext = new ReActAgentContext(new TraceInfo());
 
 		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
@@ -201,6 +205,9 @@ public class AgentUtils {
 		newContext.setToolArgs(originalContext.getToolArgs());
 		newContext.setCurrentIteration(originalContext.getCurrentIteration());
 		newContext.setTaskCompleted(originalContext.getTaskCompleted());
+
+		// 继承元数据
+		newContext.setMetadata(originalContext.getMetadata());
 
 		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);

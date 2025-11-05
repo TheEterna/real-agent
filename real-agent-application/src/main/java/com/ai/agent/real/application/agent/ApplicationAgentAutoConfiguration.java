@@ -5,8 +5,7 @@ import com.ai.agent.real.application.agent.item.ActionAgent;
 import com.ai.agent.real.application.agent.item.FinalAgent;
 import com.ai.agent.real.application.agent.item.ObservationAgent;
 import com.ai.agent.real.application.agent.item.ThinkingAgent;
-import com.ai.agent.real.application.agent.item.reactplus.TaskAnalysisAgent;
-import com.ai.agent.real.application.agent.item.reactplus.ThoughtAgent;
+import com.ai.agent.real.application.agent.item.reactplus.*;
 import com.ai.agent.real.application.agent.session.AgentSessionManagerService;
 import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
 import com.ai.agent.real.application.agent.strategy.ReActPlusAgentStrategy;
@@ -95,8 +94,14 @@ public class ApplicationAgentAutoConfiguration {
 
 	@Bean
 	// TODO: 待完善
+	public PlanInitAgent planInitAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+		return new PlanInitAgent(chatModel, toolService);
+	}
+
+	@Bean
+	// TODO: 待完善
 	public ThoughtAgent thoughtAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
-		return new ThoughtAgent();
+		return new ThoughtAgent(chatModel, toolService);
 	}
 
 	@Bean("reactAgentStrategy")
@@ -112,11 +117,30 @@ public class ApplicationAgentAutoConfiguration {
 	}
 
 	@Bean
-	@Primary
-	public AgentStrategy reactPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, ThoughtAgent thoughtAgent,
-			ThinkingAgent thinkingAgent, ActionAgent actionAgent, FinalAgent finalAgent) {
+	public ThinkingPlusAgent thinkingPlusAgent(ChatModel chatModel, ToolService toolService,
+			IPropertyService propertyService) {
+		ToolApprovalMode mode = propertyService.getToolApprovalMode();
+		return new ThinkingPlusAgent(chatModel, toolService, mode);
+	}
 
-		return new ReActPlusAgentStrategy(taskAnalysisAgent, thoughtAgent, thinkingAgent, actionAgent, finalAgent);
+	@Bean
+	public ActionPlusAgent actionPlusAgent(ChatModel chatModel, ToolService toolService,
+			IPropertyService propertyService) {
+		ToolApprovalMode mode = propertyService.getToolApprovalMode();
+		return new ActionPlusAgent(chatModel, toolService, mode);
+	}
+
+	/**
+	 * =================== Agent Strategy part ===========================
+	 */
+	@Bean
+	@Primary
+	public AgentStrategy reactPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
+			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
+			FinalAgent finalAgent) {
+
+		return new ReActPlusAgentStrategy(taskAnalysisAgent, planInitAgent, thoughtAgent, thinkingPlusAgent,
+				actionPlusAgent, finalAgent);
 	}
 
 }

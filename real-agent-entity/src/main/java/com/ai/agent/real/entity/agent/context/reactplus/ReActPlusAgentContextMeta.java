@@ -13,6 +13,10 @@ public class ReActPlusAgentContextMeta {
 
 	private AgentMode agentMode;
 
+	private String realTask;
+
+	private String note;
+
 	private TaskModeMeta taskModeMeta;
 
 	private ReActPlusAgentContextMeta(AgentMode agentMode, TaskModeMeta taskModeMeta) {
