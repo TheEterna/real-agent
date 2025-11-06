@@ -343,20 +343,31 @@ public class FluxUtils {
 							return Flux.just(AgentExecutionEvent.error(errorMsg));
 						});
 
-				case REQUIRE_APPROVAL:
-					log.info("工具需要人工审批: {}", toolName);
-					return Flux.just(AgentExecutionEvent.toolApproval(context,
-							new ToolApprovalRequest(toolCallId, toolName, args)));
+                    // fixme: 工具审批
+//				case REQUIRE_APPROVAL:
+//					log.info("工具需要人工审批: {}", toolName);
+//					return Flux.just(AgentExecutionEvent.toolApproval(context,
+//							new ToolApprovalRequest(toolCallId, toolName, args)));
 
-				case DISABLED:
-					String disabledMsg = String.format("工具调用已禁用: %s", toolName);
-					log.warn(disabledMsg);
-					return Flux.just(AgentExecutionEvent.error(disabledMsg));
 
-				default:
-					String unknownMsg = String.format("未知的工具审批模式: %s", toolApprovalMode);
-					log.error(unknownMsg);
-					return Flux.just(AgentExecutionEvent.error(unknownMsg));
+                case REQUIRE_APPROVAL:
+                    // 需要审批：调用回调通知上层，并返回空流（暂停执行）
+                    log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
+
+                    // 通知上层需要审批
+                    approvalCallback.requestApproval(context.getSessionId(), toolCallId, toolName, args, context);
+
+                    // 返回空流，暂停当前执行
+                    // 注意：这里不会继续执行，需要等待审批后通过其他方式恢复
+                    return Flux.just(AgentExecutionEvent.toolApproval(context, "", new ToolApprovalRequest(toolCallId, toolName, args)));
+                case DISABLED:
+                default:
+                    // 禁用审批：直接执行
+                    log.info("工具执行（无审批）: {}", toolName);
+                    context.setToolArgs(args);
+                    return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
+                            toolCallId, toolName)
+                            .flux();
 			}
 		}
 		catch (Exception e) {
@@ -390,5 +401,7 @@ public class FluxUtils {
 			throw new RuntimeException("无效的 JSON: " + json, e);
 		}
 	}
+
+    public record ToolApprovalRequest(String toolCallId, String toolName, Map<String, Object> args) {}
 
 }

@@ -21,6 +21,7 @@ public class AgentExecutionEvent extends TraceInfo {
 
 	private Map<String, Object> meta;
 
+
 	private AgentExecutionEvent(EventType type, String message, Object data, Traceable traceInfo) {
 		this.type = type;
 		this.message = message;

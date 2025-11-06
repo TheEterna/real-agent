@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * ReAct 增强版 融合 PAE，COT，ReAct 框架 TODO: 未完成，初始化阶段
@@ -75,7 +76,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 		}
 		// fixme: 这里的 userId 后面可能要修复一下
 		context.addMessage(AgentMessage.user(userInput, "user"));
-
+        AtomicInteger iterationCount = new AtomicInteger(50);
 		// 设置工具审批回调到上下文
 		// context.setToolApprovalCallback(approvalCallback);
 		return Flux.concat(
@@ -88,6 +89,10 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 				Flux.defer(() -> {
 					ReActPlusAgentContextMeta metadata = (ReActPlusAgentContextMeta) context.getMetadata();
 					switch (metadata.getAgentMode()) {
+                        case DIRECT: {
+                            iterationCount.set(0);
+							return Flux.empty();
+						}
 						case SIMPLE: {
 							return Flux.empty();
 						}
@@ -101,41 +106,45 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 							return Flux.empty();
 						}
 					}
-				}), Flux.range(1, 50)
-					.doOnNext(iteration -> {
-						// 在每轮迭代前管理上下文大小
-						contextManager.manageContextSize(context);
+				}),
+                Flux.defer(() -> {
 
-						// 记录上下文使用情况
-						if (iteration % 5 == 0) { // 每 5 轮记录一次
-							log.info("迭代 {}/50, 上下文使用: {}", iteration, contextManager.getContextUsage(context));
-						}
+                    return Flux.range(1, iterationCount.get())
+                            .doOnNext(iteration -> {
+                                // 在每轮迭代前管理上下文大小
+                                contextManager.manageContextSize(context);
 
-						// 记录当前迭代次数到上下文
-						context.setCurrentIteration(iteration);
-					})
-					.concatMap(iteration -> {
-						// 在每次迭代开始前检查是否已完成
-						if (context.isTaskCompleted()) {
-							log.info("任务已完成，跳过第 {} 次迭代", iteration);
-							return Flux.empty();
-						}
+                                // 记录上下文使用情况
+                                if (iteration % 5 == 0) { // 每 5 轮记录一次
+                                    log.info("迭代 {}/50, 上下文使用: {}", iteration, contextManager.getContextUsage(context));
+                                }
 
-						return Flux.concat(
-							Flux.just(AgentExecutionEvent.progress(context,
-								String.format("开始第 %d 轮思考-行动循环...", iteration), null)),
-							executeReActPlusIteration(userInput, context, context.getToolApprovalCallback())
-						);
-					})
-					// 结束条件：收到DONE事件（由task_done工具触发）
-					// 已由上下文标记任务完成（例如ActionAgent调用task_done后设置的标记）
-					.takeUntil(event -> {
-						boolean isCompleted = context.isTaskCompleted();
-						if (isCompleted) {
-							log.info("检测到任务完成标记，准备结束迭代循环");
-						}
-						return isCompleted;
-					}),
+                                // 记录当前迭代次数到上下文
+                                context.setCurrentIteration(iteration);
+                            })
+                            .concatMap(iteration -> {
+                                // 在每次迭代开始前检查是否已完成
+                                if (context.isTaskCompleted()) {
+                                    log.info("任务已完成，跳过第 {} 次迭代", iteration);
+                                    return Flux.empty();
+                                }
+
+                                return Flux.concat(
+                                        Flux.just(AgentExecutionEvent.progress(context,
+                                                String.format("开始第 %d 轮思考-行动循环...", iteration), null)),
+                                        executeReActPlusIteration(userInput, context, context.getToolApprovalCallback())
+                                );
+                            })
+                            // 结束条件：收到DONE事件（由task_done工具触发）
+                            // 已由上下文标记任务完成（例如ActionAgent调用task_done后设置的标记）
+                            .takeUntil(event -> {
+                                boolean isCompleted = context.isTaskCompleted();
+                                if (isCompleted) {
+                                    log.info("检测到任务完成标记，准备结束迭代循环");
+                                }
+                                return isCompleted;
+                            });
+                    }),
 				Flux.defer(() -> executeFinalAgent(userInput, context))
 
 					.concatWith(Flux.just(AgentExecutionEvent.completed()))
@@ -224,7 +233,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 				() -> {
                     log.info("任务分析阶段结束: {}", context.getMessageHistory());
                     if (context.getMetadata() == null) {
-                        context.setMetadata(new ReActPlusAgentContextMeta(AgentMode.SIMPLE));
+                        context.setMetadata(new ReActPlusAgentContextMeta(AgentMode.DIRECT));
                     }
                 });
 	}

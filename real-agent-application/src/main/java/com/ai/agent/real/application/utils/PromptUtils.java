@@ -114,6 +114,12 @@ public class PromptUtils {
 
 		// 2. build data: 根据不同的 AgentMode 渲染不同的环境信息
 		switch (agentMode) {
+            case DIRECT:
+                envBuilder.append(renderDirectModeEnv(taskModeMeta));
+                break;
+            case SIMPLE:
+                envBuilder.append(renderSimpleModeEnv(taskModeMeta));
+                break;
 			case PLAN:
 				envBuilder.append(renderPlanModeEnv(taskModeMeta));
 				break;
@@ -125,9 +131,6 @@ public class PromptUtils {
 				break;
 			case PLAN_THOUGHT:
 				envBuilder.append(renderPlanThoughtModeEnv(taskModeMeta));
-				break;
-			case SIMPLE:
-				envBuilder.append(renderSimpleModeEnv(taskModeMeta));
 				break;
 			default:
 				log.warn("Unknown AgentMode: {}", agentMode);
@@ -226,6 +229,15 @@ public class PromptUtils {
 		StringBuilder builder = new StringBuilder();
 		builder.append("**执行模式**: 简单模式 (SIMPLE)\n");
 		builder.append("**执行特点**: 直接执行，适用于简单明确的任务\n\n");
+
+		return builder.toString();
+	}
+	/**
+	 * 渲染简单模式的环境信息
+	 */
+	private static String renderDirectModeEnv(TaskModeMeta taskModeMeta) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("根据用户需求进行态度友好的解答");
 
 		return builder.toString();
 	}

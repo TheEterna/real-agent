@@ -402,12 +402,12 @@ public class ActionPlusAgent extends Agent {
 		log.debug("ActionPlusAgent 开始智能工具执行: {}", userInput);
 
 		// 构建行动提示
-		String actionPrompt = buildActionPrompt(context);
+//		String actionPrompt = buildActionPrompt(context);
 
 		// 比 ReAct 多一步 System Prompt 的 环境变量渲染
-		String renderedSystemPrompt = PromptUtils.renderMeta(SYSTEM_PROMPT, (ReActPlusAgentContextMeta) context);
+		String renderedSystemPrompt = PromptUtils.renderMeta(SYSTEM_PROMPT, (ReActPlusAgentContextMeta) context.getMetadata());
 		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, renderedSystemPrompt,
-				actionPrompt);
+				null);
 
 		// chat 参数配置
 		ChatOptions defaultOptions = chatModel.getDefaultOptions();
@@ -424,24 +424,6 @@ public class ActionPlusAgent extends Agent {
 			});
 	}
 
-	/**
-	 * 构建行动提示词
-	 */
-	private String buildActionPrompt(AgentContextAble context) {
-		StringBuilder promptBuilder = new StringBuilder();
 
-		ReActPlusAgentContextMeta metadata = (ReActPlusAgentContextMeta) context.getMetadata();
-
-		TaskModeMeta.TaskPhase currentTask = metadata.getTaskModeMeta().getCurrentTask();
-		// 基于上下文中的思考分析结果构建行动提示
-		promptBuilder.append("请基于上述思考分析的结果，执行相应的工具操作：\n\n");
-
-		// 添加当前任务的具体说明
-		promptBuilder.append("<CurrentTask>").append(currentTask.toString()).append("</CurrentTask>\n");
-
-		promptBuilder.append("请根据思考分析的结果选择最合适的工具，确保参数配置准确，并密切监控执行过程。");
-
-		return promptBuilder.toString();
-	}
 
 }

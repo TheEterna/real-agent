@@ -6,6 +6,6 @@ package com.ai.agent.real.entity.agent.context.reactplus;
  */
 public enum AgentMode {
 
-	PLAN, THOUGHT, SOP, PLAN_THOUGHT, SIMPLE
+	DIRECT, SIMPLE, PLAN, THOUGHT, SOP, PLAN_THOUGHT
 
 }
