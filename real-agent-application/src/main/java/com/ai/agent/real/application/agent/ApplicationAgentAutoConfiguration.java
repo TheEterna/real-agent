@@ -9,6 +9,7 @@ import com.ai.agent.real.application.agent.item.reactplus.*;
 import com.ai.agent.real.application.agent.session.AgentSessionManagerService;
 import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
 import com.ai.agent.real.application.agent.strategy.ReActPlusAgentStrategy;
+import com.ai.agent.real.application.service.ContextManager;
 import com.ai.agent.real.contract.agent.AgentStrategy;
 import com.ai.agent.real.contract.agent.IAgentDispatcher;
 import com.ai.agent.real.contract.agent.context.AgentMemory;
@@ -137,10 +138,10 @@ public class ApplicationAgentAutoConfiguration {
 	@Primary
 	public AgentStrategy reactPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
 			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
-			FinalAgent finalAgent) {
+			FinalAgent finalAgent, ContextManager contextManager) {
 
 		return new ReActPlusAgentStrategy(taskAnalysisAgent, planInitAgent, thoughtAgent, thinkingPlusAgent,
-				actionPlusAgent, finalAgent);
+				actionPlusAgent, finalAgent, contextManager);
 	}
 
 }

@@ -82,11 +82,11 @@ public interface AgentContextAble<M> extends Traceable {
 	void setMessageHistory(List<AgentMessage> messageHistory);
 
 	default void setMetadata(Object metadata) {
-		throw new UnsupportedOperationException("not support metadata");
+//		throw new UnsupportedOperationException("not support metadata");
 	}
 
 	default M getMetadata() {
-		throw new UnsupportedOperationException("not support metadata");
+		return null;
 	}
 
 }

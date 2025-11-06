@@ -17,8 +17,7 @@ import java.util.List;
 import static com.ai.agent.real.common.constant.NounConstants.PLAN_ADVANCE;
 
 /**
- * 计划推进工具 - 用于将任务从当前阶段推进到下一个阶段
- * 调用该工具时，会将当前阶段标记为完成，并移动到下一个待执行阶段
+ * 计划推进工具 - 用于将任务从当前阶段推进到下一个阶段 调用该工具时，会将当前阶段标记为完成，并移动到下一个待执行阶段
  *
  * @author han
  * @time 2025/10/30 22:58
@@ -26,31 +25,28 @@ import static com.ai.agent.real.common.constant.NounConstants.PLAN_ADVANCE;
 @Slf4j
 public class PlanAdvanceTool implements AgentTool {
 
-	private final ToolSpec spec = new ToolSpec().setName(PLAN_ADVANCE)
-		.setDescription("""
-				用于推进计划执行，将当前阶段标记为完成并移动到下一阶段
+	private final ToolSpec spec = new ToolSpec().setName(PLAN_ADVANCE).setDescription("""
+			用于推进计划执行，将当前阶段标记为完成并移动到下一阶段
 
-				**使用场景**：
-				1. 当前阶段的所有任务已经完成
-				2. 已验证当前阶段的交付成果符合要求
-				3. 准备开始下一个阶段的工作
+			**使用场景**：
+			1. 当前阶段的所有任务已经完成
+			2. 已验证当前阶段的交付成果符合要求
+			3. 准备开始下一个阶段的工作
 
-				**工具行为**：
-				- 将当前阶段状态标记为 DONE（已完成）
-				- 自动定位到下一个待执行阶段
-				- 将下一阶段状态标记为 RUNNING（执行中）
-				- 更新上下文中的当前阶段ID
+			**工具行为**：
+			- 将当前阶段状态标记为 DONE（已完成）
+			- 自动定位到下一个待执行阶段
+			- 将下一阶段状态标记为 RUNNING（执行中）
+			- 更新上下文中的当前阶段ID
 
-				**注意事项**：
-				- 必须确保当前阶段的工作已完成
-				- 如果已经是最后一个阶段，将返回任务全部完成的提示
-				- 推进后无法回退，请谨慎使用
+			**注意事项**：
+			- 必须确保当前阶段的工作已完成
+			- 如果已经是最后一个阶段，将返回任务全部完成的提示
+			- 推进后无法回退，请谨慎使用
 
-				**示例**：
-				当完成"数据采集与清洗"阶段后，调用此工具推进到"数据分析"阶段
-				""")
-		.setCategory("system")
-		.setInputSchemaClass(PlanAdvanceToolDto.class);
+			**示例**：
+			当完成"数据采集与清洗"阶段后，调用此工具推进到"数据分析"阶段
+			""").setCategory("system").setInputSchemaClass(PlanAdvanceToolDto.class);
 
 	/**
 	 * 获取工具的唯一标识, 如果重复, 会抛出异常
@@ -89,8 +85,8 @@ public class PlanAdvanceTool implements AgentTool {
 			// 2. 获取当前的元数据
 			ReActPlusAgentContextMeta meta = (ReActPlusAgentContextMeta) ctx.getMetadata();
 			if (meta == null || meta.getTaskModeMeta() == null) {
-				return ToolResult.error(ToolResult.ToolResultCode.TOOL_EXECUTION_ERROR, "未找到任务计划信息，请先使用 plan_init 工具初始化计划",
-						getId(), System.currentTimeMillis() - start);
+				return ToolResult.error(ToolResult.ToolResultCode.TOOL_EXECUTION_ERROR,
+						"未找到任务计划信息，请先使用 plan_init 工具初始化计划", getId(), System.currentTimeMillis() - start);
 			}
 
 			TaskModeMeta taskModeMeta = meta.getTaskModeMeta();
@@ -151,8 +147,12 @@ public class PlanAdvanceTool implements AgentTool {
 				long completedCount = taskPhaseList.stream()
 					.filter(p -> p.getTaskStatus() == TaskModeMeta.TaskStatus.DONE)
 					.count();
-				resultBuilder.append("**整体进度**: ").append(completedCount).append("/").append(taskPhaseList.size())
-					.append(" (").append(String.format("%.1f", (completedCount * 100.0 / taskPhaseList.size())))
+				resultBuilder.append("**整体进度**: ")
+					.append(completedCount)
+					.append("/")
+					.append(taskPhaseList.size())
+					.append(" (")
+					.append(String.format("%.1f", (completedCount * 100.0 / taskPhaseList.size())))
 					.append("%)\n");
 
 				log.info("推进到下一阶段: [{}]", nextPhase.getTitle());

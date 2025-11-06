@@ -45,6 +45,10 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.STARTED, message, null, null);
 	}
 
+	public static AgentExecutionEvent started(Traceable traceInfo, String message) {
+		return new AgentExecutionEvent(EventType.STARTED, message, null, traceInfo);
+	}
+
 	public static AgentExecutionEvent progress(Traceable traceInfo, String message, Object data) {
 
 		// cause enter each node before entering each node, so we can safely assign values

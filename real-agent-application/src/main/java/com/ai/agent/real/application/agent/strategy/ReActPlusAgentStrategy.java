@@ -2,6 +2,7 @@ package com.ai.agent.real.application.agent.strategy;
 
 import com.ai.agent.real.application.agent.item.FinalAgent;
 import com.ai.agent.real.application.agent.item.reactplus.*;
+import com.ai.agent.real.application.service.ContextManager;
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.application.utils.FunctionUtils;
@@ -43,15 +44,18 @@ public class ReActPlusAgentStrategy implements AgentStrategy {
 
 	private final FinalAgent finalAgent;
 
+	private final ContextManager contextManager;
+
 	public ReActPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
 			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
-			FinalAgent finalAgent) {
+			FinalAgent finalAgent, ContextManager contextManager) {
 		this.taskAnalysisAgent = taskAnalysisAgent;
 		this.planInitAgent = planInitAgent;
 		this.thoughtAgent = thoughtAgent;
 		this.thinkingPlusAgent = thinkingPlusAgent;
 		this.actionPlusAgent = actionPlusAgent;
 		this.finalAgent = finalAgent;
+		this.contextManager = contextManager;
 	}
 
 	/**
@@ -74,7 +78,10 @@ public class ReActPlusAgentStrategy implements AgentStrategy {
 
 		// 设置工具审批回调到上下文
 		// context.setToolApprovalCallback(approvalCallback);
-		return Flux.concat(Flux.just(AgentExecutionEvent.progress(context, "正在催促小二分配资源...", null)),
+		return Flux.concat(
+				// 发射 STARTED 事件，告知前端任务开始执行
+				Flux.just(AgentExecutionEvent.started(context, "ReActPlus 任务开始执行")),
+				Flux.just(AgentExecutionEvent.progress(context, "正在催促小二分配资源...", null)),
 				// 任务分析，通过调用工具，将分析后的数据状态等放到 context 里
 				Flux.defer(() -> executeTaskAnalysisAgent(userInput, context)),
 				// 模式选择
@@ -94,8 +101,15 @@ public class ReActPlusAgentStrategy implements AgentStrategy {
 							return Flux.empty();
 						}
 					}
-				}),
-				Flux.range(1, 50)
+				}), Flux.range(1, 50).doOnNext(iteration -> {
+					// 在每轮迭代前管理上下文大小
+					contextManager.manageContextSize(context);
+
+					// 记录上下文使用情况
+					if (iteration % 5 == 0) { // 每 5 轮记录一次
+						log.info("迭代 {}/50, 上下文使用: {}", iteration, contextManager.getContextUsage(context));
+					}
+				})
 					.concatMap(iteration -> executeReActPlusIteration(userInput, context,
 							context.getToolApprovalCallback()))
 					// 结束条件：收到DONE事件
