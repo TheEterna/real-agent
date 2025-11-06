@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.agent.session;
 
 import com.ai.agent.real.common.utils.CommonUtils;
-import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
@@ -33,19 +33,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class AgentSessionManagerService implements IAgentSessionManagerService {
 
-	private final AgentStrategy agentStrategy;
+	private final IAgentStrategy agentStrategy;
 
 	/**
 	 * 会话状态映射表 Key: sessionId Value: SessionState
 	 */
 	private final Map<String, SessionState> sessions;
 
-	public AgentSessionManagerService(AgentStrategy agentStrategy) {
+	public AgentSessionManagerService(IAgentStrategy agentStrategy) {
 		this.agentStrategy = agentStrategy;
 		this.sessions = new ConcurrentHashMap<>();
 	}
 
-	public AgentSessionManagerService(AgentStrategy agentStrategy, Map<String, SessionState> sessions) {
+	public AgentSessionManagerService(IAgentStrategy agentStrategy, Map<String, SessionState> sessions) {
 		this.agentStrategy = agentStrategy;
 		this.sessions = sessions;
 	}
@@ -267,7 +267,7 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 	 * only deep copy agentStrategy, ensure to avoid agentStrategy change
 	 */
 	@Override
-	public IAgentSessionManagerService of(AgentStrategy agentStrategy) {
+	public IAgentSessionManagerService of(IAgentStrategy agentStrategy) {
 		return new AgentSessionManagerService(agentStrategy, this.sessions);
 	}
 

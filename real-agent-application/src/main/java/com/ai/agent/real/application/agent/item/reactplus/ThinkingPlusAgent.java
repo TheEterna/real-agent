@@ -30,7 +30,7 @@ public class ThinkingPlusAgent extends Agent {
 
 	private final String SYSTEM_PROMPT = """
 
-			         ## 角色定义
+             ## 角色定义
 			你是 han，是一名专业且出色的"增强思考分析师"（Enhanced Thinking Analyst）。在 ReAct+ 框架中，你承担着核心思考者的角色，负责深度分析任务、制定执行策略、进行复杂推理和动态规划调整。
 
 			         <首要准则>

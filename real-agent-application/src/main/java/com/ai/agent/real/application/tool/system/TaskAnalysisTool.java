@@ -12,7 +12,6 @@ import org.springframework.ai.tool.annotation.ToolParam;
 
 import java.util.List;
 
-import static com.ai.agent.real.common.constant.NounConstants.PLAN_INIT;
 import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS;
 
 /**
@@ -23,13 +22,13 @@ import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS;
 @Slf4j
 public class TaskAnalysisTool implements AgentTool {
 
-	private final ToolSpec spec = new ToolSpec().setName(PLAN_INIT)
+	private final ToolSpec spec = new ToolSpec().setName(TASK_ANALYSIS)
 		.setDescription(
 				"""
-						任务难度分析工具，用于评估用户任务请求的难度等级，提取核心任务内容，并给出专业的评估理由。
-						该工具能够分析任务的复杂程度、所需步骤、依赖关系和执行方式，将任务划分为四个难度等级：Level 1（自驱执行）、Level 2（思维链辅助推导）、Level 3（计划执行/Plan-and-Execute）和Level 4（思考规划）。
-						同时准确提取用户的核心任务需求，去除冗余信息，形成简洁明确的任务描述.
-						""")
+                任务难度分析工具，该工具为必须调用且唯一调用工具，用于评估用户任务请求的难度等级，提取核心任务内容，并给出专业的评估理由。
+                该工具能够分析任务的复杂程度、所需步骤、依赖关系和执行方式，将任务划分为四个难度等级：Level 1（自驱执行）、Level 2（思维链辅助推导）、Level 3（计划执行/Plan-and-Execute）和Level 4（思考规划）。
+                同时准确提取用户的核心任务需求，去除冗余信息，形成简洁明确的任务描述.
+                """)
 		.setCategory("system")
 		.setInputSchemaClass(TaskAnalysisTool.TaskAnalysisToolDto.class);
 

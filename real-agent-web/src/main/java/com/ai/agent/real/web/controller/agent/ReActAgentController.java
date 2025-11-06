@@ -1,8 +1,8 @@
 package com.ai.agent.real.web.controller.agent;
 
 import com.ai.agent.real.common.utils.CommonUtils;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
-import com.ai.agent.real.contract.agent.AgentStrategy;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.*;
@@ -34,7 +34,7 @@ public class ReActAgentController {
 	private final IAgentSessionManagerService agentSessionManagerService;
 
 	public ReActAgentController(IAgentSessionManagerService agentSessionManagerService,
-			@Qualifier("reactAgentStrategy") AgentStrategy reActAgentStrategy) {
+			@Qualifier("reActAgentStrategy") IAgentStrategy reActAgentStrategy) {
 		this.agentSessionManagerService = agentSessionManagerService.of(reActAgentStrategy);
 	}
 
@@ -52,9 +52,12 @@ public class ReActAgentController {
 		}
 
 		// 创建执行上下文
-		ReActAgentContext context = new ReActAgentContext(new TraceInfo()).setSessionId(request.getSessionId())
-			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
-			.setStartTime(LocalDateTime.now());
+		ReActAgentContext context = new ReActAgentContext(
+                new TraceInfo()
+                        .setSessionId(request.getSessionId())
+                        .setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
+                        .setStartTime(LocalDateTime.now())
+        );
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());

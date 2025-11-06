@@ -12,6 +12,6 @@ public interface IAgentDispatcher {
 	 * 根据name去匹配Agent策略
 	 * @param name 匹配用的 name
 	 */
-	AgentStrategy getAgentStrategyByName(String name);
+	IAgentStrategy getAgentStrategyByName(String name);
 
 }

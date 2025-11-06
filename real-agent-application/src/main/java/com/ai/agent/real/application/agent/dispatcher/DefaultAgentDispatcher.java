@@ -1,6 +1,6 @@
 package com.ai.agent.real.application.agent.dispatcher;
 
-import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.IAgentDispatcher;
 
 import java.util.Map;
@@ -11,9 +11,9 @@ import java.util.Map;
  */
 public class DefaultAgentDispatcher implements IAgentDispatcher {
 
-	private Map<String, AgentStrategy> agentStrategyMap;
+	private Map<String, IAgentStrategy> agentStrategyMap;
 
-	public DefaultAgentDispatcher(Map<String, AgentStrategy> agentStrategyMap) {
+	public DefaultAgentDispatcher(Map<String, IAgentStrategy> agentStrategyMap) {
 		this.agentStrategyMap = agentStrategyMap;
 	}
 
@@ -22,9 +22,9 @@ public class DefaultAgentDispatcher implements IAgentDispatcher {
 	 * @param name 匹配用的 name
 	 */
 	@Override
-	public AgentStrategy getAgentStrategyByName(String name) {
+	public IAgentStrategy getAgentStrategyByName(String name) {
 		if (!agentStrategyMap.containsKey(name.trim())) {
-			throw new RuntimeException("AgentStrategy " + name + " not found");
+			throw new RuntimeException("IAgentStrategy " + name + " not found");
 		}
 
 		return agentStrategyMap.get(name.trim());

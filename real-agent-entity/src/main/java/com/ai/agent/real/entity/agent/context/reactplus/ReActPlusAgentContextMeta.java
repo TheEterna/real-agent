@@ -21,6 +21,14 @@ public class ReActPlusAgentContextMeta {
 
 	private SopModeMeta sopModeMeta;
 
+	public ReActPlusAgentContextMeta() {
+	}
+
+	public ReActPlusAgentContextMeta(AgentMode agentMode) {
+		this.agentMode = agentMode;
+		this.taskModeMeta = null;
+	}
+
 	private ReActPlusAgentContextMeta(AgentMode agentMode, TaskModeMeta taskModeMeta) {
 		this.agentMode = agentMode;
 		this.taskModeMeta = taskModeMeta;

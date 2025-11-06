@@ -1,6 +1,6 @@
 package com.ai.agent.real.contract.agent.service;
 
-import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.interaction.*;
@@ -67,7 +67,7 @@ public interface IAgentSessionManagerService {
 	/**
 	 * deep copy
 	 */
-	IAgentSessionManagerService of(AgentStrategy agentStrategy);
+	IAgentSessionManagerService of(IAgentStrategy agentStrategy);
 
 	/**
 	 * 会话状态

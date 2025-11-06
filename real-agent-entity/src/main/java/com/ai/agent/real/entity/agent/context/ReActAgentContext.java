@@ -134,60 +134,8 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 		return taskCompleted;
 	}
 
-	@Override
-	public String getSessionId() {
-		return trace.getSessionId();
-	}
 
-	@Override
-	public ReActAgentContext setSessionId(String sessionId) {
-		this.trace.setSessionId(sessionId);
-		return this;
-	}
 
-	@Override
-	public String getTurnId() {
-		return trace.getTurnId();
-	}
-
-	@Override
-	public ReActAgentContext setTurnId(String turnId) {
-		this.trace.setTurnId(turnId);
-		return this;
-	}
-
-	@Override
-	public LocalDateTime getStartTime() {
-		return trace.getStartTime();
-	}
-
-	@Override
-	public ReActAgentContext setStartTime(LocalDateTime startTime) {
-		this.trace.setStartTime(startTime);
-		return this;
-	}
-
-	@Override
-	public LocalDateTime getEndTime() {
-		return trace.getEndTime();
-	}
-
-	@Override
-	public ReActAgentContext setEndTime(LocalDateTime endTime) {
-		this.trace.setEndTime(endTime);
-		return this;
-	}
-
-	@Override
-	public String getSpanId() {
-		return trace.getSpanId();
-	}
-
-	@Override
-	public ReActAgentContext setSpanId(String spanId) {
-		this.trace.setSpanId(spanId);
-		return this;
-	}
 
 	@Override
 	public String getTask() {
@@ -199,27 +147,6 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 		this.task = task;
 	}
 
-	@Override
-	public String getNodeId() {
-		return trace.getNodeId();
-	}
-
-	@Override
-	public Traceable setNodeId(String nodeId) {
-		this.trace.setNodeId(nodeId);
-		return this;
-	}
-
-	@Override
-	public String getAgentId() {
-		return trace.getAgentId();
-	}
-
-	@Override
-	public Traceable setAgentId(String agentId) {
-		this.trace.setAgentId(agentId);
-		return this;
-	}
 
 	@Override
 	public Map<String, Object> getToolArgs() {
@@ -256,7 +183,12 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 		this.messageHistory = messageHistory;
 	}
 
-	/**
+    @Override
+    public Traceable getTrace() {
+        return this.trace;
+    }
+
+    /**
 	 * 创建一个包含工具参数的 AgentContext 对象
 	 * @param toolArgs 工具参数
 	 * @return 包含工具参数的 AgentContext 对象

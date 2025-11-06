@@ -9,7 +9,7 @@ import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.AgentResult;
-import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
@@ -30,7 +30,7 @@ import java.util.*;
  * @time 2025/9/5 12:32
  */
 @Slf4j
-public class ReActAgentStrategy implements AgentStrategy {
+public class ReActAgentStrategy implements IAgentStrategy {
 
 	private static final int MAX_ITERATIONS = 10;
 
@@ -106,7 +106,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 					}),
 				// 收尾：始终保留 FinalAgent 总结，然后由 FinalAgent 阶段发出 DONE/DONEWITHWARNING
 				Flux.defer(() -> finalAgent
-					.executeStream(userInput, AgentUtils.createAgentContext(context, FinalAgent.AGENT_ID))
+					.executeStream(userInput, AgentUtils.createReActAgentContext(context, FinalAgent.AGENT_ID))
 					.transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))
 					.concatWith(Flux.defer(() -> {
 						if (!context.isTaskCompleted()) {
@@ -202,7 +202,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 2. 执行观察阶段
 				Flux.defer(() -> {
-					ReActAgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
+					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context, ObservationAgent.AGENT_ID);
 					return FluxUtils.stage(observationAgent.executeStream(task, observingCtx), context,
 							ObservationAgent.AGENT_ID, evt -> log.debug("[EVT/OBSERVE/RESUME] type={}", evt.getType()),
 							() -> log.info("观察阶段结束（恢复后）"));
@@ -215,7 +215,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 4. 最终总结
 				Flux.defer(() -> finalAgent
-					.executeStream(task, AgentUtils.createAgentContext(context, FinalAgent.AGENT_ID))
+					.executeStream(task, AgentUtils.createReActAgentContext(context, FinalAgent.AGENT_ID))
 					.transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))))
 			.concatWith(Flux.just(AgentExecutionEvent.completed()));
 	}
@@ -235,7 +235,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 最终总结
 				Flux.defer(() -> finalAgent
-					.executeStream(task, AgentUtils.createAgentContext(context, FinalAgent.AGENT_ID))
+					.executeStream(task, AgentUtils.createReActAgentContext(context, FinalAgent.AGENT_ID))
 					.transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))))
 			.concatWith(Flux.just(AgentExecutionEvent.completed()));
 	}
@@ -259,7 +259,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 
 				// 1. 思考阶段（封装：上下文合并 + 日志回调）
 				Flux.defer(() -> {
-					ReActAgentContext thinkingCtx = AgentUtils.createAgentContext(context, ThinkingAgent.AGENT_ID);
+					ReActAgentContext thinkingCtx = AgentUtils.createReActAgentContext(context, ThinkingAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建思考阶段上下文 | {}", iteration, AgentUtils.snapshot(thinkingCtx));
 					// 注意：思考阶段不需要工具审批回调，因为它不执行工具
 					return FluxUtils.stage(thinkingAgent.executeStream(userInput, thinkingCtx), context,
@@ -276,7 +276,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 				// 2. 行动阶段（封装：上下文合并 + 日志回调 + 工具审批回调）
 				Flux.defer(() -> {
 					// 此时 context 已包含思考阶段写回的历史
-					ReActAgentContext actionCtx = AgentUtils.createAgentContext(context, ActionAgent.AGENT_ID);
+					ReActAgentContext actionCtx = AgentUtils.createReActAgentContext(context, ActionAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建行动阶段上下文 | {}", iteration, AgentUtils.snapshot(actionCtx));
 					// 注意：行动阶段需要传递工具审批回调
 					return FluxUtils.stage(actionAgent.executeStream(userInput, actionCtx), context,
@@ -293,7 +293,7 @@ public class ReActAgentStrategy implements AgentStrategy {
 				// 3. 观察阶段（封装：先过滤DONE，再应用上下文合并与日志回调）
 				Flux.defer(() -> {
 					// 此时 context 已包含行动阶段写回的历史
-					ReActAgentContext observingCtx = AgentUtils.createAgentContext(context, ObservationAgent.AGENT_ID);
+					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context, ObservationAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建观察阶段上下文 | {}", iteration, AgentUtils.snapshot(observingCtx));
 					return FluxUtils.stage(observationAgent.executeStream(userInput, observingCtx), context,
 							ObservationAgent.AGENT_ID,

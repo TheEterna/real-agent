@@ -14,7 +14,7 @@ import java.util.*;
  * @author han
  * @time 2025/9/6 23:40
  */
-public interface AgentStrategy {
+public interface IAgentStrategy {
 
 	/**
 	 * 获取策略名称

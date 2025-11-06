@@ -6,6 +6,8 @@ import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.tool.AgentTool;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
 import io.micrometer.common.util.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.*;
@@ -17,8 +19,6 @@ import org.springframework.ai.model.tool.*;
 import java.time.*;
 import java.util.*;
 import java.util.stream.*;
-
-import static com.ai.agent.real.common.constant.NounConstants.*;
 
 /**
  * @author han
@@ -190,8 +190,8 @@ public class AgentUtils {
 	/**
 	 * 为Agent创建独立的执行上下文副本
 	 */
-	public static ReActAgentContext createAgentContext(AgentContextAble originalContext, String agentId) {
-		ReActAgentContext newContext = new ReActAgentContext(new TraceInfo());
+	public static ReActPlusAgentContext createReActPlusAgentContext(AgentContextAble originalContext, String agentId) {
+        ReActPlusAgentContext newContext = new ReActPlusAgentContext(new TraceInfo());
 
 		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
 		newContext.setSessionId(originalContext.getSessionId());
@@ -206,8 +206,35 @@ public class AgentUtils {
 		newContext.setCurrentIteration(originalContext.getCurrentIteration());
 		newContext.setTaskCompleted(originalContext.getTaskCompleted());
 
-		// 继承元数据
-		newContext.setMetadata(originalContext.getMetadata());
+
+        // 继承元数据
+        newContext.setMetadata(originalContext.getMetadata());
+
+        // 为新上下文设置独立的 Agent 与 node 标识
+		newContext.setAgentId(agentId);
+		newContext.setNodeId(CommonUtils.getNodeId());
+		newContext.setStartTime(LocalDateTime.now());
+
+		return newContext;
+	}
+	/**
+	 * 为Agent创建独立的执行上下文副本
+	 */
+	public static ReActAgentContext createReActAgentContext(AgentContextAble originalContext, String agentId) {
+		ReActAgentContext newContext = new ReActAgentContext(new TraceInfo());
+
+		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
+		newContext.setSessionId(originalContext.getSessionId());
+		newContext.setTurnId(originalContext.getTurnId());
+		newContext.setSpanId(originalContext.getSpanId());
+		// start/end time 由各 Agent 生命周期自行设置，这里不复制 endTime
+		newContext.setEndTime(null);
+
+		// 复制对话历史与参数（浅拷贝集合内容），确保不共享可变集合引用
+		newContext.setMessageHistory(originalContext.getMessageHistory());
+		newContext.setToolArgs(originalContext.getToolArgs());
+		newContext.setCurrentIteration(originalContext.getCurrentIteration());
+		newContext.setTaskCompleted(originalContext.getTaskCompleted());
 
 		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);

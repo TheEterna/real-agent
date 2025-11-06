@@ -226,44 +226,81 @@ public class FluxUtils {
 			AgentContextAble context, String agentId, ToolService toolService, ToolApprovalMode toolApprovalMode,
 			EventType eventType, ToolApprovalCallback approvalCallback) {
 
-		return chatModel.stream(prompt).doOnSubscribe(subscription -> {
-			log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
-			log.debug("Prompt消息数量: {}, 工具数量: {}", prompt.getInstructions().size(),
-					prompt.getOptions() != null ? "有工具配置" : "无工具配置");
-		}).concatMap(response -> {
-			log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
-					response.getResult() != null);
+		return chatModel.stream(prompt)
+			.doOnSubscribe(subscription -> {
+				log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
+				log.debug("Prompt消息数量: {}, 工具数量: {}", prompt.getInstructions().size(),
+						prompt.getOptions() != null ? "有工具配置" : "无工具配置");
+			})
+			.concatMap(response -> {
+				log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
+						response.getResult() != null);
 
-			// 检查是否是空的generations
-			if (response.getResults().isEmpty()) {
-				log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
-				log.warn("ChatResponse详情: {}", response);
-				return Flux.empty();
-			}
+				// 检查是否是空的generations
+				if (response.getResults().isEmpty()) {
+					log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
+					log.warn("ChatResponse详情: {}", response);
+					return Flux.empty();
+				}
 
-			String content = response.getResult().getOutput().getText();
+				String content = response.getResult().getOutput().getText();
 
-			// 处理文本内容
-			Flux<AgentExecutionEvent> contentFlux = Flux.empty();
-			if (content != null && !content.trim().isEmpty()) {
-				AgentExecutionEvent event = AgentExecutionEvent.common(eventType, context, content);
-				contentFlux = Flux.just(event);
-			}
+				// 处理文本内容
+				Flux<AgentExecutionEvent> contentFlux = Flux.empty();
+				if (content != null && !content.trim().isEmpty()) {
+					AgentExecutionEvent event = AgentExecutionEvent.common(eventType, context, content);
+					contentFlux = Flux.just(event);
+				}
 
-			// 处理工具调用
-			Flux<AgentExecutionEvent> toolFlux = Flux.empty();
-			if (ToolUtils.hasToolCallingNative(response)) {
-				// 优先使用上下文中的回调，如果没有则使用传入的回调
-				ToolApprovalCallback effectiveCallback = context.getToolApprovalCallback() != null
-						? context.getToolApprovalCallback() : approvalCallback;
-				toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
-					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode,
-							effectiveCallback));
-			}
+				// 处理工具调用
+				Flux<AgentExecutionEvent> toolFlux = Flux.empty();
+				if (ToolUtils.hasToolCallingNative(response)) {
+					// 优先使用上下文中的回调，如果没有则使用传入的回调
+					ToolApprovalCallback effectiveCallback = context.getToolApprovalCallback() != null
+							? context.getToolApprovalCallback() : approvalCallback;
+					toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
+						.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode,
+								effectiveCallback));
+				}
 
-			// 合并内容和工具调用结果
-			return Flux.concat(contentFlux, toolFlux);
-		});
+				// 合并内容和工具调用结果
+				return Flux.concat(contentFlux, toolFlux);
+			})
+			// 错误恢复机制：LLM 调用级别的错误处理
+			.onErrorResume(error -> {
+				log.error("LLM 调用失败，agentId: {}, eventType: {}, error: {}", agentId, eventType, error.getMessage(), error);
+
+				// 根据错误类型决定恢复策略
+				String errorMsg = buildErrorMessage(error, agentId, eventType);
+
+				// 发送错误事件而不是中断流
+				return Flux.just(AgentExecutionEvent.error(errorMsg));
+			});
+	}
+
+	/**
+	 * 构建友好的错误消息
+	 */
+	private static String buildErrorMessage(Throwable error, String agentId, EventType eventType) {
+		String errorType = error.getClass().getSimpleName();
+		String errorMsg = error.getMessage() != null ? error.getMessage() : "未知错误";
+
+		// 根据异常类型提供更具体的提示
+		if (errorMsg.contains("timeout") || errorMsg.contains("timed out")) {
+			return String.format("[%s] LLM 调用超时，请稍后重试或检查网络连接", agentId);
+		}
+		else if (errorMsg.contains("rate limit") || errorMsg.contains("quota")) {
+			return String.format("[%s] API 调用频率限制，请稍后重试", agentId);
+		}
+		else if (errorMsg.contains("authentication") || errorMsg.contains("unauthorized")) {
+			return String.format("[%s] 认证失败，请检查 API Key 配置", agentId);
+		}
+		else if (errorMsg.contains("connection") || errorMsg.contains("connect")) {
+			return String.format("[%s] 网络连接失败，请检查服务地址和网络状态", agentId);
+		}
+		else {
+			return String.format("[%s] LLM 调用异常 (%s): %s", agentId, errorType, errorMsg);
+		}
 	}
 
 	/**
@@ -275,45 +312,60 @@ public class FluxUtils {
 		String toolName = toolCall.name();
 		String toolCallId = toolCall.id();
 		log.info("工具调用: toolName={}, toolCallId={}, args={}", toolName, toolCallId, toolCall.arguments());
-		Map<String, Object> args = jsonToMap(toolCall.arguments(), OBJECT_MAPPER);
-		String toolId = "";
-		AgentTool tool = toolService.getByName(toolName);
-		if (tool == null) {
-			log.error("工具不存在: toolName={}", toolName);
-			return Flux.just(AgentExecutionEvent.error("工具不存在: " + toolName));
+
+		try {
+			Map<String, Object> args = jsonToMap(toolCall.arguments(), OBJECT_MAPPER);
+			String toolId = "";
+			AgentTool tool = toolService.getByName(toolName);
+
+			// 工具不存在的错误处理
+			if (tool == null) {
+				String errorMsg = String.format("工具不存在: %s，请检查工具是否已注册", toolName);
+				log.error(errorMsg);
+				// 返回错误事件，但不中断整个流
+				return Flux.just(AgentExecutionEvent.error(errorMsg));
+			}
+			toolId = tool.getId();
+
+			switch (toolApprovalMode) {
+				case AUTO:
+					// TODO: 实现基于权限列表的自动执行逻辑
+					log.info("工具自动执行模式（待实现权限检查）: {}", toolName);
+					context.setToolArgs(args);
+					return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
+							toolCallId, toolName)
+						.flux()
+						// 工具执行失败的恢复机制
+						.onErrorResume(error -> {
+							String errorMsg = String.format("工具 [%s] 执行失败: %s",
+								toolName, error.getMessage() != null ? error.getMessage() : "未知错误");
+							log.error(errorMsg, error);
+							return Flux.just(AgentExecutionEvent.error(errorMsg));
+						});
+
+				case REQUIRE_APPROVAL:
+					log.info("工具需要人工审批: {}", toolName);
+					return Flux.just(AgentExecutionEvent.toolApproval(context,
+							new ToolApprovalRequest(toolCallId, toolName, args)));
+
+				case DISABLED:
+					String disabledMsg = String.format("工具调用已禁用: %s", toolName);
+					log.warn(disabledMsg);
+					return Flux.just(AgentExecutionEvent.error(disabledMsg));
+
+				default:
+					String unknownMsg = String.format("未知的工具审批模式: %s", toolApprovalMode);
+					log.error(unknownMsg);
+					return Flux.just(AgentExecutionEvent.error(unknownMsg));
+			}
 		}
-		toolId = tool.getId();
-
-		switch (toolApprovalMode) {
-			case AUTO:
-				// TODO: 实现基于权限列表的自动执行逻辑
-				log.info("工具自动执行模式（待实现权限检查）: {}", toolName);
-				context.setToolArgs(args);
-				return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
-						toolCallId, toolName)
-					.flux();
-
-			case REQUIRE_APPROVAL:
-				// 需要审批：调用回调通知上层，并返回空流（暂停执行）
-				log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
-
-				// 通知上层需要审批
-				approvalCallback.requestApproval(context.getSessionId(), toolCallId, toolName, args, context);
-
-				// 返回空流，暂停当前执行
-				// 注意：这里不会继续执行，需要等待审批后通过其他方式恢复
-				return Flux.empty();
-
-			case DISABLED:
-			default:
-				// 禁用审批：直接执行
-				log.info("工具执行（无审批）: {}", toolName);
-				context.setToolArgs(args);
-				return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
-						toolCallId, toolName)
-					.flux();
+		catch (Exception e) {
+			// 捕获参数解析等早期错误
+			String errorMsg = String.format("工具调用准备失败 [%s]: %s",
+				toolName, e.getMessage() != null ? e.getMessage() : "参数解析错误");
+			log.error(errorMsg, e);
+			return Flux.just(AgentExecutionEvent.error(errorMsg));
 		}
-
 	}
 
 	public static Map<String, Object> jsonToMap(String json, ObjectMapper objectMapper) {

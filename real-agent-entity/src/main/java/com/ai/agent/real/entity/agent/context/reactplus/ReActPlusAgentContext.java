@@ -69,7 +69,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 		this.currentIteration = new AtomicInteger(0);
 		this.taskCompleted = new AtomicBoolean(false);
 		this.toolApprovalCallback = ToolApprovalCallback.NOOP;
-		this.meta = null;
+		this.meta = new ReActPlusAgentContextMeta();
 	}
 
 	/**
@@ -77,7 +77,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public List<AgentMessage> getMessageHistory() {
-		return List.of();
+		return this.messageHistory;
 	}
 
 	/**
@@ -85,8 +85,10 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 * @param message
 	 */
 	@Override
-	public ReActAgentContext addMessage(AgentMessage message) {
-		return null;
+	public ReActPlusAgentContext addMessage(AgentMessage message) {
+        message.setContent(message.getText());
+        this.messageHistory.add(message);
+        return this;
 	}
 
 	/**
@@ -94,8 +96,9 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 * @param messages
 	 */
 	@Override
-	public ReActAgentContext addMessages(List<AgentMessage> messages) {
-		return null;
+	public ReActPlusAgentContext addMessages(List<AgentMessage> messages) {
+        this.messageHistory.addAll(messages);
+		return this;
 	}
 
 	/**
@@ -120,7 +123,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public boolean isTaskCompleted() {
-		return false;
+		return this.taskCompleted.get();
 	}
 
 	/**
@@ -139,7 +142,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 
 	@Override
 	public AtomicBoolean getTaskCompleted() {
-		return taskCompleted;
+		return this.taskCompleted;
 	}
 
 	/**
@@ -147,7 +150,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public Map<String, Object> getToolArgs() {
-		return Map.of();
+		return this.toolArgs;
 	}
 
 	/**
@@ -165,127 +168,9 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public void setToolArgs(Map<String, Object> toolArgs) {
-
+        this.toolArgs = toolArgs;
 	}
 
-	/**
-	 * @return
-	 */
-	@Override
-	public String getSessionId() {
-		return "";
-	}
-
-	/**
-	 * @param sessionId
-	 * @return
-	 */
-	@Override
-	public Traceable setSessionId(String sessionId) {
-		return null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public String getTurnId() {
-		return "";
-	}
-
-	/**
-	 * @param turnId
-	 * @return
-	 */
-	@Override
-	public Traceable setTurnId(String turnId) {
-		return null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public LocalDateTime getStartTime() {
-		return null;
-	}
-
-	/**
-	 * @param startTime
-	 * @return
-	 */
-	@Override
-	public Traceable setStartTime(LocalDateTime startTime) {
-		return null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public LocalDateTime getEndTime() {
-		return null;
-	}
-
-	/**
-	 * @param endTime
-	 * @return
-	 */
-	@Override
-	public Traceable setEndTime(LocalDateTime endTime) {
-		return null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public String getSpanId() {
-		return "";
-	}
-
-	/**
-	 * @param spanId
-	 * @return
-	 */
-	@Override
-	public Traceable setSpanId(String spanId) {
-		return null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public String getNodeId() {
-		return "";
-	}
-
-	/**
-	 * @param nodeId
-	 * @return
-	 */
-	@Override
-	public Traceable setNodeId(String nodeId) {
-		return null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public String getAgentId() {
-		return "";
-	}
-
-	/**
-	 * @param agentId
-	 * @return
-	 */
-	@Override
-	public Traceable setAgentId(String agentId) {
-		return null;
-	}
 
 	@Override
 	public String getTask() {
@@ -320,7 +205,12 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 		return this.meta;
 	}
 
-	/**
+    @Override
+    public Traceable getTrace() {
+        return this.trace;
+    }
+
+    /**
 	 * @param metadata
 	 */
 	@Override

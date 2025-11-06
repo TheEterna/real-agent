@@ -10,7 +10,7 @@ import com.ai.agent.real.application.agent.session.AgentSessionManagerService;
 import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
 import com.ai.agent.real.application.agent.strategy.ReActPlusAgentStrategy;
 import com.ai.agent.real.application.service.ContextManager;
-import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.IAgentDispatcher;
 import com.ai.agent.real.contract.agent.context.AgentMemory;
 import com.ai.agent.real.contract.agent.context.AgentSessionConfig;
@@ -20,6 +20,7 @@ import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.service.IPropertyService;
 import com.ai.agent.real.contract.service.ToolService;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -35,7 +36,7 @@ public class ApplicationAgentAutoConfiguration {
 	 * register default agent session manager
 	 */
 	@Bean
-	public IAgentSessionManagerService agentSessionManagerService(AgentStrategy agentStrategy) {
+	public IAgentSessionManagerService agentSessionManagerService(@Qualifier("reActPlusAgentStrategy") IAgentStrategy agentStrategy) {
 		return new AgentSessionManagerService(agentStrategy);
 	}
 
@@ -45,7 +46,7 @@ public class ApplicationAgentAutoConfiguration {
 	 * @return DefaultAgentDispatcher实例
 	 */
 	@Bean
-	public IAgentDispatcher defaultAgentDispatcher(Map<String, AgentStrategy> agentStrategyMap) {
+	public IAgentDispatcher defaultAgentDispatcher(Map<String, IAgentStrategy> agentStrategyMap) {
 		return new DefaultAgentDispatcher(agentStrategyMap);
 	}
 
@@ -105,15 +106,10 @@ public class ApplicationAgentAutoConfiguration {
 		return new ThoughtAgent(chatModel, toolService);
 	}
 
-	@Bean("reactAgentStrategy")
-	public AgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-			ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
-		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
-	}
 
 	@Bean
-	public AgentStrategy reActPlusAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-			ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
+	public IAgentStrategy reActPlusAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
+                                                 ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
 		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
 	}
 
@@ -134,14 +130,20 @@ public class ApplicationAgentAutoConfiguration {
 	/**
 	 * =================== Agent Strategy part ===========================
 	 */
-	@Bean
+	@Bean("reActPlusAgentStrategy")
 	@Primary
-	public AgentStrategy reactPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
-			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
-			FinalAgent finalAgent, ContextManager contextManager) {
+	public IAgentStrategy reActPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
+                                                 ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
+                                                 FinalAgent finalAgent, ContextManager contextManager) {
 
 		return new ReActPlusAgentStrategy(taskAnalysisAgent, planInitAgent, thoughtAgent, thinkingPlusAgent,
 				actionPlusAgent, finalAgent, contextManager);
 	}
+
+    @Bean("reActAgentStrategy")
+    public IAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
+                                             ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
+        return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
+    }
 
 }

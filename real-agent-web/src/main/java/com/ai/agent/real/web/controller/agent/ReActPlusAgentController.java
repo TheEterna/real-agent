@@ -1,12 +1,15 @@
 package com.ai.agent.real.web.controller.agent;
 
 import com.ai.agent.real.common.utils.CommonUtils;
-import com.ai.agent.real.contract.agent.AgentStrategy;
+import com.ai.agent.real.contract.agent.IAgentStrategy;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.TraceInfo;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -29,8 +32,9 @@ public class ReActPlusAgentController {
 
 	private final IAgentSessionManagerService agentSessionManagerService;
 
-	public ReActPlusAgentController(IAgentSessionManagerService agentSessionManagerService,
-			@Qualifier("reActPlusAgentStrategy") AgentStrategy reActPlusAgentStrategy) {
+	public ReActPlusAgentController(
+            IAgentSessionManagerService agentSessionManagerService,
+			@Qualifier("reActPlusAgentStrategy") IAgentStrategy reActPlusAgentStrategy) {
 
 		this.agentSessionManagerService = agentSessionManagerService.of(reActPlusAgentStrategy);
 	}
@@ -50,9 +54,9 @@ public class ReActPlusAgentController {
 		}
 
 		// 创建执行上下文
-		ReActAgentContext context = new ReActAgentContext(new TraceInfo()).setSessionId(request.getSessionId())
-			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
-			.setStartTime(LocalDateTime.now());
+        AgentContextAble<ReActPlusAgentContextMeta> context = new ReActPlusAgentContext(new TraceInfo().setSessionId(request.getSessionId())
+			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReActPlus")))
+			.setStartTime(LocalDateTime.now()));
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());
@@ -68,7 +72,7 @@ public class ReActPlusAgentController {
 			.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
 			.doOnComplete(() -> {
 				context.setEndTime(LocalDateTime.now());
-				log.info("ReAct任务执行完成: sessionId={}", request.getSessionId());
+				log.info("ReActPlus任务执行完成: sessionId={}", request.getSessionId());
 			});
 
 	}
