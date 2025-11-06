@@ -38,10 +38,10 @@ public class ApplicationAutoConfiguration {
 		// custom handle tool register
 
 		toolService.registerToolWithKeywords(new TaskDoneTool(), Set.of(TASK_DONE));
-		toolService.registerToolWithKeywords(new TaskAnalysisTool(), Set.of(TASK_ANALYSIS));
-		toolService.registerToolWithKeywords(new PlanInitTool(), Set.of(PLAN_INIT));
-		toolService.registerToolWithKeywords(new PlanUpdateTool(), Set.of(PLAN_UPDATE));
-		toolService.registerToolWithKeywords(new PlanAdvanceTool(), Set.of(PLAN_ADVANCE));
+		toolService.registerToolWithKeywords(new TaskAnalysisTool(), Set.of(TASK_ANALYSIS, REACT_PLUS_TOOLS));
+		toolService.registerToolWithKeywords(new PlanInitTool(), Set.of(PLAN_INIT, PLAN_TOOLS, REACT_PLUS_TOOLS));
+		toolService.registerToolWithKeywords(new PlanUpdateTool(), Set.of(PLAN_UPDATE, PLAN_TOOLS, REACT_PLUS_TOOLS));
+		toolService.registerToolWithKeywords(new PlanAdvanceTool(), Set.of(PLAN_ADVANCE, PLAN_TOOLS, REACT_PLUS_TOOLS));
 
 		// register mcp tools
 		List<AgentTool> agentToolList = toolService.listAllMCPToolsAsync().block();

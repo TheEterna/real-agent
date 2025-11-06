@@ -386,7 +386,7 @@ public class ActionPlusAgent extends Agent {
 	public ActionPlusAgent(ChatModel chatModel, ToolService toolService, ToolApprovalMode toolApprovalMode) {
 
 		super(AGENT_ID, AGENT_ID, "ReAct+ 框架中的增强行动执行者，专注于智能工具选择、精准执行和结果优化", chatModel, toolService,
-				Set.of("行动", "执行", "工具", MCP, TASK_DONE), toolApprovalMode);
+				Set.of("*"), toolApprovalMode);
 		this.setCapabilities(new String[] { "工具执行", "智能选择", "ActionPlus" });
 	}
 

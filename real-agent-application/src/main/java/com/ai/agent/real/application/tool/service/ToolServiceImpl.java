@@ -189,6 +189,8 @@ public class ToolServiceImpl implements ToolService {
 		for (String keyword : keywords) {
 			keywordToTools.computeIfAbsent(keyword.toLowerCase(), k -> new HashSet<>()).add(toolName);
 		}
+        // 所有的 tool 都需要绑定到 * 上
+        keywordToTools.computeIfAbsent("*", k -> new HashSet<>()).add(toolName);
 
 		log.info("工具 [{}] 注册成功，绑定关键词: {}", toolName, keywords);
 		return true;

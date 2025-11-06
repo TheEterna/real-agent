@@ -11,6 +11,10 @@ public class NounConstants {
 
 	public final static String PLAN_INIT = "plan_init";
 
+	public final static String PLAN_TOOLS = "plan_tools";
+	public final static String REACT_PLUS_TOOLS = "react_plus_tools";
+
+
 	public final static String PLAN_UPDATE = "plan_update";
 
 	public final static String PLAN_ADVANCE = "plan_advance";

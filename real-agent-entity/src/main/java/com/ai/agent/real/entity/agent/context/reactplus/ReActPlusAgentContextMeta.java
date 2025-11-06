@@ -19,6 +19,8 @@ public class ReActPlusAgentContextMeta {
 
 	private TaskModeMeta taskModeMeta;
 
+	private SopModeMeta sopModeMeta;
+
 	private ReActPlusAgentContextMeta(AgentMode agentMode, TaskModeMeta taskModeMeta) {
 		this.agentMode = agentMode;
 		this.taskModeMeta = taskModeMeta;
@@ -59,5 +61,7 @@ public class ReActPlusAgentContextMeta {
 		}
 
 	}
+
+
 
 }
