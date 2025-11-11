@@ -3,8 +3,8 @@ package com.ai.agent.real.contract.agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
-import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.tool.AgentTool;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
@@ -57,7 +57,7 @@ public abstract class Agent {
 	 */
 	protected String[] capabilities;
 
-	protected ToolService toolService;
+	protected IToolService toolService;
 
 	protected ToolApprovalMode toolApprovalMode;
 
@@ -68,7 +68,7 @@ public abstract class Agent {
 	/**
 	 * 构造函数
 	 */
-	protected Agent(String agentId, String agentName, String description, ChatModel chatModel, ToolService toolService,
+	protected Agent(String agentId, String agentName, String description, ChatModel chatModel, IToolService toolService,
 			Set<String> keywords, ToolApprovalMode toolApprovalMode) {
 		this.agentId = agentId;
 		this.agentName = agentName;
@@ -84,7 +84,7 @@ public abstract class Agent {
 	/**
 	 * 构造函数
 	 */
-	protected Agent(String agentId, String agentName, String description, ChatModel chatModel, ToolService toolService,
+	protected Agent(String agentId, String agentName, String description, ChatModel chatModel, IToolService toolService,
 			Set<String> keywords) {
 		this.agentId = agentId;
 		this.agentName = agentName;

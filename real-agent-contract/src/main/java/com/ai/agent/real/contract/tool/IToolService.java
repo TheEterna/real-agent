@@ -1,8 +1,7 @@
-package com.ai.agent.real.contract.service;
+package com.ai.agent.real.contract.tool;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.*;
-import com.ai.agent.real.contract.tool.AgentTool;
 import reactor.core.publisher.*;
 
 import java.util.*;
@@ -12,7 +11,7 @@ import java.util.*;
  * @time 2025/9/15 14:37
  */
 
-public interface ToolService {
+public interface IToolService {
 
 	/**
 	 * 列出所有本地系统工具

@@ -6,7 +6,7 @@ import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
-import com.ai.agent.real.contract.service.ToolService;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -30,7 +30,7 @@ public class ThinkingPlusAgent extends Agent {
 
 	private final String SYSTEM_PROMPT = """
 
-             ## 角色定义
+			          ## 角色定义
 			你是 han，是一名专业的"思考分析师"（Thinking Analyst）。在 ReAct+ 框架中，你负责为用户展示简洁的思考过程，同时为后续的工具调用 Agent 提供分析上下文。
 
 			         <核心机制：阴阳双输出>
@@ -187,7 +187,7 @@ public class ThinkingPlusAgent extends Agent {
 
 			""";
 
-	public ThinkingPlusAgent(ChatModel chatModel, ToolService toolService, ToolApprovalMode toolApprovalMode) {
+	public ThinkingPlusAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode) {
 
 		super(AGENT_ID, AGENT_ID, "ReAct+ 框架中的增强思考分析师，专注于深度任务分析、策略制定和思维链推理", chatModel, toolService,
 				Set.of("思考", "分析", "策略", "推理"), toolApprovalMode);
@@ -210,22 +210,21 @@ public class ThinkingPlusAgent extends Agent {
 		Prompt prompt = AgentUtils.buildPromptWithContext(null, context, SYSTEM_PROMPT, thinkingPrompt);
 
 		// 设置更低的温度和 top_p 以获得更稳定的分析结果
-		ChatOptions defaultOptions = chatModel.getDefaultOptions();
-		String model = defaultOptions.getModel();
-		ChatOptions customChatOptions = ChatOptions.builder().model(model).topP(0.2).temperature(0.3).build();
-		prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
+//		ChatOptions defaultOptions = chatModel.getDefaultOptions();
+//		String model = defaultOptions.getModel();
+//		ChatOptions customChatOptions = ChatOptions.builder().model(model).topP(0.2).temperature(0.3).build();
+//		prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
 
 		return FluxUtils
 			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
 					AgentExecutionEvent.EventType.THINKING)
-                // todo 阴阳操作
-//			.map(event -> processYinYangSeparation(event, context))
+			// todo 阴阳操作
+			// .map(event -> processYinYangSeparation(event, context))
 			.doFinally(signalType -> {
 				afterHandle(context);
 				log.debug("ThinkingPlusAgent 思考分析结束，信号类型: {}", signalType);
 			});
 	}
-
 
 	/**
 	 * 构建思考提示词

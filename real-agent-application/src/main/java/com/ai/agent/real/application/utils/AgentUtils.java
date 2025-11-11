@@ -191,7 +191,7 @@ public class AgentUtils {
 	 * 为Agent创建独立的执行上下文副本
 	 */
 	public static ReActPlusAgentContext createReActPlusAgentContext(AgentContextAble originalContext, String agentId) {
-        ReActPlusAgentContext newContext = new ReActPlusAgentContext(new TraceInfo());
+		ReActPlusAgentContext newContext = new ReActPlusAgentContext(new TraceInfo());
 
 		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
 		newContext.setSessionId(originalContext.getSessionId());
@@ -206,17 +206,17 @@ public class AgentUtils {
 		newContext.setCurrentIteration(originalContext.getCurrentIteration());
 		newContext.setTaskCompleted(originalContext.getTaskCompleted());
 
+		// 继承元数据
+		newContext.setMetadata(originalContext.getMetadata());
 
-        // 继承元数据
-        newContext.setMetadata(originalContext.getMetadata());
-
-        // 为新上下文设置独立的 Agent 与 node 标识
+		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);
 		newContext.setNodeId(CommonUtils.getNodeId());
 		newContext.setStartTime(LocalDateTime.now());
 
 		return newContext;
 	}
+
 	/**
 	 * 为Agent创建独立的执行上下文副本
 	 */

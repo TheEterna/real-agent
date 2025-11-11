@@ -5,7 +5,7 @@ import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
-import com.ai.agent.real.contract.service.ToolService;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -370,7 +370,7 @@ public class PlanInitAgent extends Agent {
 
 			""";
 
-	public PlanInitAgent(ChatModel chatModel, ToolService toolService) {
+	public PlanInitAgent(ChatModel chatModel, IToolService toolService) {
 
 		super(AGENT_ID, AGENT_ID, "任务规划助手，用于将复杂任务分解为结构化的执行阶段，制定清晰可执行的计划", chatModel, toolService, Set.of(PLAN_INIT));
 		this.setCapabilities(new String[] { "计划制定", "PlanInit" });

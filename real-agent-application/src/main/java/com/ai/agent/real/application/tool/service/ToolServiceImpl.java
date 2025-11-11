@@ -3,9 +3,9 @@ package com.ai.agent.real.application.tool.service;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.ToolResult.*;
-import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.application.utils.ToolUtils;
+import com.ai.agent.real.contract.tool.IToolService;
 import io.modelcontextprotocol.client.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.mcp.*;
@@ -32,7 +32,7 @@ import java.util.stream.*;
  */
 
 @Slf4j
-public class ToolServiceImpl implements ToolService {
+public class ToolServiceImpl implements IToolService {
 
 	/**
 	 * async mcp tool clients

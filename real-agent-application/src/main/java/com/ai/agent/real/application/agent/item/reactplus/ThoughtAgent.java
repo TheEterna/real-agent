@@ -6,7 +6,7 @@ import com.ai.agent.real.common.constant.NounConstants;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
-import com.ai.agent.real.contract.service.ToolService;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -613,7 +613,7 @@ public class ThoughtAgent extends Agent {
 
 			""";
 
-	public ThoughtAgent(ChatModel chatModel, ToolService toolService) {
+	public ThoughtAgent(ChatModel chatModel, IToolService toolService) {
 
 		super(AGENT_ID, AGENT_ID, "一个专注于深度思维链推理的 AI Agent", chatModel, toolService, Set.of(NounConstants.MCP));
 		this.setCapabilities(new String[] { "thought" });

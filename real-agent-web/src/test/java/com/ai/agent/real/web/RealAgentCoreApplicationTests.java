@@ -75,8 +75,7 @@
 // // 阻塞主线程以确保异步处理完成
 // try {
 // Thread.sleep(1000);
-// }
-// catch (InterruptedException e) {
+// } catch (InterruptedException e) {
 // e.printStackTrace();
 // }
 // }

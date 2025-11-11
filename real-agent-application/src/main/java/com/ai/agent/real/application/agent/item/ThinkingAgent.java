@@ -8,7 +8,7 @@ import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.contract.service.*;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
@@ -159,7 +159,7 @@ public class ThinkingAgent extends Agent {
 	/**
 	 * 构造函数
 	 */
-	public ThinkingAgent(ChatModel chatModel, ToolService toolService, ToolApprovalMode toolApprovalMode) {
+	public ThinkingAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode) {
 		super(AGENT_ID, "ReActAgentStrategy-ThinkingAgent", "ReAct框架里的思考agent", chatModel, toolService,
 				Set.of("ReActAgentStrategy", "thinking", "思考", NounConstants.MCP, NounConstants.TASK_DONE),
 				toolApprovalMode);

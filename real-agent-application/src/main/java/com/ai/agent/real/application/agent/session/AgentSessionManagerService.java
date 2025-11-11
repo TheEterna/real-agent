@@ -216,13 +216,6 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 			.setAction(InteractionAction.APPROVE_AND_EXECUTE)
 			.setDefault(false));
 
-		request.addOption(new InteractionOption().setOptionId("retry")
-			.setLabel("重新执行")
-			.setDescription("让 Agent 重新思考并选择其他方案")
-			.setAction(InteractionAction.RETRY_WITH_FEEDBACK)
-			.setRequiresInput(true)
-			.setInputPrompt("请提供反馈（可选）"));
-
 		request.addOption(new InteractionOption().setOptionId("reject")
 			.setLabel("拒绝并说明理由")
 			.setDescription("拒绝执行并提供反馈给 Agent")

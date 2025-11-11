@@ -6,7 +6,7 @@ import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.contract.service.*;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
@@ -49,7 +49,7 @@ public class FinalAgent extends Agent {
 
 			""";
 
-	public FinalAgent(ChatModel chatModel, ToolService toolService) {
+	public FinalAgent(ChatModel chatModel, IToolService toolService) {
 
 		super(AGENT_ID, "FinalAgent", "负责最终结果输出", chatModel, toolService, Set.of("*"));
 		this.setCapabilities(new String[] { "close" });

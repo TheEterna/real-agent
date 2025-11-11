@@ -114,12 +114,12 @@ public class PromptUtils {
 
 		// 2. build data: 根据不同的 AgentMode 渲染不同的环境信息
 		switch (agentMode) {
-            case DIRECT:
-                envBuilder.append(renderDirectModeEnv(taskModeMeta));
-                break;
-            case SIMPLE:
-                envBuilder.append(renderSimpleModeEnv(taskModeMeta));
-                break;
+			case DIRECT:
+				envBuilder.append(renderDirectModeEnv(taskModeMeta));
+				break;
+			case SIMPLE:
+				envBuilder.append(renderSimpleModeEnv(taskModeMeta));
+				break;
 			case PLAN:
 				envBuilder.append(renderPlanModeEnv(taskModeMeta));
 				break;
@@ -232,6 +232,7 @@ public class PromptUtils {
 
 		return builder.toString();
 	}
+
 	/**
 	 * 渲染简单模式的环境信息
 	 */

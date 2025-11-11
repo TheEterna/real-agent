@@ -8,7 +8,7 @@ import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.contract.service.*;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
@@ -61,7 +61,7 @@ public class ActionAgent extends Agent {
 	/**
 	 * 构造函数
 	 */
-	public ActionAgent(ChatModel chatModel, ToolService toolService, ToolApprovalMode toolApprovalMode) {
+	public ActionAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode) {
 
 		super(AGENT_ID, "ReActAgentStrategy-ActionAgent", "负责ReAct框架中的行动(Acting)阶段，执行思考阶段的行动指令", chatModel, toolService,
 				Set.of("ReActAgentStrategy", "行动", "Action", NounConstants.MCP, NounConstants.TASK_DONE),

@@ -21,7 +21,6 @@ public class AgentExecutionEvent extends TraceInfo {
 
 	private Map<String, Object> meta;
 
-
 	private AgentExecutionEvent(EventType type, String message, Object data, Traceable traceInfo) {
 		this.type = type;
 		this.message = message;
@@ -61,8 +60,14 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.PROGRESS, message, data, traceInfo);
 	}
 
-	public static AgentExecutionEvent toolApproval(Traceable traceInfo, String message, Object data) {
-		return new AgentExecutionEvent(EventType.TOOL_APPROVAL, message, data, traceInfo);
+	public static AgentExecutionEvent toolApproval(Traceable traceInfo, String message, Object data,
+			Map<String, Object> meta) {
+
+		return new AgentExecutionEvent(EventType.TOOL_APPROVAL, message, data, traceInfo) {
+			{
+				setMeta(meta);
+			}
+		};
 	}
 
 	/**
@@ -90,10 +95,6 @@ public class AgentExecutionEvent extends TraceInfo {
 
 	public static AgentExecutionEvent taskAnalysis(Traceable traceInfo, String message, Object data) {
 		return new AgentExecutionEvent(EventType.TASK_ANALYSIS, message, data, traceInfo);
-	}
-
-	public static AgentExecutionEvent action(Traceable traceInfo, String action) {
-		return new AgentExecutionEvent(EventType.ACTION, action, null, traceInfo);
 	}
 
 	public static AgentExecutionEvent tool(Traceable traceInfo, ToolResponse toolResponse, String message,
@@ -160,7 +161,6 @@ public class AgentExecutionEvent extends TraceInfo {
 		PROGRESS, // 执行进度
 		AGENT_SELECTED, // Agent选择
 		THINKING, // Agent思考中
-		ACTION, // Agent执行行动
 		ACTING, // 执行行动
 		OBSERVING, // Agent观察结果
 		COLLABORATING, // Agent协作

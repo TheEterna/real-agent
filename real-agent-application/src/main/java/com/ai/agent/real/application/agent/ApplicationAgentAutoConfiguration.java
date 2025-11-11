@@ -18,7 +18,7 @@ import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
 import com.ai.agent.real.contract.model.property.ContextZipMode;
 import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.service.IPropertyService;
-import com.ai.agent.real.contract.service.ToolService;
+import com.ai.agent.real.contract.tool.IToolService;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +36,8 @@ public class ApplicationAgentAutoConfiguration {
 	 * register default agent session manager
 	 */
 	@Bean
-	public IAgentSessionManagerService agentSessionManagerService(@Qualifier("reActPlusAgentStrategy") IAgentStrategy agentStrategy) {
+	public IAgentSessionManagerService agentSessionManagerService(
+			@Qualifier("reActPlusAgentStrategy") IAgentStrategy agentStrategy) {
 		return new AgentSessionManagerService(agentStrategy);
 	}
 
@@ -64,64 +65,65 @@ public class ApplicationAgentAutoConfiguration {
 	 * =================== Agent part ===========================
 	 */
 	@Bean
-	public ThinkingAgent thinkingAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+	public ThinkingAgent thinkingAgent(ChatModel chatModel, IToolService toolService,
+			IPropertyService propertyService) {
 		ToolApprovalMode mode = propertyService.getToolApprovalMode();
 		return new ThinkingAgent(chatModel, toolService, mode);
 	}
 
 	@Bean
-	public ActionAgent actionAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+	public ActionAgent actionAgent(ChatModel chatModel, IToolService toolService, IPropertyService propertyService) {
 		ToolApprovalMode mode = propertyService.getToolApprovalMode();
 		return new ActionAgent(chatModel, toolService, mode);
 	}
 
 	@Bean
-	public ObservationAgent observationAgent(ChatModel chatModel, ToolService toolService,
+	public ObservationAgent observationAgent(ChatModel chatModel, IToolService toolService,
 			IPropertyService propertyService) {
 		ToolApprovalMode mode = propertyService.getToolApprovalMode();
 		return new ObservationAgent(chatModel, toolService, mode);
 	}
 
 	@Bean
-	public FinalAgent finalAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+	public FinalAgent finalAgent(ChatModel chatModel, IToolService toolService, IPropertyService propertyService) {
 		return new FinalAgent(chatModel, toolService);
 	}
 
 	@Bean
 	// TODO: 待完善
-	public TaskAnalysisAgent taskAnalysisAgent(ChatModel chatModel, ToolService toolService,
+	public TaskAnalysisAgent taskAnalysisAgent(ChatModel chatModel, IToolService toolService,
 			IPropertyService propertyService) {
 		return new TaskAnalysisAgent(chatModel, toolService);
 	}
 
 	@Bean
 	// TODO: 待完善
-	public PlanInitAgent planInitAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+	public PlanInitAgent planInitAgent(ChatModel chatModel, IToolService toolService,
+			IPropertyService propertyService) {
 		return new PlanInitAgent(chatModel, toolService);
 	}
 
 	@Bean
 	// TODO: 待完善
-	public ThoughtAgent thoughtAgent(ChatModel chatModel, ToolService toolService, IPropertyService propertyService) {
+	public ThoughtAgent thoughtAgent(ChatModel chatModel, IToolService toolService, IPropertyService propertyService) {
 		return new ThoughtAgent(chatModel, toolService);
 	}
 
-
 	@Bean
 	public IAgentStrategy reActPlusAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-                                                 ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
+			ObservationAgent observationAgent, FinalAgent finalAgent, IToolService toolService) {
 		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
 	}
 
 	@Bean
-	public ThinkingPlusAgent thinkingPlusAgent(ChatModel chatModel, ToolService toolService,
+	public ThinkingPlusAgent thinkingPlusAgent(ChatModel chatModel, IToolService toolService,
 			IPropertyService propertyService) {
 		ToolApprovalMode mode = propertyService.getToolApprovalMode();
 		return new ThinkingPlusAgent(chatModel, toolService, mode);
 	}
 
 	@Bean
-	public ActionPlusAgent actionPlusAgent(ChatModel chatModel, ToolService toolService,
+	public ActionPlusAgent actionPlusAgent(ChatModel chatModel, IToolService toolService,
 			IPropertyService propertyService) {
 		ToolApprovalMode mode = propertyService.getToolApprovalMode();
 		return new ActionPlusAgent(chatModel, toolService, mode);
@@ -133,17 +135,17 @@ public class ApplicationAgentAutoConfiguration {
 	@Bean("reActPlusAgentStrategy")
 	@Primary
 	public IAgentStrategy reActPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
-                                                 ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
-                                                 FinalAgent finalAgent, ContextManager contextManager) {
+			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
+			FinalAgent finalAgent, ContextManager contextManager) {
 
 		return new ReActPlusAgentStrategy(taskAnalysisAgent, planInitAgent, thoughtAgent, thinkingPlusAgent,
 				actionPlusAgent, finalAgent, contextManager);
 	}
 
-    @Bean("reActAgentStrategy")
-    public IAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-                                             ObservationAgent observationAgent, FinalAgent finalAgent, ToolService toolService) {
-        return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
-    }
+	@Bean("reActAgentStrategy")
+	public IAgentStrategy reactAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
+			ObservationAgent observationAgent, FinalAgent finalAgent, IToolService toolService) {
+		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
+	}
 
 }

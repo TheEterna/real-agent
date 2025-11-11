@@ -7,8 +7,8 @@ import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.contract.service.*;
 import com.ai.agent.real.contract.tool.AgentTool;
+import com.ai.agent.real.contract.tool.IToolService;
 import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.exc.*;
@@ -204,7 +204,7 @@ public class FluxUtils {
 	 * @return 流式执行结果
 	 */
 	public static Flux<AgentExecutionEvent> executeWithToolSupport(ChatModel chatModel, Prompt prompt,
-			AgentContextAble context, String agentId, ToolService toolService, ToolApprovalMode toolApprovalMode,
+			AgentContextAble context, String agentId, IToolService toolService, ToolApprovalMode toolApprovalMode,
 			EventType eventType) {
 		return executeWithToolSupport(chatModel, prompt, context, agentId, toolService, toolApprovalMode, eventType,
 				ToolApprovalCallback.NOOP);
@@ -223,52 +223,51 @@ public class FluxUtils {
 	 * @return 流式执行结果
 	 */
 	public static Flux<AgentExecutionEvent> executeWithToolSupport(ChatModel chatModel, Prompt prompt,
-			AgentContextAble context, String agentId, ToolService toolService, ToolApprovalMode toolApprovalMode,
+			AgentContextAble context, String agentId, IToolService toolService, ToolApprovalMode toolApprovalMode,
 			EventType eventType, ToolApprovalCallback approvalCallback) {
 
-		return chatModel.stream(prompt)
-			.doOnSubscribe(subscription -> {
-				log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
-				log.debug("Prompt消息数量: {}, 工具数量: {}", prompt.getInstructions().size(),
-						prompt.getOptions() != null ? "有工具配置" : "无工具配置");
-			})
-			.concatMap(response -> {
-				log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
-						response.getResult() != null);
+		return chatModel.stream(prompt).doOnSubscribe(subscription -> {
+			log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
+			log.debug("Prompt消息数量: {}, 工具数量: {}", prompt.getInstructions().size(),
+					prompt.getOptions() != null ? "有工具配置" : "无工具配置");
+		}).concatMap(response -> {
+			log.debug("收到ChatResponse: metadata={}, hasResult={}", response.getMetadata(),
+					response.getResult() != null);
 
-				// 检查是否是空的generations
-				if (response.getResults().isEmpty()) {
-					log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
-					log.warn("ChatResponse详情: {}", response);
-					return Flux.empty();
-				}
+			// 检查是否是空的generations
+			if (response.getResults().isEmpty()) {
+				log.warn("收到空的generations列表，这可能表明LLM拒绝了请求或提示词有问题");
+				log.warn("ChatResponse详情: {}", response);
+				return Flux.empty();
+			}
 
-				String content = response.getResult().getOutput().getText();
+			String content = response.getResult().getOutput().getText();
 
-				// 处理文本内容
-				Flux<AgentExecutionEvent> contentFlux = Flux.empty();
-				if (content != null && !content.trim().isEmpty()) {
-					AgentExecutionEvent event = AgentExecutionEvent.common(eventType, context, content);
-					contentFlux = Flux.just(event);
-				}
+			// 处理文本内容
+			Flux<AgentExecutionEvent> contentFlux = Flux.empty();
+			if (content != null && !content.trim().isEmpty()) {
+				AgentExecutionEvent event = AgentExecutionEvent.common(eventType, context, content);
+				contentFlux = Flux.just(event);
+			}
 
-				// 处理工具调用
-				Flux<AgentExecutionEvent> toolFlux = Flux.empty();
-				if (ToolUtils.hasToolCallingNative(response)) {
-					// 优先使用上下文中的回调，如果没有则使用传入的回调
-					ToolApprovalCallback effectiveCallback = context.getToolApprovalCallback() != null
-							? context.getToolApprovalCallback() : approvalCallback;
-					toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
-						.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode,
-								effectiveCallback));
-				}
+			// 处理工具调用
+			Flux<AgentExecutionEvent> toolFlux = Flux.empty();
+			if (ToolUtils.hasToolCallingNative(response)) {
+				// 优先使用上下文中的回调，如果没有则使用传入的回调
+				ToolApprovalCallback effectiveCallback = context.getToolApprovalCallback() != null
+						? context.getToolApprovalCallback() : approvalCallback;
+				toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
+					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode,
+							effectiveCallback));
+			}
 
-				// 合并内容和工具调用结果
-				return Flux.concat(contentFlux, toolFlux);
-			})
+			// 合并内容和工具调用结果
+			return Flux.concat(contentFlux, toolFlux);
+		})
 			// 错误恢复机制：LLM 调用级别的错误处理
 			.onErrorResume(error -> {
-				log.error("LLM 调用失败，agentId: {}, eventType: {}, error: {}", agentId, eventType, error.getMessage(), error);
+				log.error("LLM 调用失败，agentId: {}, eventType: {}, error: {}", agentId, eventType, error.getMessage(),
+						error);
 
 				// 根据错误类型决定恢复策略
 				String errorMsg = buildErrorMessage(error, agentId, eventType);
@@ -307,7 +306,7 @@ public class FluxUtils {
 	 * 执行单个工具调用
 	 */
 	private static Flux<AgentExecutionEvent> executeToolCall(ToolCall toolCall, AgentContextAble context,
-			ToolService toolService, ToolApprovalMode toolApprovalMode, ToolApprovalCallback approvalCallback) {
+			IToolService toolService, ToolApprovalMode toolApprovalMode, ToolApprovalCallback approvalCallback) {
 
 		String toolName = toolCall.name();
 		String toolCallId = toolCall.id();
@@ -337,43 +336,45 @@ public class FluxUtils {
 						.flux()
 						// 工具执行失败的恢复机制
 						.onErrorResume(error -> {
-							String errorMsg = String.format("工具 [%s] 执行失败: %s",
-								toolName, error.getMessage() != null ? error.getMessage() : "未知错误");
+							String errorMsg = String.format("工具 [%s] 执行失败: %s", toolName,
+									error.getMessage() != null ? error.getMessage() : "未知错误");
 							log.error(errorMsg, error);
 							return Flux.just(AgentExecutionEvent.error(errorMsg));
 						});
 
-                    // fixme: 工具审批
-//				case REQUIRE_APPROVAL:
-//					log.info("工具需要人工审批: {}", toolName);
-//					return Flux.just(AgentExecutionEvent.toolApproval(context,
-//							new ToolApprovalRequest(toolCallId, toolName, args)));
+				// fixme: 工具审批
+				// case REQUIRE_APPROVAL:
+				// log.info("工具需要人工审批: {}", toolName);
+				// return Flux.just(AgentExecutionEvent.toolApproval(context,
+				// new ToolApprovalRequest(toolCallId, toolName, args)));
 
+				case REQUIRE_APPROVAL:
+					// 需要审批：调用回调通知上层，并返回空流（暂停执行）
+					log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
 
-                case REQUIRE_APPROVAL:
-                    // 需要审批：调用回调通知上层，并返回空流（暂停执行）
-                    log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
+					// 通知上层需要审批
+					approvalCallback.requestApproval(context.getSessionId(), toolCallId, toolName, args, context);
 
-                    // 通知上层需要审批
-                    approvalCallback.requestApproval(context.getSessionId(), toolCallId, toolName, args, context);
+					context.setToolApprovalCallback(approvalCallback);
 
-                    // 返回空流，暂停当前执行
-                    // 注意：这里不会继续执行，需要等待审批后通过其他方式恢复
-                    return Flux.just(AgentExecutionEvent.toolApproval(context, "", new ToolApprovalRequest(toolCallId, toolName, args)));
-                case DISABLED:
-                default:
-                    // 禁用审批：直接执行
-                    log.info("工具执行（无审批）: {}", toolName);
-                    context.setToolArgs(args);
-                    return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
-                            toolCallId, toolName)
-                            .flux();
+					// 返回空流，暂停当前执行
+					// 注意：这里不会继续执行，需要等待审批后通过其他方式恢复
+					return Flux.just(AgentExecutionEvent.toolApproval(context, null,
+							new ToolApprovalRequest(toolCallId, toolName, args), Map.of("toolSchema", tool.getSpec())));
+				case DISABLED:
+				default:
+					// 禁用审批：直接执行
+					log.info("工具执行（无审批）: {}", toolName);
+					context.setToolArgs(args);
+					return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
+							toolCallId, toolName)
+						.flux();
 			}
 		}
 		catch (Exception e) {
 			// 捕获参数解析等早期错误
-			String errorMsg = String.format("工具调用准备失败 [%s]: %s",
-				toolName, e.getMessage() != null ? e.getMessage() : "参数解析错误");
+			String errorMsg = String.format("工具调用准备失败 [%s]: %s", toolName,
+					e.getMessage() != null ? e.getMessage() : "参数解析错误");
 			log.error(errorMsg, e);
 			return Flux.just(AgentExecutionEvent.error(errorMsg));
 		}
@@ -402,6 +403,7 @@ public class FluxUtils {
 		}
 	}
 
-    public record ToolApprovalRequest(String toolCallId, String toolName, Map<String, Object> args) {}
+	public record ToolApprovalRequest(String toolCallId, String toolName, Map<String, Object> args) {
+	}
 
 }

@@ -52,12 +52,9 @@ public class ReActAgentController {
 		}
 
 		// 创建执行上下文
-		ReActAgentContext context = new ReActAgentContext(
-                new TraceInfo()
-                        .setSessionId(request.getSessionId())
-                        .setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
-                        .setStartTime(LocalDateTime.now())
-        );
+		ReActAgentContext context = new ReActAgentContext(new TraceInfo().setSessionId(request.getSessionId())
+			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
+			.setStartTime(LocalDateTime.now()));
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());

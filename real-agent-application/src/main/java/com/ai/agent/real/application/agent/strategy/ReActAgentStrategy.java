@@ -15,7 +15,7 @@ import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.protocol.*;
-import com.ai.agent.real.contract.service.ToolService;
+import com.ai.agent.real.contract.tool.IToolService;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse;
@@ -42,10 +42,10 @@ public class ReActAgentStrategy implements IAgentStrategy {
 
 	private final FinalAgent finalAgent;
 
-	private final ToolService toolService;
+	private final IToolService toolService;
 
 	public ReActAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent, ObservationAgent observationAgent,
-			FinalAgent finalAgent, ToolService toolService) {
+			FinalAgent finalAgent, IToolService toolService) {
 		this.thinkingAgent = thinkingAgent;
 		this.actionAgent = actionAgent;
 		this.observationAgent = observationAgent;
@@ -202,7 +202,8 @@ public class ReActAgentStrategy implements IAgentStrategy {
 
 				// 2. 执行观察阶段
 				Flux.defer(() -> {
-					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context, ObservationAgent.AGENT_ID);
+					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context,
+							ObservationAgent.AGENT_ID);
 					return FluxUtils.stage(observationAgent.executeStream(task, observingCtx), context,
 							ObservationAgent.AGENT_ID, evt -> log.debug("[EVT/OBSERVE/RESUME] type={}", evt.getType()),
 							() -> log.info("观察阶段结束（恢复后）"));
@@ -293,7 +294,8 @@ public class ReActAgentStrategy implements IAgentStrategy {
 				// 3. 观察阶段（封装：先过滤DONE，再应用上下文合并与日志回调）
 				Flux.defer(() -> {
 					// 此时 context 已包含行动阶段写回的历史
-					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context, ObservationAgent.AGENT_ID);
+					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context,
+							ObservationAgent.AGENT_ID);
 					log.debug("[ITERATION {}] 构建观察阶段上下文 | {}", iteration, AgentUtils.snapshot(observingCtx));
 					return FluxUtils.stage(observationAgent.executeStream(userInput, observingCtx), context,
 							ObservationAgent.AGENT_ID,

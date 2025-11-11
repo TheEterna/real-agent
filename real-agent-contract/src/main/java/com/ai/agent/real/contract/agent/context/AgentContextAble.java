@@ -87,66 +87,65 @@ public interface AgentContextAble<M> extends Traceable {
 	}
 
 	default M getMetadata() {
-        throw new UnsupportedOperationException("not support metadata");
+		throw new UnsupportedOperationException("not support metadata");
 	}
 
-    Traceable getTrace();
+	Traceable getTrace();
 
+	default String getSessionId() {
+		return getTrace().getSessionId();
+	}
 
-    default String getSessionId() {
-        return getTrace().getSessionId();
-    }
+	default Traceable setSessionId(String sessionId) {
+		return getTrace().setSessionId(sessionId);
+	}
 
-    default Traceable setSessionId(String sessionId) {
-        return getTrace().setSessionId(sessionId);
-    }
+	default String getTurnId() {
+		return getTrace().getTurnId();
+	}
 
-    default String getTurnId() {
-        return getTrace().getTurnId();
-    }
+	default Traceable setTurnId(String turnId) {
+		return getTrace().setTurnId(turnId);
+	}
 
-    default Traceable setTurnId(String turnId) {
-        return getTrace().setTurnId(turnId);
-    }
+	default LocalDateTime getStartTime() {
+		return getTrace().getStartTime();
+	}
 
-    default LocalDateTime getStartTime() {
-        return getTrace().getStartTime();
-    }
+	default Traceable setStartTime(LocalDateTime startTime) {
+		return getTrace().setStartTime(startTime);
+	}
 
-    default Traceable setStartTime(LocalDateTime startTime) {
-        return getTrace().setStartTime(startTime);
-    }
+	default LocalDateTime getEndTime() {
+		return getTrace().getEndTime();
+	}
 
-    default LocalDateTime getEndTime() {
-        return getTrace().getEndTime();
-    }
+	default Traceable setEndTime(LocalDateTime endTime) {
+		return getTrace().setEndTime(endTime);
+	}
 
-    default Traceable setEndTime(LocalDateTime endTime) {
-        return getTrace().setEndTime(endTime);
-    }
+	default String getSpanId() {
+		return getTrace().getSpanId();
+	}
 
-    default String getSpanId() {
-        return getTrace().getSpanId();
-    }
+	default Traceable setSpanId(String spanId) {
+		return getTrace().setSpanId(spanId);
+	}
 
-    default Traceable setSpanId(String spanId) {
-        return getTrace().setSpanId(spanId);
-    }
+	default String getNodeId() {
+		return getTrace().getNodeId();
+	}
 
-    default String getNodeId() {
-        return getTrace().getNodeId();
-    }
+	default Traceable setNodeId(String nodeId) {
+		return getTrace().setNodeId(nodeId);
+	}
 
-    default Traceable setNodeId(String nodeId) {
-        return getTrace().setNodeId(nodeId);
-    }
+	default String getAgentId() {
+		return getTrace().getAgentId();
+	}
 
-    default String getAgentId() {
-        return getTrace().getAgentId();
-    }
-
-    default Traceable setAgentId(String agentId) {
-        return getTrace().setAgentId(agentId);
-    }
+	default Traceable setAgentId(String agentId) {
+		return getTrace().setAgentId(agentId);
+	}
 
 }

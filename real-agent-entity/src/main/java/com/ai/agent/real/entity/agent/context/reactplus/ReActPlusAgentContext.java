@@ -86,9 +86,9 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public ReActPlusAgentContext addMessage(AgentMessage message) {
-        message.setContent(message.getText());
-        this.messageHistory.add(message);
-        return this;
+		message.setContent(message.getText());
+		this.messageHistory.add(message);
+		return this;
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public ReActPlusAgentContext addMessages(List<AgentMessage> messages) {
-        this.messageHistory.addAll(messages);
+		this.messageHistory.addAll(messages);
 		return this;
 	}
 
@@ -168,9 +168,8 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	 */
 	@Override
 	public void setToolArgs(Map<String, Object> toolArgs) {
-        this.toolArgs = toolArgs;
+		this.toolArgs = toolArgs;
 	}
-
 
 	@Override
 	public String getTask() {
@@ -205,12 +204,12 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 		return this.meta;
 	}
 
-    @Override
-    public Traceable getTrace() {
-        return this.trace;
-    }
+	@Override
+	public Traceable getTrace() {
+		return this.trace;
+	}
 
-    /**
+	/**
 	 * @param metadata
 	 */
 	@Override

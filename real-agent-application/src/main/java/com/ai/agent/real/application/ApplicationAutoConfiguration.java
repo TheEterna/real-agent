@@ -4,7 +4,7 @@ import com.ai.agent.real.application.agent.ApplicationAgentAutoConfiguration;
 import com.ai.agent.real.application.plugin.ApplicationPluginBeanConfiguration;
 import com.ai.agent.real.application.tool.system.*;
 import com.ai.agent.real.common.constant.NounConstants;
-import com.ai.agent.real.contract.service.ToolService;
+import com.ai.agent.real.contract.tool.IToolService;
 import com.ai.agent.real.application.tool.service.ToolServiceImpl;
 import com.ai.agent.real.contract.tool.AgentTool;
 import io.modelcontextprotocol.client.McpAsyncClient;
@@ -31,9 +31,9 @@ public class ApplicationAutoConfiguration {
 	 */
 
 	@Bean
-	public ToolService toolService(List<McpAsyncClient> mcpAsyncClients) {
+	public IToolService toolService(List<McpAsyncClient> mcpAsyncClients) {
 
-		ToolService toolService = new ToolServiceImpl(mcpAsyncClients);
+		IToolService toolService = new ToolServiceImpl(mcpAsyncClients);
 
 		// custom handle tool register
 

@@ -7,7 +7,7 @@ import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
-import com.ai.agent.real.contract.service.*;
+import com.ai.agent.real.contract.tool.IToolService;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
@@ -70,7 +70,7 @@ public class ObservationAgent extends Agent {
 
 			""";
 
-	public ObservationAgent(ChatModel chatModel, ToolService toolService, ToolApprovalMode toolApprovalMode) {
+	public ObservationAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode) {
 
 		super(AGENT_ID, "ReActAgentStrategy-ObservationAgent",
 				"负责ReAct框架中的观察(Observation)阶段，分析工具执行结果，总结执行效果，为下一轮思考提供输入", chatModel, toolService,

@@ -134,9 +134,6 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 		return taskCompleted;
 	}
 
-
-
-
 	@Override
 	public String getTask() {
 		return task;
@@ -146,7 +143,6 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	public void setTask(String task) {
 		this.task = task;
 	}
-
 
 	@Override
 	public Map<String, Object> getToolArgs() {
@@ -183,12 +179,12 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 		this.messageHistory = messageHistory;
 	}
 
-    @Override
-    public Traceable getTrace() {
-        return this.trace;
-    }
+	@Override
+	public Traceable getTrace() {
+		return this.trace;
+	}
 
-    /**
+	/**
 	 * 创建一个包含工具参数的 AgentContext 对象
 	 * @param toolArgs 工具参数
 	 * @return 包含工具参数的 AgentContext 对象

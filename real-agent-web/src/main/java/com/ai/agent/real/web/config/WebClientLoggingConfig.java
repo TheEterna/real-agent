@@ -20,8 +20,9 @@ public class WebClientLoggingConfig {
 			// .filter(ExchangeFilterFunctions.())
 			// 打印响应状态与headers
 			.filter((request, next) -> next.exchange(request).doOnNext(response -> {
-//				log.info("[WebClient] {} {} {} 响应状态: {}", request.method(), request.url(), request.body(),
-//						response.statusCode());
+				// log.info("[WebClient] {} {} {} 响应状态: {}", request.method(),
+				// request.url(), request.body(),
+				// response.statusCode());
 			}));
 		// 打印响应Body（明文字符串）；注意：仅在响应体是文本/JSON时有意义
 		// .filter((request, next) -> next.exchange(request)
