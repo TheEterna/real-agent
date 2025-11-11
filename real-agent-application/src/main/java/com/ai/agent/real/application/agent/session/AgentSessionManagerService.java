@@ -4,7 +4,6 @@ import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 
 import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.interaction.*;
@@ -187,7 +186,7 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 	}
 
 	/**
-	 * 暂停会话执行，等待工具审批（便捷方法） 此方法会被 ToolApprovalCallback 调用
+	 * 暂停会话执行，等待工具审批（便捷方法）
 	 * @param sessionId 会话ID
 	 * @param toolCallId 工具调用ID
 	 * @param toolName 工具名称
@@ -314,33 +313,24 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 	private void resumeWithExecution(SessionState state, ResumePoint resumePoint) {
 		log.info("[AgentSessionHub] 同意并执行: resumeId={}", resumePoint.getResumeId());
 
-		// 创建回调（用于后续可能的工具审批）
-		ToolApprovalCallback approvalCallback = (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid, tname,
-				targs, ctx);
-
 		// 调用 ReActAgentStrategy 的 resumeFromToolApproval 方法
-		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
-			.map(this::toSSE)
-			.doOnNext(event -> {
-				// 推送事件到Sink
-				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-				if (result.isFailure()) {
-					log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
-				}
-			})
-			.doOnError(error -> {
-				log.error("[AgentSessionHub] 恢复执行异常: sessionId={}", state.getSessionId(), error);
-				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
-			})
-			.doOnComplete(() -> {
-				log.info("[AgentSessionHub] 恢复执行完成: sessionId={}", state.getSessionId());
-				// 任务完成后关闭Sink
-				state.getSink().tryEmitComplete();
-				state.setClosed(true);
-				// 清理会话
-				sessions.remove(state.getSessionId());
-			})
-			.subscribe();
+		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint).map(this::toSSE).doOnNext(event -> {
+			// 推送事件到Sink
+			Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+			if (result.isFailure()) {
+				log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
+			}
+		}).doOnError(error -> {
+			log.error("[AgentSessionHub] 恢复执行异常: sessionId={}", state.getSessionId(), error);
+			state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
+		}).doOnComplete(() -> {
+			log.info("[AgentSessionHub] 恢复执行完成: sessionId={}", state.getSessionId());
+			// 任务完成后关闭Sink
+			state.getSink().tryEmitComplete();
+			state.setClosed(true);
+			// 清理会话
+			sessions.remove(state.getSessionId());
+		}).subscribe();
 
 		state.setCurrentExecution(execution);
 	}
@@ -357,30 +347,21 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 				.addMessage(com.ai.agent.real.contract.model.message.AgentMessage.user("用户反馈: " + feedback, "user"));
 		}
 
-		// 创建回调
-		ToolApprovalCallback approvalCallback = (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid, tname,
-				targs, ctx);
-
 		// 从当前迭代重新开始（让 Agent 重新思考）
-		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
-			.map(this::toSSE)
-			.doOnNext(event -> {
-				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-				if (result.isFailure()) {
-					log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
-				}
-			})
-			.doOnError(error -> {
-				log.error("[AgentSessionHub] 重新执行异常: sessionId={}", state.getSessionId(), error);
-				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
-			})
-			.doOnComplete(() -> {
-				log.info("[AgentSessionHub] 重新执行完成: sessionId={}", state.getSessionId());
-				state.getSink().tryEmitComplete();
-				state.setClosed(true);
-				sessions.remove(state.getSessionId());
-			})
-			.subscribe();
+		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint).map(this::toSSE).doOnNext(event -> {
+			Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+			if (result.isFailure()) {
+				log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
+			}
+		}).doOnError(error -> {
+			log.error("[AgentSessionHub] 重新执行异常: sessionId={}", state.getSessionId(), error);
+			state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
+		}).doOnComplete(() -> {
+			log.info("[AgentSessionHub] 重新执行完成: sessionId={}", state.getSessionId());
+			state.getSink().tryEmitComplete();
+			state.setClosed(true);
+			sessions.remove(state.getSessionId());
+		}).subscribe();
 
 		state.setCurrentExecution(execution);
 	}
@@ -402,30 +383,21 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 		// 推送拒绝消息
 		state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(rejectMessage)));
 
-		// 创建回调
-		ToolApprovalCallback approvalCallback = (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid, tname,
-				targs, ctx);
-
 		// 继续执行（跳过当前工具，进入下一轮迭代）
-		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
-			.map(this::toSSE)
-			.doOnNext(event -> {
-				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-				if (result.isFailure()) {
-					log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
-				}
-			})
-			.doOnError(error -> {
-				log.error("[AgentSessionHub] 拒绝后继续执行异常: sessionId={}", state.getSessionId(), error);
-				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
-			})
-			.doOnComplete(() -> {
-				log.info("[AgentSessionHub] 拒绝后继续执行完成: sessionId={}", state.getSessionId());
-				state.getSink().tryEmitComplete();
-				state.setClosed(true);
-				sessions.remove(state.getSessionId());
-			})
-			.subscribe();
+		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint).map(this::toSSE).doOnNext(event -> {
+			Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+			if (result.isFailure()) {
+				log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
+			}
+		}).doOnError(error -> {
+			log.error("[AgentSessionHub] 拒绝后继续执行异常: sessionId={}", state.getSessionId(), error);
+			state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
+		}).doOnComplete(() -> {
+			log.info("[AgentSessionHub] 拒绝后继续执行完成: sessionId={}", state.getSessionId());
+			state.getSink().tryEmitComplete();
+			state.setClosed(true);
+			sessions.remove(state.getSessionId());
+		}).subscribe();
 
 		state.setCurrentExecution(execution);
 	}
@@ -466,30 +438,21 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 				.addMessage(com.ai.agent.real.contract.model.message.AgentMessage.user("用户提供的信息: " + data, "user"));
 		}
 
-		// 创建回调
-		ToolApprovalCallback approvalCallback = (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid, tname,
-				targs, ctx);
-
 		// 继续执行
-		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
-			.map(this::toSSE)
-			.doOnNext(event -> {
-				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-				if (result.isFailure()) {
-					log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
-				}
-			})
-			.doOnError(error -> {
-				log.error("[AgentSessionHub] 提供信息后继续执行异常: sessionId={}", state.getSessionId(), error);
-				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
-			})
-			.doOnComplete(() -> {
-				log.info("[AgentSessionHub] 提供信息后继续执行完成: sessionId={}", state.getSessionId());
-				state.getSink().tryEmitComplete();
-				state.setClosed(true);
-				sessions.remove(state.getSessionId());
-			})
-			.subscribe();
+		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint).map(this::toSSE).doOnNext(event -> {
+			Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+			if (result.isFailure()) {
+				log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
+			}
+		}).doOnError(error -> {
+			log.error("[AgentSessionHub] 提供信息后继续执行异常: sessionId={}", state.getSessionId(), error);
+			state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
+		}).doOnComplete(() -> {
+			log.info("[AgentSessionHub] 提供信息后继续执行完成: sessionId={}", state.getSessionId());
+			state.getSink().tryEmitComplete();
+			state.setClosed(true);
+			sessions.remove(state.getSessionId());
+		}).subscribe();
 
 		state.setCurrentExecution(execution);
 	}
@@ -503,30 +466,21 @@ public class AgentSessionManagerService implements IAgentSessionManagerService {
 		// 推送跳过消息
 		state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.progress(state.getContext(), "用户跳过当前操作", null)));
 
-		// 创建回调
-		ToolApprovalCallback approvalCallback = (sid, tcid, tname, targs, ctx) -> pauseForToolApproval(sid, tcid, tname,
-				targs, ctx);
-
 		// 继续执行下一步
-		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint, approvalCallback)
-			.map(this::toSSE)
-			.doOnNext(event -> {
-				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-				if (result.isFailure()) {
-					log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
-				}
-			})
-			.doOnError(error -> {
-				log.error("[AgentSessionHub] 跳过后继续执行异常: sessionId={}", state.getSessionId(), error);
-				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
-			})
-			.doOnComplete(() -> {
-				log.info("[AgentSessionHub] 跳过后继续执行完成: sessionId={}", state.getSessionId());
-				state.getSink().tryEmitComplete();
-				state.setClosed(true);
-				sessions.remove(state.getSessionId());
-			})
-			.subscribe();
+		Disposable execution = agentStrategy.resumeFromToolApproval(resumePoint).map(this::toSSE).doOnNext(event -> {
+			Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+			if (result.isFailure()) {
+				log.warn("[AgentSessionHub] 推送事件失败: sessionId={}, result={}", state.getSessionId(), result);
+			}
+		}).doOnError(error -> {
+			log.error("[AgentSessionHub] 跳过后继续执行异常: sessionId={}", state.getSessionId(), error);
+			state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));
+		}).doOnComplete(() -> {
+			log.info("[AgentSessionHub] 跳过后继续执行完成: sessionId={}", state.getSessionId());
+			state.getSink().tryEmitComplete();
+			state.setClosed(true);
+			sessions.remove(state.getSessionId());
+		}).subscribe();
 
 		state.setCurrentExecution(execution);
 	}

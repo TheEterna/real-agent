@@ -1,6 +1,5 @@
 package com.ai.agent.real.contract.agent.context;
 
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.Traceable;
 import com.ai.agent.real.contract.model.message.AgentMessage;
 import org.springframework.ai.model.ModelOptionsUtils;
@@ -69,16 +68,6 @@ public interface AgentContextAble<M> extends Traceable {
 	String getTask();
 
 	void setTask(String task);
-
-	/**
-	 * @return tool approval callback
-	 */
-	ToolApprovalCallback getToolApprovalCallback();
-
-	/**
-	 * set tool approval callback
-	 */
-	void setToolApprovalCallback(ToolApprovalCallback toolApprovalCallback);
 
 	void setMessageHistory(List<AgentMessage> messageHistory);
 

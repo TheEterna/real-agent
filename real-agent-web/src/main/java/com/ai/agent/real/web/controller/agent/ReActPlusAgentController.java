@@ -4,9 +4,7 @@ import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.interaction.InteractionResponse;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.TraceInfo;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
@@ -61,12 +59,6 @@ public class ReActPlusAgentController {
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());
-
-		// 创建工具审批回调
-		ToolApprovalCallback approvalCallback = (sessionId, toolCallId, toolName, toolArgs,
-				ctx) -> agentSessionManagerService.pauseForToolApproval(sessionId, toolCallId, toolName, toolArgs, ctx);
-		// 设置回调到上下文
-		context.setToolApprovalCallback(approvalCallback);
 
 		// 通过AgentSessionHub订阅会话
 		return agentSessionManagerService.subscribe(request.getSessionId(), request.getMessage(), context)

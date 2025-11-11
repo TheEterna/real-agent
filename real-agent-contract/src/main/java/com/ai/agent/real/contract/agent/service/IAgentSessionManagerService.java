@@ -48,7 +48,7 @@ public interface IAgentSessionManagerService {
 	void handleInteractionResponse(String sessionId, InteractionResponse response);
 
 	/**
-	 * 暂停会话执行，等待工具审批（便捷方法） 此方法会被 ToolApprovalCallback 调用
+	 * 暂停会话执行，等待工具审批（便捷方法）
 	 * @param sessionId 会话ID
 	 * @param toolCallId 工具调用ID
 	 * @param toolName 工具名称

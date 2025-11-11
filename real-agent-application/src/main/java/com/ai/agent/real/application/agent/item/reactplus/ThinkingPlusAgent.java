@@ -210,10 +210,11 @@ public class ThinkingPlusAgent extends Agent {
 		Prompt prompt = AgentUtils.buildPromptWithContext(null, context, SYSTEM_PROMPT, thinkingPrompt);
 
 		// 设置更低的温度和 top_p 以获得更稳定的分析结果
-//		ChatOptions defaultOptions = chatModel.getDefaultOptions();
-//		String model = defaultOptions.getModel();
-//		ChatOptions customChatOptions = ChatOptions.builder().model(model).topP(0.2).temperature(0.3).build();
-//		prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
+		// ChatOptions defaultOptions = chatModel.getDefaultOptions();
+		// String model = defaultOptions.getModel();
+		// ChatOptions customChatOptions =
+		// ChatOptions.builder().model(model).topP(0.2).temperature(0.3).build();
+		// prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
 
 		return FluxUtils
 			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,

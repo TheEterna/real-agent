@@ -1,13 +1,10 @@
 package com.ai.agent.real.entity.agent.context.reactplus;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.logging.Traceable;
 import com.ai.agent.real.contract.model.message.AgentMessage;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import org.springframework.ai.model.ModelOptionsUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -50,11 +47,6 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	private AtomicBoolean taskCompleted;
 
 	/**
-	 * 工具审批回调（用于工具执行需要审批时通知上层）
-	 */
-	private ToolApprovalCallback toolApprovalCallback;
-
-	/**
 	 * meta 元数据
 	 */
 	private ReActPlusAgentContextMeta meta;
@@ -68,7 +60,6 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 		this.messageHistory = new CopyOnWriteArrayList<>();
 		this.currentIteration = new AtomicInteger(0);
 		this.taskCompleted = new AtomicBoolean(false);
-		this.toolApprovalCallback = ToolApprovalCallback.NOOP;
 		this.meta = new ReActPlusAgentContextMeta();
 	}
 
@@ -179,16 +170,6 @@ public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentCon
 	@Override
 	public void setTask(String task) {
 		this.task = task;
-	}
-
-	@Override
-	public ToolApprovalCallback getToolApprovalCallback() {
-		return toolApprovalCallback;
-	}
-
-	@Override
-	public void setToolApprovalCallback(ToolApprovalCallback toolApprovalCallback) {
-		this.toolApprovalCallback = toolApprovalCallback;
 	}
 
 	@Override

@@ -12,7 +12,6 @@ import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.context.ResumePoint;
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.message.AgentMessage;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
@@ -77,8 +76,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 		// fixme: 这里的 userId 后面可能要修复一下
 		context.addMessage(AgentMessage.user(userInput, "user"));
 		AtomicInteger iterationCount = new AtomicInteger(50);
-		// 设置工具审批回调到上下文
-		// context.setToolApprovalCallback(approvalCallback);
+
 		return Flux.concat(
 				// 发射 STARTED 事件，告知前端任务开始执行
 				Flux.defer(() -> Flux.just(AgentExecutionEvent.started(context, "ReActPlus 任务开始执行"))),
@@ -129,7 +127,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 						return Flux.concat(
 								Flux.just(AgentExecutionEvent.progress(context,
 										String.format("开始第 %d 轮思考-行动循环...", iteration), null)),
-								executeReActPlusIteration(userInput, context, context.getToolApprovalCallback()));
+								executeReActPlusIteration(userInput, context));
 					})
 						// 结束条件：收到DONE事件（由task_done工具触发）
 						// 已由上下文标记任务完成（例如ActionAgent调用task_done后设置的标记）
@@ -154,8 +152,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	 * @param approvalCallback 工具审批回调
 	 * @return
 	 */
-	private Flux<AgentExecutionEvent> executeReActPlusIteration(String userInput, AgentContextAble context,
-			ToolApprovalCallback approvalCallback) {
+	private Flux<AgentExecutionEvent> executeReActPlusIteration(String userInput, AgentContextAble context) {
 
 		return Flux.concat(
 				// 1. 思考阶段 - ThinkingPlusAgent
@@ -178,10 +175,6 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 
 					ReActPlusAgentContext actionContext = AgentUtils.createReActPlusAgentContext(context,
 							ActionPlusAgent.AGENT_ID);
-					// 设置工具审批回调
-					if (approvalCallback != null) {
-						actionContext.setToolApprovalCallback(approvalCallback);
-					}
 
 					return Flux.concat(Flux.just(AgentExecutionEvent.progress(context, "正在执行工具调用...", null)),
 							FluxUtils.stage(actionPlusAgent.executeStream(userInput, actionContext), context,
@@ -209,13 +202,44 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	/**
 	 * 从交互请求后恢复执行 注意：AgentSessionHub 已经根据用户选择的动作做了分发，这里只需要执行工具或继续迭代
 	 * @param resumePoint 恢复点
-	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint,
-			ToolApprovalCallback approvalCallback) {
+	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint) {
+		// TODO: ReAct-Plus 交互逻辑
+		log.info("从交互请求后恢复执行: resumeId={}, iteration={}, stage={}", resumePoint.getResumeId(),
+				resumePoint.getCurrentIteration(), resumePoint.getPausedStage());
+
+		ReActPlusAgentContext context = (ReActPlusAgentContext) resumePoint.getContext();
+		String task = resumePoint.getOriginalTask();
+		int iteration = resumePoint.getCurrentIteration();
 		return null;
+		// // 获取交互请求信息
+		// var interactionRequest = resumePoint.getInteractionRequest();
+		// if (interactionRequest == null) {
+		// log.warn("恢复点缺少交互请求信息，直接继续下一轮迭代");
+		// return continueNextIteration(task, context, iteration);
+		// }
+		//
+		// // 获取用户响应
+		// var userResponse = resumePoint.getUserResponse();
+		// if (userResponse == null) {
+		// log.warn("恢复点缺少用户响应信息，直接继续下一轮迭代");
+		// return continueNextIteration(task, context, iteration);
+		// }
+		//
+		// // 根据交互类型处理
+		// switch (interactionRequest.getType()) {
+		// case TOOL_APPROVAL:
+		// return resumeFromToolApprovalInternal(resumePoint, task, context, iteration);
+		// case MISSING_INFO:
+		// case USER_INPUT:
+		// // 用户已提供信息，继续执行
+		// return continueNextIteration(task, context, iteration);
+		// default:
+		// log.warn("不支持的交互类型: {}", interactionRequest.getType());
+		// return continueNextIteration(task, context, iteration);
+		// }
 	}
 
 	private Flux<AgentExecutionEvent> executeTaskAnalysisAgent(String task, AgentContextAble context) {

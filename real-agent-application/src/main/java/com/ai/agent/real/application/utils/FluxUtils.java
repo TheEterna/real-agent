@@ -2,7 +2,6 @@ package com.ai.agent.real.application.utils;
 
 import com.ai.agent.real.common.constant.*;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
@@ -206,25 +205,6 @@ public class FluxUtils {
 	public static Flux<AgentExecutionEvent> executeWithToolSupport(ChatModel chatModel, Prompt prompt,
 			AgentContextAble context, String agentId, IToolService toolService, ToolApprovalMode toolApprovalMode,
 			EventType eventType) {
-		return executeWithToolSupport(chatModel, prompt, context, agentId, toolService, toolApprovalMode, eventType,
-				ToolApprovalCallback.NOOP);
-	}
-
-	/**
-	 * 通用的Agent流式执行包装器，支持工具调用和上下文管理（带审批回调）
-	 * @param chatModel LLM模型
-	 * @param prompt 提示词
-	 * @param context 上下文
-	 * @param agentId Agent ID
-	 * @param toolService 工具服务
-	 * @param toolApprovalMode 工具审批模式
-	 * @param eventType 事件类型（如THINKING、ACTING、OBSERVING）
-	 * @param approvalCallback 工具审批回调
-	 * @return 流式执行结果
-	 */
-	public static Flux<AgentExecutionEvent> executeWithToolSupport(ChatModel chatModel, Prompt prompt,
-			AgentContextAble context, String agentId, IToolService toolService, ToolApprovalMode toolApprovalMode,
-			EventType eventType, ToolApprovalCallback approvalCallback) {
 
 		return chatModel.stream(prompt).doOnSubscribe(subscription -> {
 			log.debug("开始流式调用LLM，agentId: {}, eventType: {}", agentId, eventType);
@@ -254,11 +234,8 @@ public class FluxUtils {
 			Flux<AgentExecutionEvent> toolFlux = Flux.empty();
 			if (ToolUtils.hasToolCallingNative(response)) {
 				// 优先使用上下文中的回调，如果没有则使用传入的回调
-				ToolApprovalCallback effectiveCallback = context.getToolApprovalCallback() != null
-						? context.getToolApprovalCallback() : approvalCallback;
 				toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
-					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode,
-							effectiveCallback));
+					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode));
 			}
 
 			// 合并内容和工具调用结果
@@ -306,7 +283,7 @@ public class FluxUtils {
 	 * 执行单个工具调用
 	 */
 	private static Flux<AgentExecutionEvent> executeToolCall(ToolCall toolCall, AgentContextAble context,
-			IToolService toolService, ToolApprovalMode toolApprovalMode, ToolApprovalCallback approvalCallback) {
+			IToolService toolService, ToolApprovalMode toolApprovalMode) {
 
 		String toolName = toolCall.name();
 		String toolCallId = toolCall.id();
@@ -351,11 +328,6 @@ public class FluxUtils {
 				case REQUIRE_APPROVAL:
 					// 需要审批：调用回调通知上层，并返回空流（暂停执行）
 					log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
-
-					// 通知上层需要审批
-					approvalCallback.requestApproval(context.getSessionId(), toolCallId, toolName, args, context);
-
-					context.setToolApprovalCallback(approvalCallback);
 
 					// 返回空流，暂停当前执行
 					// 注意：这里不会继续执行，需要等待审批后通过其他方式恢复

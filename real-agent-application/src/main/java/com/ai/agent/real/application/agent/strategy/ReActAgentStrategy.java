@@ -12,7 +12,6 @@ import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.context.ResumePoint;
-import com.ai.agent.real.contract.model.callback.ToolApprovalCallback;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.IToolService;
@@ -62,7 +61,7 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	 */
 	@Override
 	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
-		return executeStream(userInput, agents, (ReActAgentContext) context, ToolApprovalCallback.NOOP);
+		return executeStream(userInput, agents, (ReActAgentContext) context);
 	}
 
 	/**
@@ -70,11 +69,9 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	 * @param userInput 用户输入
 	 * @param agents 可用的Agent列表
 	 * @param context 执行上下文
-	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
-	private Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, ReActAgentContext context,
-			ToolApprovalCallback approvalCallback) {
+	private Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, ReActAgentContext context) {
 		log.debug("ReActAgentStrategy executeStream userInput: {}", userInput);
 
 		// 设置上下文
@@ -87,16 +84,13 @@ public class ReActAgentStrategy implements IAgentStrategy {
 		// fixme: 这里的 userId 后面可能要修复一下
 		context.addMessage(AgentMessage.user(userInput, "user"));
 
-		// 设置工具审批回调到上下文
-		context.setToolApprovalCallback(approvalCallback);
-
 		return Flux.concat(
 				// 发送开始事件（携带上下文trace信息）
 				Flux.just(AgentExecutionEvent.progress(context, "ReAct任务开始执行", null)),
 
 				// 执行ReAct循环
 				Flux.range(1, MAX_ITERATIONS)
-					.concatMap(iteration -> executeReActIteration(userInput, context, iteration, approvalCallback))
+					.concatMap(iteration -> executeReActIteration(userInput, context, iteration))
 					// 结束条件：收到DONE事件 或
 					// 已由上下文标记任务完成（例如ObservationAgent调用task_done后设置的标记）
 					.takeUntil(event -> context.isTaskCompleted())
@@ -122,12 +116,10 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	/**
 	 * 从交互请求后恢复执行 注意：AgentSessionHub 已经根据用户选择的动作做了分发，这里只需要执行工具或继续迭代
 	 * @param resumePoint 恢复点
-	 * @param approvalCallback 工具审批回调
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint,
-			ToolApprovalCallback approvalCallback) {
+	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint) {
 		log.info("从交互请求后恢复执行: resumeId={}, iteration={}, stage={}", resumePoint.getResumeId(),
 				resumePoint.getCurrentIteration(), resumePoint.getPausedStage());
 
@@ -139,27 +131,27 @@ public class ReActAgentStrategy implements IAgentStrategy {
 		var interactionRequest = resumePoint.getInteractionRequest();
 		if (interactionRequest == null) {
 			log.warn("恢复点缺少交互请求信息，直接继续下一轮迭代");
-			return continueNextIteration(task, context, iteration, approvalCallback);
+			return continueNextIteration(task, context, iteration);
 		}
 
 		// 获取用户响应
 		var userResponse = resumePoint.getUserResponse();
 		if (userResponse == null) {
 			log.warn("恢复点缺少用户响应信息，直接继续下一轮迭代");
-			return continueNextIteration(task, context, iteration, approvalCallback);
+			return continueNextIteration(task, context, iteration);
 		}
 
 		// 根据交互类型处理
 		switch (interactionRequest.getType()) {
 			case TOOL_APPROVAL:
-				return resumeFromToolApprovalInternal(resumePoint, task, context, iteration, approvalCallback);
+				return resumeFromToolApprovalInternal(resumePoint, task, context, iteration);
 			case MISSING_INFO:
 			case USER_INPUT:
 				// 用户已提供信息，继续执行
-				return continueNextIteration(task, context, iteration, approvalCallback);
+				return continueNextIteration(task, context, iteration);
 			default:
 				log.warn("不支持的交互类型: {}", interactionRequest.getType());
-				return continueNextIteration(task, context, iteration, approvalCallback);
+				return continueNextIteration(task, context, iteration);
 		}
 	}
 
@@ -167,7 +159,7 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	 * 从工具审批后恢复执行（内部方法）
 	 */
 	private Flux<AgentExecutionEvent> resumeFromToolApprovalInternal(ResumePoint resumePoint, String task,
-			ReActAgentContext context, int iteration, ToolApprovalCallback approvalCallback) {
+			ReActAgentContext context, int iteration) {
 
 		// 获取工具信息
 		String toolName = (String) resumePoint.getInteractionRequest().getContext().get("toolName");
@@ -211,7 +203,7 @@ public class ReActAgentStrategy implements IAgentStrategy {
 
 				// 3. 继续执行剩余的迭代
 				Flux.range(iteration + 1, MAX_ITERATIONS - iteration)
-					.concatMap(nextIter -> executeReActIteration(task, context, nextIter, approvalCallback))
+					.concatMap(nextIter -> executeReActIteration(task, context, nextIter))
 					.takeUntil(event -> context.isTaskCompleted()),
 
 				// 4. 最终总结
@@ -224,14 +216,13 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	/**
 	 * 继续下一轮迭代（通用方法）
 	 */
-	private Flux<AgentExecutionEvent> continueNextIteration(String task, ReActAgentContext context, int iteration,
-			ToolApprovalCallback approvalCallback) {
+	private Flux<AgentExecutionEvent> continueNextIteration(String task, ReActAgentContext context, int iteration) {
 		log.info("继续执行剩余迭代: currentIteration={}", iteration);
 
 		return Flux.concat(
 				// 继续执行剩余的迭代
 				Flux.range(iteration + 1, MAX_ITERATIONS - iteration)
-					.concatMap(nextIter -> executeReActIteration(task, context, nextIter, approvalCallback))
+					.concatMap(nextIter -> executeReActIteration(task, context, nextIter))
 					.takeUntil(event -> context.isTaskCompleted()),
 
 				// 最终总结
@@ -244,8 +235,8 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	/**
 	 * 执行单次ReAct迭代
 	 */
-	private Flux<AgentExecutionEvent> executeReActIteration(String userInput, ReActAgentContext context, int iteration,
-			ToolApprovalCallback approvalCallback) {
+	private Flux<AgentExecutionEvent> executeReActIteration(String userInput, ReActAgentContext context,
+			int iteration) {
 		log.debug("ReAct循环第{}轮开始", iteration);
 		context.setCurrentIteration(iteration);
 
