@@ -1,8 +1,10 @@
 package com.ai.agent.real.contract.agent;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.agent.context.ResumePoint;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
+import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import com.ai.agent.real.contract.model.protocol.*;
+import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.publisher.*;
 
 import java.util.*;
@@ -30,28 +32,41 @@ public interface IAgentStrategy {
 	}
 
 	/**
-	 * 流式执行策略（推荐） 返回实时的执行进度和中间结果
+	 * 流式执行策略（推荐） 返回实时的执行进度和中间结果, 兼容过去
 	 * @param task 任务描述
-	 * @param agents 可用的Agent列表
+	 * @param agents
 	 * @param context 执行上下文
 	 * @return 流式执行结果
 	 */
-	Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context);
+	Flux<AgentExecutionEvent> executeStreamWithInteraction(String task, List<Agent> agents, AgentContextAble context);
+
+	/**
+	 * 流式执行策略（推荐） 返回实时的执行进度和中间结果
+	 * @param task 任务描述
+	 * @param turnState turnState
+	 * @param context 执行上下文
+	 * @return 流式执行结果
+	 */
+	default Flux<AgentExecutionEvent> executeStreamWithInteraction(String task,
+			IAgentTurnManagerService.TurnState turnState, AgentContextAble context) {
+		throw new UnsupportedOperationException("This executeStream method is not supported for this strategy.");
+	}
 
 	/**
 	 * 同步执行策略（兼容旧版本）
 	 * @param task 任务描述
-	 * @param agents 可用的Agent列表
+	 * @param sinks sinks
 	 * @param context 工具执行上下文
 	 * @return 执行结果
 	 */
-	AgentResult execute(String task, List<Agent> agents, AgentContextAble context);
+	default AgentResult execute(String task, Sinks.Many<ServerSentEvent<AgentExecutionEvent>> sinks,
+			AgentContextAble context) {
+		throw new UnsupportedOperationException("This execute method is not supported for this strategy.");
+	}
 
-	/**
-	 * 从交互请求后恢复执行 注意：AgentSessionHub 已经根据用户选择的动作做了分发，这里只需要执行工具或继续迭代
-	 * @param resumePoint 恢复点
-	 * @return 流式执行结果
-	 */
-	Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint);
+	default ResponseResult<String> handleInteractionResponse(InteractionResponse response) {
+		throw new UnsupportedOperationException(
+				"This handleInteractionResponse method is not supported for this strategy.");
+	}
 
 }

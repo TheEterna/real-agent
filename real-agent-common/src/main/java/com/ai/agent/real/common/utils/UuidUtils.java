@@ -26,7 +26,7 @@ public class UuidUtils {
 	 */
 	public static String generateSessionCode() {
 		// Ensure total length fits typical VARCHAR(32): 5 (prefix) + 27 = 32
-		return "sess_" + generate32().substring(0, 27);
+		return "sess_" + generate32();
 	}
 
 }

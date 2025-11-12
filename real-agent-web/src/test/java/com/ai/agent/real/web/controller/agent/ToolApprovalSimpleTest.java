@@ -1,5 +1,6 @@
 package com.ai.agent.real.web.controller.agent;
 
+import com.ai.agent.real.contract.dto.ChatRequest;
 import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -178,7 +179,7 @@ public class ToolApprovalSimpleTest {
 	@Test
 	@DisplayName("8. SSE 流接口 - 基础连通性测试")
 	void testStreamEndpointConnectivity() {
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId("test-session-" + System.currentTimeMillis());
 		request.setMessage("你好");
 		request.setUserId("test-user");
@@ -198,7 +199,7 @@ public class ToolApprovalSimpleTest {
 	@Test
 	@DisplayName("9. SSE 流接口 - 自动生成 sessionId")
 	void testStreamAutoGenerateSessionId() {
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId(null); // 不提供 sessionId
 		request.setMessage("测试消息");
 		request.setUserId("test-user");

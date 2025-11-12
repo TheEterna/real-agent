@@ -1,9 +1,8 @@
 package com.ai.agent.real.web.controller.agent;
 
-import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
+import com.ai.agent.real.contract.dto.ChatRequest;
 import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +41,7 @@ class ReActPlusAgentControllerTest {
 
 	// 注入的依赖暂未使用，保留供后续扩展
 	// @Autowired
-	// private IAgentSessionManagerService agentSessionManagerService;
+	// private IAgentTurnManagerService agentSessionManagerService;
 	//
 	// @Autowired
 	// private ObjectMapper objectMapper;
@@ -58,7 +57,7 @@ class ReActPlusAgentControllerTest {
 	@DisplayName("1. 基础流程测试 - 启动对话并接收事件")
 	void testBasicStreamFlow() {
 		// 准备请求
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("你好，请介绍一下自己");
 		request.setUserId("test-user");
@@ -98,7 +97,7 @@ class ReActPlusAgentControllerTest {
 	@DisplayName("2. 工具审批流程测试 - 完整的暂停和恢复")
 	void testToolApprovalFlow() throws Exception {
 		// 准备请求 - 触发需要工具调用的任务
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("帮我查询杭州的天气"); // 这会触发工具调用
 		request.setUserId("test-user");
@@ -192,7 +191,7 @@ class ReActPlusAgentControllerTest {
 	@DisplayName("3. 拒绝工具执行测试")
 	void testRejectToolExecution() throws Exception {
 		// 准备请求
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("帮我删除所有文件"); // 危险操作
 		request.setUserId("test-user");
@@ -254,7 +253,7 @@ class ReActPlusAgentControllerTest {
 	@DisplayName("4. 终止对话测试")
 	void testTerminateConversation() throws Exception {
 		// 准备请求
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("帮我执行一个复杂任务");
 		request.setUserId("test-user");
@@ -381,7 +380,7 @@ class ReActPlusAgentControllerTest {
 	@Test
 	@DisplayName("8. 自动生成 sessionId 测试")
 	void testAutoGenerateSessionId() {
-		ReActAgentController.ChatRequest request = new ReActAgentController.ChatRequest();
+		ChatRequest request = new ChatRequest();
 		request.setSessionId(null); // 不提供 sessionId
 		request.setMessage("测试消息");
 		request.setUserId("test-user");

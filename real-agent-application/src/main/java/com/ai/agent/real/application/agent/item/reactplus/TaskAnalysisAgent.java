@@ -4,6 +4,8 @@ import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
+import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.tool.IToolService;
 import lombok.SneakyThrows;
@@ -162,10 +164,12 @@ public class TaskAnalysisAgent extends Agent {
 
 			 """;
 
-	public TaskAnalysisAgent(ChatModel chatModel, IToolService toolService) {
+	public TaskAnalysisAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode,
+			IAgentTurnManagerService agentTurnManagerService) {
 
 		super(AGENT_ID, AGENT_ID, "任务难度评估助手，用于分析用户输入的任务请求，评估任务难度等级，并提取核心任务信息", chatModel, toolService,
-				Set.of(TASK_ANALYSIS));
+				Set.of(TASK_ANALYSIS), toolApprovalMode);
+		this.setAgentTurnManagerService(agentTurnManagerService);
 		this.setCapabilities(new String[] { "任务分析", "TaskAnalysis" });
 	}
 
@@ -178,17 +182,18 @@ public class TaskAnalysisAgent extends Agent {
 	@Override
 	@SneakyThrows
 	public Flux<AgentExecutionEvent> executeStream(String task, AgentContextAble context) {
-		log.debug("TaskAnalysisAgent进行操作: {}", task);
+		log.info("TaskAnalysisAgent进行操作: {}", task);
 
 		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, SYSTEM_PROMPT, null);
 
 		// 使用通用的工具支持方法
 		return FluxUtils
-			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
-					AgentExecutionEvent.EventType.TASK_ANALYSIS)
+			.executeWithToolSupportWithInteraction(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
+					AgentExecutionEvent.EventType.TASK_ANALYSIS,
+					agentTurnManagerService.getTurnState(context.getTurnId()))
 			.doFinally(signalType -> {
 				afterHandle(context);
-				log.debug("ObservationAgent 执行结束，信号类型: {}", signalType);
+				log.info("ObservationAgent 执行结束，信号类型: {}", signalType);
 			});
 	}
 

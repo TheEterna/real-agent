@@ -11,7 +11,6 @@ import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.IToolService;
@@ -60,7 +59,8 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
+	public Flux<AgentExecutionEvent> executeStreamWithInteraction(String userInput, List<Agent> agents,
+			AgentContextAble context) {
 		return executeStream(userInput, agents, (ReActAgentContext) context);
 	}
 
@@ -111,106 +111,6 @@ public class ReActAgentStrategy implements IAgentStrategy {
 					}))))
 			.concatWith(Flux.just(AgentExecutionEvent.completed()))
 			.doOnComplete(() -> log.info("ReAct任务执行完成，上下文: {}", context));
-	}
-
-	/**
-	 * 从交互请求后恢复执行 注意：AgentSessionHub 已经根据用户选择的动作做了分发，这里只需要执行工具或继续迭代
-	 * @param resumePoint 恢复点
-	 * @return 流式执行结果
-	 */
-	@Override
-	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint) {
-		log.info("从交互请求后恢复执行: resumeId={}, iteration={}, stage={}", resumePoint.getResumeId(),
-				resumePoint.getCurrentIteration(), resumePoint.getPausedStage());
-
-		ReActAgentContext context = (ReActAgentContext) resumePoint.getContext();
-		String task = resumePoint.getOriginalTask();
-		int iteration = resumePoint.getCurrentIteration();
-
-		// 获取交互请求信息
-		var interactionRequest = resumePoint.getInteractionRequest();
-		if (interactionRequest == null) {
-			log.warn("恢复点缺少交互请求信息，直接继续下一轮迭代");
-			return continueNextIteration(task, context, iteration);
-		}
-
-		// 获取用户响应
-		var userResponse = resumePoint.getUserResponse();
-		if (userResponse == null) {
-			log.warn("恢复点缺少用户响应信息，直接继续下一轮迭代");
-			return continueNextIteration(task, context, iteration);
-		}
-
-		// 根据交互类型处理
-		switch (interactionRequest.getType()) {
-			case TOOL_APPROVAL:
-				return resumeFromToolApprovalInternal(resumePoint, task, context, iteration);
-			case MISSING_INFO:
-			case USER_INPUT:
-				// 用户已提供信息，继续执行
-				return continueNextIteration(task, context, iteration);
-			default:
-				log.warn("不支持的交互类型: {}", interactionRequest.getType());
-				return continueNextIteration(task, context, iteration);
-		}
-	}
-
-	/**
-	 * 从工具审批后恢复执行（内部方法）
-	 */
-	private Flux<AgentExecutionEvent> resumeFromToolApprovalInternal(ResumePoint resumePoint, String task,
-			ReActAgentContext context, int iteration) {
-
-		// 获取工具信息
-		String toolName = (String) resumePoint.getInteractionRequest().getContext().get("toolName");
-		@SuppressWarnings("unchecked")
-		Map<String, Object> toolArgs = (Map<String, Object>) resumePoint.getInteractionRequest()
-			.getContext()
-			.get("toolArgs");
-		String toolCallId = resumePoint.getResumeId();
-
-		log.info("工具审批通过，开始执行工具: {}", toolName);
-
-		// 设置工具参数到上下文
-		context.setToolArgs(toolArgs);
-
-		// 执行工具并获取结果
-		Flux<AgentExecutionEvent> toolExecutionFlux = FluxUtils
-			.mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolName, // toolId
-					toolCallId, toolName)
-			.flux();
-
-		// 将工具结果添加到上下文，然后继续执行观察阶段和后续迭代
-		return Flux.concat(
-				// 1. 执行工具并推送结果
-				toolExecutionFlux.doOnNext(event -> {
-					if (event.getType() == AgentExecutionEvent.EventType.TOOL) {
-						// 将工具结果添加到上下文
-						ToolResponse toolResponse = (ToolResponse) event.getData();
-						context.addMessage(AgentMessage.tool(toolResponse.responseData(), "action",
-								Map.of("id", toolResponse.id(), "name", toolResponse.name(), "arguments", toolArgs)));
-					}
-				}),
-
-				// 2. 执行观察阶段
-				Flux.defer(() -> {
-					ReActAgentContext observingCtx = AgentUtils.createReActAgentContext(context,
-							ObservationAgent.AGENT_ID);
-					return FluxUtils.stage(observationAgent.executeStream(task, observingCtx), context,
-							ObservationAgent.AGENT_ID, evt -> log.debug("[EVT/OBSERVE/RESUME] type={}", evt.getType()),
-							() -> log.info("观察阶段结束（恢复后）"));
-				}),
-
-				// 3. 继续执行剩余的迭代
-				Flux.range(iteration + 1, MAX_ITERATIONS - iteration)
-					.concatMap(nextIter -> executeReActIteration(task, context, nextIter))
-					.takeUntil(event -> context.isTaskCompleted()),
-
-				// 4. 最终总结
-				Flux.defer(() -> finalAgent
-					.executeStream(task, AgentUtils.createReActAgentContext(context, FinalAgent.AGENT_ID))
-					.transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))))
-			.concatWith(Flux.just(AgentExecutionEvent.completed()));
 	}
 
 	/**
@@ -300,18 +200,6 @@ public class ReActAgentStrategy implements IAgentStrategy {
 				})
 
 		);
-	}
-
-	/**
-	 * 执行
-	 * @param task 任务描述
-	 * @param agents 可用的Agent列表
-	 * @param context 工具执行上下文
-	 * @return 执行结果
-	 */
-	@Override
-	public AgentResult execute(String task, List<Agent> agents, AgentContextAble context) {
-		throw new UnsupportedOperationException("ReActAgentStrategy不支持同步execute方法，请使用executeStream方法");
 	}
 
 }

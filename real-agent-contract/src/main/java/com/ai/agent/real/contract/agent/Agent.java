@@ -1,6 +1,7 @@
 package com.ai.agent.real.contract.agent;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
 import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.AgentTool;
@@ -60,6 +61,8 @@ public abstract class Agent {
 	protected IToolService toolService;
 
 	protected ToolApprovalMode toolApprovalMode;
+
+	protected IAgentTurnManagerService agentTurnManagerService;
 
 	public Agent() {
 

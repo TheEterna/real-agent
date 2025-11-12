@@ -6,7 +6,7 @@ import com.ai.agent.real.application.agent.item.FinalAgent;
 import com.ai.agent.real.application.agent.item.ObservationAgent;
 import com.ai.agent.real.application.agent.item.ThinkingAgent;
 import com.ai.agent.real.application.agent.item.reactplus.*;
-import com.ai.agent.real.application.agent.session.AgentSessionManagerService;
+import com.ai.agent.real.application.agent.turn.AgentTurnManagerService;
 import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
 import com.ai.agent.real.application.agent.strategy.ReActPlusAgentStrategy;
 import com.ai.agent.real.application.service.ContextManager;
@@ -14,7 +14,7 @@ import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.IAgentDispatcher;
 import com.ai.agent.real.contract.agent.context.AgentMemory;
 import com.ai.agent.real.contract.agent.context.AgentSessionConfig;
-import com.ai.agent.real.contract.agent.service.IAgentSessionManagerService;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
 import com.ai.agent.real.contract.model.property.ContextZipMode;
 import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.service.IPropertyService;
@@ -36,9 +36,8 @@ public class ApplicationAgentAutoConfiguration {
 	 * register default agent session manager
 	 */
 	@Bean
-	public IAgentSessionManagerService agentSessionManagerService(
-			@Qualifier("reActPlusAgentStrategy") IAgentStrategy agentStrategy) {
-		return new AgentSessionManagerService(agentStrategy);
+	public IAgentTurnManagerService agentTurnManagerService() {
+		return new AgentTurnManagerService();
 	}
 
 	/**
@@ -92,8 +91,9 @@ public class ApplicationAgentAutoConfiguration {
 	@Bean
 	// TODO: 待完善
 	public TaskAnalysisAgent taskAnalysisAgent(ChatModel chatModel, IToolService toolService,
-			IPropertyService propertyService) {
-		return new TaskAnalysisAgent(chatModel, toolService);
+			IPropertyService propertyService, IAgentTurnManagerService agentTurnManagerService) {
+		return new TaskAnalysisAgent(chatModel, toolService, propertyService.getToolApprovalMode(),
+				agentTurnManagerService);
 	}
 
 	@Bean
@@ -107,12 +107,6 @@ public class ApplicationAgentAutoConfiguration {
 	// TODO: 待完善
 	public ThoughtAgent thoughtAgent(ChatModel chatModel, IToolService toolService, IPropertyService propertyService) {
 		return new ThoughtAgent(chatModel, toolService);
-	}
-
-	@Bean
-	public IAgentStrategy reActPlusAgentStrategy(ThinkingAgent thinkingAgent, ActionAgent actionAgent,
-			ObservationAgent observationAgent, FinalAgent finalAgent, IToolService toolService) {
-		return new ReActAgentStrategy(thinkingAgent, actionAgent, observationAgent, finalAgent, toolService);
 	}
 
 	@Bean

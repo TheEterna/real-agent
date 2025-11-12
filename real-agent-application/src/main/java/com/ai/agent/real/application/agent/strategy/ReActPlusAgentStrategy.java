@@ -12,15 +12,24 @@ import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.context.ResumePoint;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
+import com.ai.agent.real.contract.dto.ChatResponse;
+import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import com.ai.agent.real.contract.model.message.AgentMessage;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
+import com.ai.agent.real.contract.model.protocol.ResponseResult;
 import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
 import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
 import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -66,9 +75,13 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
+	public Flux<AgentExecutionEvent> executeStreamWithInteraction(String userInput, List<Agent> agents,
+			AgentContextAble context) {
 		log.debug("ReActPlus starting!!!");
-		context.setTurnId(CommonUtils.getTraceId("ReActPlus"));
+		if (context != null && !StringUtils.hasText(context.getTurnId())) {
+			context.setTurnId(CommonUtils.getTraceId("ReActPlus"));
+		}
+
 		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
 		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
 			context.setSessionId("default");
@@ -146,10 +159,128 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	}
 
 	/**
+	 * 流式执行策略（推荐） 返回实时的执行进度和中间结果
+	 * @param userInput 任务描述
+	 * @param turnState turnState
+	 * @param context 执行上下文
+	 * @return 流式执行结果
+	 */
+	@Override
+	public Flux<AgentExecutionEvent> executeStreamWithInteraction(String userInput,
+			IAgentTurnManagerService.TurnState turnState, AgentContextAble context) {
+		log.debug("ReActPlus starting!!!");
+
+		if (context == null) {
+			return Flux.error(new RuntimeException("context is null"));
+		}
+		if (!StringUtils.hasText(context.getTurnId())) {
+			context.setTurnId(CommonUtils.getTraceId("ReActPlus"));
+		}
+		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
+		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
+			context.setSessionId("default");
+		}
+		// fixme: 这里的 userId 后面可能要修复一下
+		context.addMessage(AgentMessage.user(userInput, "user"));
+		AtomicInteger iterationCount = new AtomicInteger(50);
+
+		return Flux.concat(
+				// 发射 STARTED 事件，告知前端任务开始执行
+				Flux.defer(() -> Flux.just(AgentExecutionEvent.started(context, "ReActPlus 任务开始执行"))),
+				Flux.defer(() -> Flux.just(AgentExecutionEvent.progress(context, "正在催促小二分配资源...", null))),
+				// 任务分析，通过调用工具，将分析后的数据状态等放到 context 里
+				Flux.defer(() -> executeTaskAnalysisAgent(userInput, context)),
+				// 模式选择
+				Flux.defer(() -> {
+					ReActPlusAgentContextMeta metadata = (ReActPlusAgentContextMeta) context.getMetadata();
+					switch (metadata.getAgentMode()) {
+						case DIRECT: {
+							iterationCount.set(0);
+							return Flux.empty();
+						}
+						case SIMPLE: {
+							return Flux.empty();
+						}
+						case THOUGHT: {
+							return executeThoughtAgent(userInput, context);
+						}
+						case PLAN: {
+							return executePlanAgent(userInput, context);
+						}
+						default: {
+							return Flux.empty();
+						}
+					}
+				}), Flux.defer(() -> {
+
+					return Flux.range(1, iterationCount.get()).doOnNext(iteration -> {
+						// 在每轮迭代前管理上下文大小
+						contextManager.manageContextSize(context);
+
+						// 记录上下文使用情况
+						if (iteration % 5 == 0) { // 每 5 轮记录一次
+							log.info("迭代 {}/50, 上下文使用: {}", iteration, contextManager.getContextUsage(context));
+						}
+
+						// 记录当前迭代次数到上下文
+						context.setCurrentIteration(iteration);
+					}).concatMap(iteration -> {
+						// 在每次迭代开始前检查是否已完成
+						if (context.isTaskCompleted()) {
+							log.info("任务已完成，跳过第 {} 次迭代", iteration);
+							return Flux.empty();
+						}
+
+						return Flux.concat(
+								Flux.just(AgentExecutionEvent.progress(context,
+										String.format("开始第 %d 轮思考-行动循环...", iteration), null)),
+								executeReActPlusIteration(userInput, context));
+					})
+						// 结束条件：收到DONE事件（由task_done工具触发）
+						// 已由上下文标记任务完成（例如ActionAgent调用task_done后设置的标记）
+						.takeUntil(event -> {
+							boolean isCompleted = context.isTaskCompleted();
+							if (isCompleted) {
+								log.info("检测到任务完成标记，准备结束迭代循环");
+							}
+							return isCompleted;
+						});
+				}), Flux.defer(() -> executeFinalAgent(userInput, context))
+
+					.concatWith(Flux.just(AgentExecutionEvent.completed()))
+					.doOnComplete(() -> log.info("ReActPlus任务执行完成，上下文: {}", context)));
+
+	}
+
+	@Override
+	public ResponseResult<String> handleInteractionResponse(InteractionResponse response) {
+
+		// 0. prepare args
+		String requestId = response.getRequestId();
+		String sessionId = response.getSessionId();
+		String turnId = response.getTurnId();
+		String operationId = response.getSelectedOptionId();
+		Map<String, Object> data = response.getData();
+		log.info("处理交互响应，请求ID: {}, 会话ID: {}, 轮次ID: {}, 选项ID: {}, 数据: {}", requestId, sessionId, turnId, operationId,
+				data.toString());
+
+		// 1. check args
+		if (StringUtils.hasText(requestId))
+			return ResponseResult.error("Request ID cannot be blank");
+		if (StringUtils.hasText(sessionId))
+			return ResponseResult.error("Session ID cannot be blank");
+		if (StringUtils.hasText(turnId))
+			return ResponseResult.error("TurnId ID cannot be blank");
+
+		// TODO: 2. refer operationId to select logic
+
+		return IAgentStrategy.super.handleInteractionResponse(response);
+	}
+
+	/**
 	 * 执行 单次 核心部分的 ReActPlus 迭代，只有 thinkingPlus 和 actionPlus 节点
 	 * @param userInput 输入
 	 * @param context 上下文对象
-	 * @param approvalCallback 工具审批回调
 	 * @return
 	 */
 	private Flux<AgentExecutionEvent> executeReActPlusIteration(String userInput, AgentContextAble context) {
@@ -185,61 +316,6 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 				);
 				}));
 
-	}
-
-	/**
-	 * 同步执行策略（兼容旧版本）
-	 * @param task 任务描述
-	 * @param agents 可用的Agent列表
-	 * @param context 工具执行上下文
-	 * @return 执行结果
-	 */
-	@Override
-	public AgentResult execute(String task, List<Agent> agents, AgentContextAble context) {
-		return null;
-	}
-
-	/**
-	 * 从交互请求后恢复执行 注意：AgentSessionHub 已经根据用户选择的动作做了分发，这里只需要执行工具或继续迭代
-	 * @param resumePoint 恢复点
-	 * @return 流式执行结果
-	 */
-	@Override
-	public Flux<AgentExecutionEvent> resumeFromToolApproval(ResumePoint resumePoint) {
-		// TODO: ReAct-Plus 交互逻辑
-		log.info("从交互请求后恢复执行: resumeId={}, iteration={}, stage={}", resumePoint.getResumeId(),
-				resumePoint.getCurrentIteration(), resumePoint.getPausedStage());
-
-		ReActPlusAgentContext context = (ReActPlusAgentContext) resumePoint.getContext();
-		String task = resumePoint.getOriginalTask();
-		int iteration = resumePoint.getCurrentIteration();
-		return null;
-		// // 获取交互请求信息
-		// var interactionRequest = resumePoint.getInteractionRequest();
-		// if (interactionRequest == null) {
-		// log.warn("恢复点缺少交互请求信息，直接继续下一轮迭代");
-		// return continueNextIteration(task, context, iteration);
-		// }
-		//
-		// // 获取用户响应
-		// var userResponse = resumePoint.getUserResponse();
-		// if (userResponse == null) {
-		// log.warn("恢复点缺少用户响应信息，直接继续下一轮迭代");
-		// return continueNextIteration(task, context, iteration);
-		// }
-		//
-		// // 根据交互类型处理
-		// switch (interactionRequest.getType()) {
-		// case TOOL_APPROVAL:
-		// return resumeFromToolApprovalInternal(resumePoint, task, context, iteration);
-		// case MISSING_INFO:
-		// case USER_INPUT:
-		// // 用户已提供信息，继续执行
-		// return continueNextIteration(task, context, iteration);
-		// default:
-		// log.warn("不支持的交互类型: {}", interactionRequest.getType());
-		// return continueNextIteration(task, context, iteration);
-		// }
 	}
 
 	private Flux<AgentExecutionEvent> executeTaskAnalysisAgent(String task, AgentContextAble context) {

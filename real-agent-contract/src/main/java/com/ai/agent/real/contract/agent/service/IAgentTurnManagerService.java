@@ -2,7 +2,6 @@ package com.ai.agent.real.contract.agent.service;
 
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.model.interaction.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import lombok.Data;
@@ -12,7 +11,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 /**
  * Agent会话管理中心 负责管理每个会话的Sink、上下文和待审批工具
@@ -22,7 +20,7 @@ import java.util.Map;
  * @author han
  * @time 2025/10/22 15:45
  */
-public interface IAgentSessionManagerService {
+public interface IAgentTurnManagerService {
 
 	/**
 	 * 订阅会话的SSE流
@@ -34,51 +32,35 @@ public interface IAgentSessionManagerService {
 	Flux<ServerSentEvent<AgentExecutionEvent>> subscribe(String sessionId, String message, AgentContextAble context);
 
 	/**
-	 * 请求用户交互（通用方法）
-	 * @param sessionId 会话ID
-	 * @param request 交互请求
-	 */
-	void requestInteraction(String sessionId, InteractionRequest request);
-
-	/**
 	 * 处理用户响应（通用方法）
-	 * @param sessionId 会话ID
+	 * @param turnId 会话ID
 	 * @param response 用户响应
 	 */
-	void handleInteractionResponse(String sessionId, InteractionResponse response);
-
-	/**
-	 * 暂停会话执行，等待工具审批（便捷方法）
-	 * @param sessionId 会话ID
-	 * @param toolCallId 工具调用ID
-	 * @param toolName 工具名称
-	 * @param toolArgs 工具参数
-	 * @param context 执行上下文
-	 */
-	void pauseForToolApproval(String sessionId, String toolCallId, String toolName, Map<String, Object> toolArgs,
-			AgentContextAble context);
+	void handleInteractionResponse(String turnId, InteractionResponse response);
 
 	/**
 	 * 关闭会话
-	 * @param sessionId 会话ID
+	 * @param turnId 会话ID
 	 */
-	void closeSession(String sessionId);
+	void closeTurn(String turnId);
 
 	/**
 	 * deep copy
 	 */
-	IAgentSessionManagerService of(IAgentStrategy agentStrategy);
+	IAgentTurnManagerService of(IAgentStrategy agentStrategy);
+
+	TurnState getTurnState(String turnId);
 
 	/**
 	 * 会话状态
 	 */
 	@Data
-	class SessionState {
+	class TurnState {
 
 		/**
 		 * 会话ID
 		 */
-		private String sessionId;
+		private String turnId;
 
 		/**
 		 * SSE推送Sink
@@ -86,19 +68,19 @@ public interface IAgentSessionManagerService {
 		private Sinks.Many<ServerSentEvent<AgentExecutionEvent>> sink;
 
 		/**
+		 * 以后可能会扩展成List
+		 */
+		private Sinks.One<InteractionResponse> pendingApproval;
+
+		/**
 		 * 执行上下文
 		 */
-		private AgentContextAble context;
+		private AgentContextAble<?> context;
 
 		/**
 		 * 当前执行的订阅句柄
 		 */
 		private Disposable currentExecution;
-
-		/**
-		 * 恢复点（用于工具审批后恢复执行）
-		 */
-		private ResumePoint resumePoint;
 
 		/**
 		 * 会话是否已关闭

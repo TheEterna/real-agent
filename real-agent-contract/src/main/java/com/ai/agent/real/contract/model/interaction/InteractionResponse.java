@@ -30,6 +30,11 @@ public class InteractionResponse {
 	private String sessionId;
 
 	/**
+	 * 会话ID
+	 */
+	private String turnId;
+
+	/**
 	 * 选中的选项ID
 	 */
 	private String selectedOptionId;
@@ -38,23 +43,5 @@ public class InteractionResponse {
 	 * 用户提供的数据（如输入的文本、上传的文件等）
 	 */
 	private Map<String, Object> data = new HashMap<>();
-
-	/**
-	 * 用户反馈（如拒绝理由、建议等）
-	 */
-	private String feedback;
-
-	/**
-	 * 响应时间
-	 */
-	private LocalDateTime respondedAt = LocalDateTime.now();
-
-	/**
-	 * 添加数据
-	 */
-	public InteractionResponse addData(String key, Object value) {
-		this.data.put(key, value);
-		return this;
-	}
 
 }
