@@ -34,6 +34,6 @@ const md = computed(() => (slotContent.value ?? props.content ?? '') as string)
         )
       "
       :content="md"
-    v-bind="$attrs"
+      v-bind="$attrs"
   />
 </template>

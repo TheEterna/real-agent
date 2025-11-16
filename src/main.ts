@@ -8,10 +8,13 @@ import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
 import { getTwoToneColor, setTwoToneColor } from '@ant-design/icons-vue';
-import Vue3DraggableResizable from "vue3-draggable-resizable";
 
 setTwoToneColor('#b8ddd9');
 getTwoToneColor();
+
+// monaco work 处理
+import { getUseMonaco } from 'vue-renderer-markdown'
+getUseMonaco()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -21,5 +24,4 @@ app.use(pinia)
 app.use(router)
 app.use(Antd)
 app.use(i18n)
-app.use(Vue3DraggableResizable)
 app.mount('#app')

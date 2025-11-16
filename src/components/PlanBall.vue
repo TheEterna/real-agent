@@ -53,31 +53,50 @@ const statusIcon = computed(() => {
 
 // 位置和拖拽
 const position = ref(chat.getPlanWidgetPosition())
-console.log(position.value)
+const dragStartPos = ref({ x: 0, y: 0 }) // 记录拖拽开始位置
+
 const isDragging = ref(false)
+// 若外部（例如侧边栏->返回小球）修改了存储位置，这里要跟随
+watch(() => chat.getPlanWidgetPosition(), (p) => {
+  position.value = { ...p }
+})
 
 const onDragStart = () => {
-  isDragging.value = true
+  dragStartPos.value = { ...position.value }
+  isDragging.value = false  // 2. 在拖拽开始时，重置标志
 }
 
-const onDrag = (x: number, y: number) => {
-  position.value = { x, y }
+const onDrag = (pos: {x: number, y: number}) => {
+  position.value = pos
+
+  const deltaX = Math.abs(pos.x - dragStartPos.value.x)
+  const deltaY = Math.abs(pos.y - dragStartPos.value.y)
+  if (deltaX > 5 || deltaY > 5) { // 移动超过5px才算真正拖拽
+    isDragging.value = true  // 3. 确认是拖拽，设置标志
+  }
 }
 
 const onDragStop = () => {
-  console.log(position.value)
   chat.setPlanWidgetPosition(position.value)
-  // 确保拖拽结束不会触发点击
-  isDragging.value = false
+  // 延迟清理拖拽状态，给点击事件留出判断时间
+  // 5. 延迟清理拖拽状态，给点击事件留出判断时间
+  setTimeout(() => { 
+    isDragging.value = false 
+  }, 0)
 }
 
 // 单击展开为侧边栏
 const handleClick = () => {
-  if (isDragging.value) return
+  if (isDragging.value) { 
+    console.log('点击被阻止（因为这是一次拖拽）') 
+    return 
+  }
+  // 如果正在拖拽或刚刚真正拖拽过，不触发点击
+  // 切换前持久化当前位置
+  chat.setPlanWidgetPosition(position.value)
   chat.setPlanWidgetMode('sidebar')
 }
 
-// 已移除迷你面板入口
 
 // 进入动画
 onMounted(() => {
@@ -112,39 +131,43 @@ onUnmounted(() => {})
       class="plan-ball-draggable"
       :initW="60"
       :initH="60"
+      :x="position.x"
+      :y="position.y"
       :draggable="true"
       :resizable="false"
       :parent="false"
       @drag-start="onDragStart"
       @drag-end="onDragStop"
       @dragging="onDrag"
+      @click="handleClick"
     >
-      <div
-        ref="ballRef"
-        class="plan-ball"
-        @click.stop="handleClick"
-      >
-        <!-- 进度环：使用 Ant Design Progress 替换自定义 SVG -->
-        <a-progress
-          type="circle"
-          :percent="planProgress"
-          :stroke-color="getStatusColor(currentPlan?.status)"
-          :trail-color="'rgba(255,255,255,0.2)'"
-          :show-info="false"
-          :size="60"
-          class="progress-circle"
-        />
-
-        <!-- 中心内容 -->
-        <div class="ball-content">
-          <component
-            :is="statusIcon"
-            class="status-icon"
-            :spin="currentPlan?.status === 'EXECUTING' || currentPlan?.status === 'PLANNING'"
+      <a-tooltip placement="left" :title="'点击展开执行计划'">
+        <div
+          ref="ballRef"
+          class="plan-ball"
+        >
+          <!-- 进度环：使用 Ant Design Progress 替换自定义 SVG -->
+          <a-progress
+            type="circle"
+            :percent="planProgress"
+            :stroke-color="getStatusColor(currentPlan?.status)"
+            :trail-color="'rgba(255,255,255,0.2)'"
+            :show-info="false"
+            :size="60"
+            class="progress-circle"
           />
-          <div class="progress-text">{{ planProgress }}%</div>
+
+          <!-- 中心内容 -->
+          <div class="ball-content">
+            <component
+              :is="statusIcon"
+              class="status-icon"
+              :spin="currentPlan?.status === 'EXECUTING' || currentPlan?.status === 'PLANNING'"
+            />
+            <div class="progress-text">{{ planProgress }}%</div>
+          </div>
         </div>
-      </div>
+      </a-tooltip>
     </Vue3DraggableResizable>
 
     

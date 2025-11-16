@@ -18,8 +18,6 @@ const widgetMode = computed(() => chat.getPlanWidgetMode())
   <div class="plan-widget-container">
     <!-- 状态球模式 -->
     <PlanBall v-if="widgetMode === 'ball'" />
-
-
     <!-- 完整侧边栏模式 -->
     <PlanSidebar v-if="widgetMode === 'sidebar'" />
   </div>
@@ -27,7 +25,6 @@ const widgetMode = computed(() => chat.getPlanWidgetMode())
 
 <style scoped>
 .plan-widget-container {
-  /* 容器不占用空间，所有子组件都是绝对定位 */
   position: fixed;
   pointer-events: none;
   z-index: 9998;

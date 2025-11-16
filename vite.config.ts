@@ -3,14 +3,16 @@ import vue from '@vitejs/plugin-vue'
 import {resolve} from 'node:path'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
+import monacoEditorPlugin from "vite-plugin-monaco-editor-esm";
 
 export default defineConfig({
     plugins: [
-
         tailwindcss(),
+        // 允许通过环境变量关闭以排查 Monaco 相关错误：VITE_DEVTOOLS=false
         vueDevTools(),
         vue(),
-    ],
+        monacoEditorPlugin()
+    ].filter(Boolean) as any,
     resolve: {
         alias: {
             '@': resolve(__dirname, './src'),
@@ -45,5 +47,6 @@ export default defineConfig({
     },
     build: {
         sourcemap: true
-    }
+    },
+    worker: { format: 'es' }
 })

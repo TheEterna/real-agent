@@ -5,25 +5,13 @@ import { PlanStatus, PlanPhaseStatus } from '@/types/events'
 import { getRandomGlassColor, getRandomTooltipColor } from '@/utils/colorUtils'
 import { gsap } from 'gsap'
 import PlanVisualization from './PlanVisualization.vue'
-import Vue3DraggableResizable from 'vue3-draggable-resizable'
-import 'vue3-draggable-resizable/dist/Vue3DraggableResizable.css'
 
+import { MinusOutlined } from '@ant-design/icons-vue';
 const chat = useChatStore()
 const sidebarRef = ref<HTMLElement | null>(null)
 
 // 当前计划数据
 const currentPlan = computed(() => chat.getCurrentPlan())
-
-// 侧边栏位置和尺寸（用于拖拽模式）
-const isDraggableMode = ref(false) // 是否为拖拽模式
-const position = ref({ x: window.innerWidth - 400, y: 20 }) // 默认右上角
-const size = ref({ width: 380, height: window.innerHeight - 40 })
-
-// 侧边栏是否可见（兼容旧逻辑）
-const isVisible = computed(() => chat.getPlanWidgetMode() === 'sidebar')
-
-// 侧边栏折叠状态
-const isCollapsed = ref(false)
 
 // 计算计划总进度
 const planProgress = computed(() => {
@@ -71,45 +59,12 @@ const getStatusColor = (status?: PlanStatus) => {
   return colorMap[status || PlanStatus.PLANNING] || '#666'
 }
 
-// 缩为状态球
+// 缩为状态球：直接恢复到上次小球位置（已由拖拽时持久化）
 const minimizeToBall = () => {
   chat.setPlanWidgetMode('ball')
 }
 
-// 切换折叠状态
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value
-}
 
-// 拖拽和调整大小的回调
-const onDrag = (x: number, y: number) => {
-  position.value = { x, y }
-}
-
-const onDragStop = () => {
-  chat.setPlanWidgetPosition(position.value)
-}
-
-const onResize = (x: number, y: number, w: number, h: number) => {
-  size.value = { width: w, height: h }
-  position.value = { x, y }
-}
-
-const onResizeStop = () => {
-  chat.setPlanWidgetSize(size.value)
-  chat.setPlanWidgetPosition(position.value)
-}
-
-// 监听侧边栏显示状态，添加进入动画
-watch(isVisible, (visible) => {
-  if (visible && sidebarRef.value) {
-    // 侧边栏显示动画
-    gsap.fromTo(sidebarRef.value,
-      { x: isDraggableMode.value ? -50 : 300, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
-    )
-  }
-}, { immediate: true })
 
 // 监听计划数据变化，添加更新动画
 watch(currentPlan, (newPlan, oldPlan) => {
@@ -127,53 +82,34 @@ watch(currentPlan, (newPlan, oldPlan) => {
   <!-- 固定侧边栏模式 -->
   <transition name="sidebar-slide">
     <div
-      v-if="isVisible && !isDraggableMode"
       ref="sidebarRef"
       class="plan-sidebar"
-      :class="{ collapsed: isCollapsed }"
     >
       <!-- 侧边栏头部 -->
       <div class="sidebar-header">
         <div class="header-content">
           <div class="header-title">
-            <span v-if="!isCollapsed">执行计划</span>
+            <span>执行计划</span>
           </div>
           <div class="header-actions">
             
             <a-button
-              v-if="!isCollapsed"
               type="text"
               size="small"
               @click="minimizeToBall"
               class="action-btn"
               title="缩为状态球"
             >
-              <template #icon>⚫</template>
-            </a-button>
-            <a-button
-              v-if="!isCollapsed"
-              type="text"
-              size="small"
-              @click="toggleCollapse"
-              class="action-btn"
-            >
-              <template #icon>⬅</template>
-            </a-button>
-            <a-button
-              v-else
-              type="text"
-              size="small"
-              @click="toggleCollapse"
-              class="action-btn"
-            >
-              <template #icon>➡</template>
+              <template #icon>
+                <MinusOutlined />
+              </template>
             </a-button>
           </div>
         </div>
       </div>
 
       <!-- 计划内容区域 -->
-      <div class="plan-content" v-if="!isCollapsed">
+      <div class="plan-content">
         <!-- 无计划状态 -->
         <div v-if="!currentPlan" class="no-plan-state">
           <div class="empty-icon">📝</div>
@@ -257,49 +193,10 @@ watch(currentPlan, (newPlan, oldPlan) => {
         </div>
       </div>
 
-      <!-- 折叠状态的简化显示 -->
-      <div v-else class="collapsed-content">
-        <div class="collapsed-info" v-if="currentPlan">
-          <div class="collapsed-progress">
-            <div
-              class="progress-ring"
-              :style="{ background: `conic-gradient(${getStatusColor(currentPlan.status)} ${planProgress}%, rgba(255,255,255,0.1) ${planProgress}%)` }"
-            >
-              <span class="progress-text">{{ planProgress }}%</span>
-            </div>
-          </div>
-          <div class="collapsed-phase" v-if="currentPhase">
-            <div class="phase-indicator">{{ currentPhase?.index || 1 }}</div>
-          </div>
-        </div>
-        <div class="collapsed-empty" v-else>
-          <div class="empty-indicator">📝</div>
-        </div>
-      </div>
+
     </div>
   </transition>
 
-  <!-- 可拖拽侧边栏模式 (暂未启用) -->
-  <Vue3DraggableResizable
-    v-if="isVisible && isDraggableMode"
-    :initW="size.width"
-    :initH="size.height"
-    :x="position.x"
-    :y="position.y"
-    :draggable="true"
-    :resizable="true"
-    :minW="280"
-    :minH="400"
-    :maxW="600"
-    @drag-end="onDragStop"
-    @dragging="onDrag"
-    @resize-end="onResizeStop"
-    @resizing="onResize"
-  >
-    <div ref="sidebarRef" class="plan-sidebar draggable-mode">
-      <!-- 与上面相同的内容 -->
-    </div>
-  </Vue3DraggableResizable>
 </template>
 
 <style scoped lang="scss">
@@ -322,9 +219,6 @@ watch(currentPlan, (newPlan, oldPlan) => {
   pointer-events: auto;
 }
 
-.plan-sidebar.collapsed {
-  width: 80px;
-}
 
 .sidebar-header {
   padding: $space-lg;
@@ -542,22 +436,6 @@ watch(currentPlan, (newPlan, oldPlan) => {
   font-weight: 500;
 }
 
-/* 折叠状态样式 */
-.collapsed-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-xl 0;
-}
-
-.collapsed-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $space-lg;
-}
-
 .progress-ring {
   width: 50px;
   height: 50px;
@@ -587,12 +465,6 @@ watch(currentPlan, (newPlan, oldPlan) => {
   font-weight: 600;
 }
 
-.collapsed-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100px;
-}
 
 .empty-indicator {
   font-size: 32px;
@@ -615,14 +487,4 @@ watch(currentPlan, (newPlan, oldPlan) => {
   opacity: 0;
 }
 
-/* 响应式适配 */
-@media (max-width: 768px) {
-  .plan-sidebar {
-    width: 100%;
-  }
-
-  .plan-sidebar.collapsed {
-    width: 60px;
-  }
-}
 </style>

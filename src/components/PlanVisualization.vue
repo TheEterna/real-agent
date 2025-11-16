@@ -45,8 +45,8 @@ const handlePhaseClick = (phase: PlanPhase) => {
 
 // 处理阶段编辑
 const handlePhaseEdit = (phase: PlanPhase, updates: Partial<PlanPhase>) => {
-  if (phase.id && chat.sessionId.value) {
-    chat.updatePhase(chat.sessionId.value, phase.id, updates)
+  if (phase.id && chat.sessionId) {
+    chat.updatePhase(chat.sessionId, phase.id, updates)
   }
 }
 
