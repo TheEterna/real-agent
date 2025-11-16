@@ -169,6 +169,7 @@ public class AgentUtils {
 							: "null");
 		}
 
+		// 2.1 render tool list by tag: <TOOLS>
 		String systemPromptWithTools = PromptUtils.renderToolList(systemPrompt, availableTools);
 
 		messages.add(new SystemMessage(systemPromptWithTools));

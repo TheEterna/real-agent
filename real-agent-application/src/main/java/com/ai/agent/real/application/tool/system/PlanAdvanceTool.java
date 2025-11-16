@@ -196,6 +196,7 @@ public class PlanAdvanceTool implements AgentTool {
 				- 总结要具体明确，包含量化指标
 				- 体现阶段目标的达成情况
 				- 为后续阶段提供清晰的输入依据
+				- 要保持语言风格一语中的，简练，能够抓住重点，用最少的语言叙述最多的内容，语言控制在 50 字内
 				""")
 		private String completionSummary;
 

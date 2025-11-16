@@ -167,19 +167,20 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 		// 执行Agent流式任务
 		Disposable execution = agentStrategy.executeStreamWithInteraction(message, state, context)
 			.map(this::toSSE)
-//			.doOnNext(event -> {
-//
-//				if (event.data().getType() == AgentExecutionEvent.EventType.TOOL_APPROVAL) {
-//					// 创建等待点
-//					Sinks.One<InteractionResponse> approvalGate = Sinks.one();
-//					state.setPendingApproval(approvalGate);
-//				}
-//				// 推送事件到Sink
-//				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-//				if (result.isFailure()) {
-//					log.warn("推送事件失败: turnId={}, result={}", state.getTurnId(), result);
-//				}
-//			})
+			// .doOnNext(event -> {
+			//
+			// if (event.data().getType() == AgentExecutionEvent.EventType.TOOL_APPROVAL)
+			// {
+			// // 创建等待点
+			// Sinks.One<InteractionResponse> approvalGate = Sinks.one();
+			// state.setPendingApproval(approvalGate);
+			// }
+			// // 推送事件到Sink
+			// Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+			// if (result.isFailure()) {
+			// log.warn("推送事件失败: turnId={}, result={}", state.getTurnId(), result);
+			// }
+			// })
 			.doOnError(error -> {
 				log.error("Agent执行异常: turnId={}", state.getTurnId(), error);
 				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));

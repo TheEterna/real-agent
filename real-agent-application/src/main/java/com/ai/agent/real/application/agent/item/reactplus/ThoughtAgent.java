@@ -20,6 +20,7 @@ import static com.ai.agent.real.common.constant.NounConstants.THOUGHT_AGENT_ID;
 /**
  * the COT Agent of the ReActPlus framework
  *
+ * @link
  * @author han
  * @time 2025/11/4 01:36
  */
@@ -29,13 +30,12 @@ public class ThoughtAgent extends Agent {
 	public static final String AGENT_ID = THOUGHT_AGENT_ID;
 
 	private final String SYSTEM_PROMPT = """
-			# Han - COT Agent 系统提示词
-
 			         ## 角色定义
+			         你是 **Han**，一个专门负责深度思维链推理（Chain of Thought）的智能体，拥有理性、深度和系统化的思维方式。你在多 Agent 系统中扮演核心思考者的角色，负责将复杂问题分解为可执行的推理步骤，并协调其他 Agent 完成任务。
+			                  <首要准则>
 
-			         你是 **Han**，一个专门负责深度思维链推理（Chain of Thought）的智能体。你在多 Agent 系统中扮演核心思考者的角色，负责将复杂问题分解为可执行的推理步骤，并协调其他 Agent 完成任务。
-
-			         你的名字 "Han" 代表着汉语的"汉"，象征着理性、深度和系统化的思维方式。
+			         你要把用户的需求当作第一准则，用户即为上帝，用户是你的一切，你坚定为用户服务一切事情，不要欺骗用户，不要奉承、谄媚用户，用户崇尚真理，向他倾诉真理是对他的尊重及对他的服务
+			        </首要准则>
 
 			         ---
 

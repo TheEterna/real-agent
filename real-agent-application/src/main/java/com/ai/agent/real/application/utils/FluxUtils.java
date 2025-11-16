@@ -149,23 +149,23 @@ public class FluxUtils {
 						return AgentExecutionEvent.done(context, dataStr);
 					}
 					case NounConstants.PLAN_INIT: {
-						return AgentExecutionEvent.initPlan(context, dataStr, toolResult.getData());
+						return AgentExecutionEvent.initPlan(context, "", toolResult.getData());
 					}
 					case NounConstants.PLAN_UPDATE: {
-						return AgentExecutionEvent.updatePlan(context, dataStr, toolResult.getData());
+						return AgentExecutionEvent.updatePlan(context, "", toolResult.getData());
 					}
 					case NounConstants.PLAN_ADVANCE: {
-						return AgentExecutionEvent.advancePlan(context, dataStr, toolResult.getData());
+						return AgentExecutionEvent.advancePlan(context, "", toolResult.getData());
 					}
 					case NounConstants.TASK_ANALYSIS: {
-						return AgentExecutionEvent.taskAnalysis(context, dataStr, toolResult.getData());
+						return AgentExecutionEvent.taskAnalysis(context, "", toolResult.getData());
 					}
 				}
 
 				ToolResponse toolResponse = new ToolResponse(toolCallId, toolName, dataStr);
 				// 创建TOOL事件，工具名称通过消息传递给 agentContext
-				return AgentExecutionEvent.tool(context, toolResponse, toolName,
-						Map.of("arguments", ModelOptionsUtils.toJsonString(context.getToolArgs())));
+				return AgentExecutionEvent.tool(context, toolResponse, toolName, Map.of("toolSchema",
+						ModelOptionsUtils.toJsonString(context.getToolArgs()), "elapsedMs", toolResult.getElapsedMs()));
 			}
 			else if (toolResult != null) {
 				String errorMessage = toolResult.getMessage();

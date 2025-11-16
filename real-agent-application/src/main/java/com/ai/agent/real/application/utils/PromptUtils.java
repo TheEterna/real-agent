@@ -1,5 +1,6 @@
 package com.ai.agent.real.application.utils;
 
+import com.ai.agent.real.common.constant.PromptConstants;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
 import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
@@ -8,8 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
-import static com.ai.agent.real.common.constant.NounConstants.ENVIRONMENTS_TAG;
-import static com.ai.agent.real.common.constant.NounConstants.TAG_TOOLS;
+import static com.ai.agent.real.common.constant.NounConstants.*;
 
 /**
  * @author han
@@ -92,7 +92,7 @@ public class PromptUtils {
 	public static String renderMeta(String prompt, ReActPlusAgentContextMeta meta) {
 		// 1. pre handle and prepare data
 		if (meta == null) {
-			return "";
+			return prompt;
 		}
 
 		AgentMode agentMode = meta.getAgentMode();
@@ -136,8 +136,49 @@ public class PromptUtils {
 				log.warn("Unknown AgentMode: {}", agentMode);
 				break;
 		}
-		// 3. handle <Tools>标签内容
-		return addContentInTag(prompt, ENVIRONMENTS_TAG, envBuilder.toString());
+		// 3. handle <TOOLS>标签内容
+		return addContentInTag(prompt, TAG_ENVIRONMENTS, envBuilder.toString());
+	}
+
+	/**
+	 * 渲染工具调用规则 render tool call rules into prompt by task status
+	 * @return
+	 */
+	public static String renderToolCallRules(String prompt, ReActPlusAgentContextMeta meta) {
+		// 1. pre handle and prepare data
+		if (meta == null) {
+			return prompt;
+		}
+
+		AgentMode agentMode = meta.getAgentMode();
+
+		StringBuilder toolCallRulesBuilder = new StringBuilder();
+
+		// 2. build data: 根据不同的 AgentMode 渲染不同的环境信息
+		switch (agentMode) {
+			case DIRECT:
+			case SIMPLE:
+			case THOUGHT:
+			case SOP:
+				return prompt;
+			case PLAN:
+			case PLAN_THOUGHT:
+				toolCallRulesBuilder.append(PromptConstants.PLAN_MODE_PLAN_ADVANCE_TOOL_PROMPT
+						+ PromptConstants.PLAN_MODE_PLAN_UPDATE_TOOL_PROMPT
+						+ PromptConstants.PLAN_MODE_TASK_DONE_TOOL_PROMPT);
+
+				toolCallRulesBuilder.append(PromptConstants.PLAN_MODE_PLAN_ADVANCE_TOOL_PROMPT
+						+ PromptConstants.PLAN_MODE_PLAN_UPDATE_TOOL_PROMPT
+						+ PromptConstants.PLAN_MODE_TASK_DONE_TOOL_PROMPT);
+				break;
+			default:
+				log.warn("Unknown AgentMode: {}", agentMode);
+				break;
+		}
+		// 3. handle <TOOLCALLRULES>标签内容
+
+		return addContentInTag(prompt, TAG_TOOL_CALL_RULES, toolCallRulesBuilder.toString());
+
 	}
 
 	/**

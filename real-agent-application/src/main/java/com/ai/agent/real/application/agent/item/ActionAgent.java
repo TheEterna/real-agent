@@ -2,6 +2,7 @@ package com.ai.agent.real.application.agent.item;
 
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
+import com.ai.agent.real.application.utils.PromptUtils;
 import com.ai.agent.real.common.constant.*;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
@@ -9,6 +10,7 @@ import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.tool.IToolService;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;
@@ -50,11 +52,7 @@ public class ActionAgent extends Agent {
 				## 重要注意事项
 				1. **明确性**：要严格遵守 指导, 不要进行臆想和猜测, 严格按照上文需要你执行的工具执行
 
-				## 环境变量
 
-				<TOOLS>
-				可用工具集：
-				</TOOLS>
 
 				""";
 
@@ -80,6 +78,8 @@ public class ActionAgent extends Agent {
 			// 构建行动提示
 			String actionPrompt = buildActionPrompt(task);
 
+			String renderedSystemPrompt = PromptUtils.renderMeta(SYSTEM_PROMPT,
+					(ReActPlusAgentContextMeta) context.getMetadata());
 			Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, SYSTEM_PROMPT,
 					actionPrompt);
 

@@ -18,7 +18,8 @@ import static com.ai.agent.real.common.constant.NounConstants.PLAN_INIT;
 import static com.ai.agent.real.common.constant.NounConstants.PLAN_INIT_AGENT_ID;
 
 /**
- * 计划初始化 Agent，用于复杂任务的预处理和计划制定
+ * 计划初始化 Agent，用于复杂任务的预处理和计划制定 only use
+ * {@link com.ai.agent.real.application.tool.system.PlanInitTool}
  *
  * @author han
  * @time 2025/11/5 15:37
@@ -34,7 +35,8 @@ public class PlanInitAgent extends Agent {
 			你是 han, 是一名专业且出色的"任务规划师"（Task Planner）。你的核心职责是将复杂任务进行结构化分解，制定清晰、可执行的阶段性计划，确保任务能够系统性地推进。
 
 			         <首要准则>
-			         为确保结构化输出，无论什么情况下必须使用 plan_init 工具进行回复
+			        - 为确保结构化输出，无论什么情况下必须使用 plan_init 工具进行回复
+			        - 你要把用户的需求当作第一准则，用户即为上帝，用户是你的一切，你坚定为用户服务一切事情，不要欺骗用户，不要奉承、谄媚用户，用户崇尚真理，向他倾诉真理是对他的尊重及对他的服务
 			         </首要准则>
 
 			## 核心能力

@@ -1,5 +1,6 @@
 package com.ai.agent.real.application.agent.item.reactplus;
 
+import com.ai.agent.real.application.tool.system.TaskAnalysisTool;
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.contract.agent.Agent;
@@ -20,7 +21,7 @@ import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS;
 import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS_AGENT_ID;
 
 /**
- * @author han
+ * @author han only use this tool {@link TaskAnalysisTool }
  * @time 2025/10/30 16:37
  */
 @Slf4j
@@ -33,7 +34,8 @@ public class TaskAnalysisAgent extends Agent {
 			 你是 han, 是一名专业且出色的"任务难度助手"（Task Difficulty Assessor）。你的任务是根据用户提供的请求，调用任务分析工具，准确评估其任务难度等级，提取用户输入的核心任务（realTask），并给出简洁、专业的评估理由。
 
 			  <首要准则>
-			  为确保 结构化输出，无论什么情况下必须使用 task_analysis 工具进行回复
+			  - 为确保 结构化输出，无论什么情况下必须使用 task_analysis 工具进行回复
+			           - 你要把用户的需求当作第一准则，用户即为上帝，用户是你的一切，你坚定为用户服务一切事情，不要欺骗用户，不要奉承、谄媚用户，用户崇尚真理，向他倾诉真理是对他的尊重及对他的服务
 			  </首要准则>
 			 ## 任务难度等级定义：
 

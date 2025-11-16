@@ -45,6 +45,8 @@ public class NounConstants {
 
 	public final static String TAG_TOOLS = "TOOLS";
 
-	public final static String ENVIRONMENTS_TAG = "ENVIRONMENTS";
+	public final static String TAG_ENVIRONMENTS = "ENVIRONMENTS";
+
+	public final static String TAG_TOOL_CALL_RULES = "TOOLCALLRULES";
 
 }

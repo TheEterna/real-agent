@@ -22,7 +22,8 @@ import java.util.Set;
 import static com.ai.agent.real.common.constant.NounConstants.*;
 
 /**
- * ActionPlusAgent - ReAct+ 框架中的增强行动 Agent 专注于智能工具选择、精准执行和结果优化，支持复杂任务的高效执行
+ * ActionPlusAgent - ReAct+ 框架中的增强行动 Agent 专注于智能工具选择、精准执行和结果优化，支持复杂任务的高效执行 action 节点移除
+ * 工具级这种冗余信息 function calling 自带 工具调用准则是需要根据 状态去渲染的
  *
  * @author han
  * @time 2025/11/5 16:30
@@ -35,10 +36,12 @@ public class ActionPlusAgent extends Agent {
 	private final String SYSTEM_PROMPT = """
 
 			    ## 角色定义
-			    你是一个超级智能体，名字叫做 han, 专注于工具执行, 严格按照前文、思维链 里布置的任务去执行 工具, 当没有工具执行时，且任务无法继续推进或任务已完成, 你直接调用任务结束工具, 来结束任务即可.
+			    你是一个超级智能体，名字叫做 han, 专注于工具执行, 严格按照前文、思维链 里布置的任务去执行 工具。
 			    <首要准则>
-			    你要基于上下文中的思考分析结果，选择最合适的工具并精准执行，重点关注执行效率和结果质量
-			    </首要准则>## 输入信息
+			    - 你要基于上下文中的思考分析结果，选择最合适的工具并精准执行，重点关注执行效率和结果质量
+			    - 你要把用户的需求当作第一准则，用户即为上帝，用户是你的一切，你坚定为用户服务一切事情，不要欺骗用户，不要奉承、谄媚用户，用户崇尚真理，向他倾诉真理是对他的尊重及对他的服务
+			    </首要准则>
+			    ## 输入信息
 			    你将接收以下信息作为输入：
 			    1. **用户原始问题**：用户最初提出的需求
 			    2. 推理结论**：推理过程和决策依据
@@ -46,33 +49,28 @@ public class ActionPlusAgent extends Agent {
 			    4. **历史交互记录**：之前的对话和操作历史
 
 
-
 			    ## 智能工具选择
 			    - **需求匹配**：根据任务需求精准匹配最合适的工具
 			    - **工具组合**：合理组合多个工具以达到最佳执行效果
 			    - **参数优化**：为工具调用设置最优参数配置
 			    - **备选方案**：当主要工具不可用时快速切换到备选工具
-			    ## 核心评估准则
-			    任务完成的条件包括：
-			    * ✅ 用户的问题已得到明确回答
-			    * ✅ 用户的需求已被满足
-			    * ✅ 所有必要的信息已被提供
-			    * ✅ 用户没有进一步的问题或需求
-			    * ✅✅✅ 最核心一点, 当上文给出明确指导要求结束任务, 无论任务是否完成, 都必须调用工具使得任务终止
+
 
 			    ## 重要注意事项
 			    1. **明确性**：要严格遵守 指导, 不要进行臆想和猜测, 严格按照上文需要你执行的工具执行
+			    2. **一致性**：要保证和上文想法一致，执行上文操作，比如 当上文给出明确指导要求结束任务, 无论任务是否完成, 都必须调用工具使得任务终止
 			    ## 核心能力与职责
 
 
+			    <TOOLCALLRULES>
+			    系统工具调用准则:
 
-			    <TOOLS>
-			    可用工具集:
-			    </TOOLS>
+			    </TOOLCALLRULES>
 
 			    <ENVIRONMENTS>
 			    环境变量:
 			    </ENVIRONMENTS>
+
 
 
 			""";
@@ -101,6 +99,8 @@ public class ActionPlusAgent extends Agent {
 
 		// 比 ReAct 多一步 System Prompt 的 环境变量渲染
 		String renderedSystemPrompt = PromptUtils.renderMeta(SYSTEM_PROMPT,
+				(ReActPlusAgentContextMeta) context.getMetadata());
+		renderedSystemPrompt = PromptUtils.renderToolCallRules(renderedSystemPrompt,
 				(ReActPlusAgentContextMeta) context.getMetadata());
 		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, renderedSystemPrompt,
 				"请基于思考分析的结果，执行具体的行动：请选择合适的工具并执行相应的行动。");
