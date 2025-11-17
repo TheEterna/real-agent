@@ -6,6 +6,7 @@ import com.ai.agent.real.application.utils.PromptUtils;
 import com.ai.agent.real.common.constant.NounConstants;
 import com.ai.agent.real.contract.agent.Agent;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
 import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.tool.IToolService;
@@ -75,11 +76,13 @@ public class ActionPlusAgent extends Agent {
 
 			""";
 
-	public ActionPlusAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode) {
+	public ActionPlusAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode,
+			IAgentTurnManagerService agentTurnManagerService) {
 
 		super(AGENT_ID, AGENT_ID, "ReAct+ 框架中的增强行动执行者，专注于智能工具选择、精准执行和结果优化", chatModel, toolService,
 				Set.of("ReActAgentStrategy", "行动", "Action", NounConstants.MCP, NounConstants.TASK_DONE),
 				toolApprovalMode);
+		this.setAgentTurnManagerService(agentTurnManagerService);
 		this.setCapabilities(new String[] { "工具执行", "智能选择", "ActionPlus" });
 	}
 
@@ -113,8 +116,8 @@ public class ActionPlusAgent extends Agent {
 		// prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
 
 		return FluxUtils
-			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
-					AgentExecutionEvent.EventType.ACTING)
+			.executeWithToolSupportWithInteraction(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
+					AgentExecutionEvent.EventType.ACTING, agentTurnManagerService.getTurnState(context.getTurnId()))
 			.doFinally(signalType -> {
 				afterHandle(context);
 				log.debug("ActionPlusAgent 工具执行结束，信号类型: {}", signalType);

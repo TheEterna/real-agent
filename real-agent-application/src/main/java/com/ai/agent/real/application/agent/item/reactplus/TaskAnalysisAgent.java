@@ -166,12 +166,11 @@ public class TaskAnalysisAgent extends Agent {
 
 			 """;
 
-	public TaskAnalysisAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode,
-			IAgentTurnManagerService agentTurnManagerService) {
+	public TaskAnalysisAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode) {
 
 		super(AGENT_ID, AGENT_ID, "任务难度评估助手，用于分析用户输入的任务请求，评估任务难度等级，并提取核心任务信息", chatModel, toolService,
 				Set.of(TASK_ANALYSIS), toolApprovalMode);
-		this.setAgentTurnManagerService(agentTurnManagerService);
+
 		this.setCapabilities(new String[] { "任务分析", "TaskAnalysis" });
 	}
 
@@ -190,12 +189,11 @@ public class TaskAnalysisAgent extends Agent {
 
 		// 使用通用的工具支持方法
 		return FluxUtils
-			.executeWithToolSupportWithInteraction(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
-					AgentExecutionEvent.EventType.TASK_ANALYSIS,
-					agentTurnManagerService.getTurnState(context.getTurnId()))
+			.executeWithToolSupport(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
+					AgentExecutionEvent.EventType.TASK_ANALYSIS)
 			.doFinally(signalType -> {
 				afterHandle(context);
-				log.info("ObservationAgent 执行结束，信号类型: {}", signalType);
+				log.info("TaskAnalysisAgent 执行结束，信号类型: {}", signalType);
 			});
 	}
 

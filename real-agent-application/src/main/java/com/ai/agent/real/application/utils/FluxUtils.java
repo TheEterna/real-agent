@@ -237,7 +237,7 @@ public class FluxUtils {
 			if (ToolUtils.hasToolCallingNative(response)) {
 				// 优先使用上下文中的回调，如果没有则使用传入的回调
 				toolFlux = Flux.fromIterable(response.getResult().getOutput().getToolCalls())
-					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService, toolApprovalMode));
+					.concatMap(toolCall -> executeToolCall(toolCall, context, toolService));
 			}
 
 			// 合并内容和工具调用结果
@@ -344,7 +344,7 @@ public class FluxUtils {
 	 * 执行单个工具调用
 	 */
 	private static Flux<AgentExecutionEvent> executeToolCall(ToolCall toolCall, AgentContextAble context,
-			IToolService toolService, ToolApprovalMode toolApprovalMode) {
+			IToolService toolService) {
 
 		String toolName = toolCall.name();
 		String toolCallId = toolCall.id();
@@ -363,50 +363,12 @@ public class FluxUtils {
 			}
 			final String toolId = tool.getId();
 
-			switch (toolApprovalMode) {
-				case AUTO:
-					// TODO: 实现基于权限列表的自动执行逻辑
-					log.info("工具自动执行模式（待实现权限检查）: {}", toolName);
-					context.setToolArgs(args);
-					return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
-							toolCallId, toolName)
-						.flux()
-						// 工具执行失败的恢复机制
-						.onErrorResume(error -> {
-							String errorMsg = String.format("工具 [%s] 执行失败: %s", toolName,
-									error.getMessage() != null ? error.getMessage() : "未知错误");
-							log.error(errorMsg, error);
-							return Flux.just(AgentExecutionEvent.error(errorMsg));
-						});
-
-				// fixme: 工具审批
-				// case REQUIRE_APPROVAL:
-				// log.info("工具需要人工审批: {}", toolName);
-				// return Flux.just(AgentExecutionEvent.toolApproval(context,
-				// new ToolApprovalRequest(toolCallId, toolName, args)));
-
-				case REQUIRE_APPROVAL:
-					// 需要审批：调用回调通知上层，并返回空流（暂停执行）
-					log.info("工具执行需要审批: toolName={}, toolCallId={}", toolName, toolCallId);
-
-					// 返回空流，暂停当前执行
-					// 注意：这里不会继续执行，需要等待审批后通过其他方式恢复
-					return Flux.defer(() -> {
-
-						return Flux.just(AgentExecutionEvent.toolApproval(context, null,
-								new ToolApprovalRequest(toolCallId, toolName, args),
-								Map.of("toolSchema", tool.getSpec())));
-
-					});
-				case DISABLED:
-				default:
-					// 禁用审批：直接执行
-					log.info("工具执行（无审批）: {}", toolName);
-					context.setToolArgs(args);
-					return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId,
-							toolCallId, toolName)
-						.flux();
-			}
+			// 禁用审批：直接执行
+			log.info("工具执行（无审批）: {}", toolName);
+			context.setToolArgs(args);
+			return mapToolResultToEvent(toolService.executeToolAsync(toolName, context), context, toolId, toolCallId,
+					toolName)
+				.flux();
 		}
 		catch (Exception e) {
 			// 捕获参数解析等早期错误

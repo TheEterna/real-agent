@@ -110,10 +110,6 @@ public class AgentExecutionEvent extends TraceInfo {
 		return new AgentExecutionEvent(EventType.OBSERVING, observation, null, traceInfo);
 	}
 
-	public static AgentExecutionEvent executing(Traceable traceInfo, String execution) {
-		return new AgentExecutionEvent(EventType.EXECUTING, execution, null, traceInfo);
-	}
-
 	public static AgentExecutionEvent completed() {
 		return new AgentExecutionEvent(EventType.COMPLETED, null, null, null);
 	}

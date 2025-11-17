@@ -30,6 +30,7 @@ import reactor.core.publisher.Sinks;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -40,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class ReActPlusAgentStrategy implements IAgentStrategy {
+
+	private final int MAX_ITERATIONS = 50; // 最大迭代次数，默认50，可自行调整
 
 	private final TaskAnalysisAgent taskAnalysisAgent;
 
@@ -193,7 +196,8 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 				// 模式选择
 				Flux.defer(() -> {
 					ReActPlusAgentContextMeta metadata = (ReActPlusAgentContextMeta) context.getMetadata();
-					switch (metadata.getAgentMode()) {
+					AgentMode mode = Optional.ofNullable(metadata.getAgentMode()).orElse(AgentMode.THOUGHT);
+					switch (mode) {
 						case DIRECT: {
 							iterationCount.set(0);
 							return Flux.empty();
@@ -256,17 +260,13 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	public ResponseResult<String> handleInteractionResponse(InteractionResponse response) {
 
 		// 0. prepare args
-		String requestId = response.getRequestId();
 		String sessionId = response.getSessionId();
 		String turnId = response.getTurnId();
 		String operationId = response.getSelectedOptionId();
 		Map<String, Object> data = response.getData();
-		log.info("处理交互响应，请求ID: {}, 会话ID: {}, 轮次ID: {}, 选项ID: {}, 数据: {}", requestId, sessionId, turnId, operationId,
-				data.toString());
+		log.info("处理交互响应, 会话ID: {}, 轮次ID: {}, 选项ID: {}, 数据: {}", sessionId, turnId, operationId, data.toString());
 
 		// 1. check args
-		if (StringUtils.hasText(requestId))
-			return ResponseResult.error("Request ID cannot be blank");
 		if (StringUtils.hasText(sessionId))
 			return ResponseResult.error("Session ID cannot be blank");
 		if (StringUtils.hasText(turnId))
@@ -367,12 +367,9 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 					.executeStream(userInput, AgentUtils.createReActPlusAgentContext(context, FinalAgent.AGENT_ID))
 					.transform(FluxUtils.handleContext(context, FinalAgent.AGENT_ID))
 					.concatWith(Flux.defer(() -> {
-						if (!context.isTaskCompleted()) {
+						if (!context.isTaskCompleted() && context.getCurrentIteration() >= MAX_ITERATIONS) {
 							int currentIteration = context.getCurrentIteration();
-							String warningMsg = String.format(
-									"已达到最大迭代次数（%d/50），但任务未标记为完成。可能需要：\n" + "1. 检查 task_done 工具是否被正确调用\n"
-											+ "2. 优化提示词引导 Agent 在完成时调用 task_done\n" + "3. 评估任务复杂度是否超出当前迭代限制",
-									currentIteration);
+							String warningMsg = String.format("已达到最大迭代次数（%d/50），但任务未标记为完成。", currentIteration);
 							log.warn(warningMsg);
 							return Flux.just(AgentExecutionEvent.doneWithWarning(context, warningMsg))
 								.concatWith(Flux.just(AgentExecutionEvent.progress(context, "任务执行已结束，但未正式完成", null)));
@@ -380,7 +377,6 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 						// 任务正常完成
 						int totalIterations = context.getCurrentIteration();
 						String successMsg = String.format("任务成功完成，共执行 %d 轮迭代", totalIterations);
-						log.info(successMsg);
 						return Flux.just(AgentExecutionEvent.progress(context, successMsg, null));
 					})),
 				Flux.just(AgentExecutionEvent.progress(context, "生成结果完毕...", null))

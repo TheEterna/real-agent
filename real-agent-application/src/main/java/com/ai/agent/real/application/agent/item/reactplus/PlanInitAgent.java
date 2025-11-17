@@ -389,7 +389,7 @@ public class PlanInitAgent extends Agent {
 	public Flux<AgentExecutionEvent> executeStream(String task, AgentContextAble context) {
 		log.debug("PlanInitAgent 开始制定任务计划: {}", task);
 
-		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(null, context, SYSTEM_PROMPT, null);
+		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, SYSTEM_PROMPT, null);
 
 		// 使用通用的工具支持方法
 		return FluxUtils

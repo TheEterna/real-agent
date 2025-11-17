@@ -91,9 +91,8 @@ public class ApplicationAgentAutoConfiguration {
 	@Bean
 	// TODO: 待完善
 	public TaskAnalysisAgent taskAnalysisAgent(ChatModel chatModel, IToolService toolService,
-			IPropertyService propertyService, IAgentTurnManagerService agentTurnManagerService) {
-		return new TaskAnalysisAgent(chatModel, toolService, propertyService.getToolApprovalMode(),
-				agentTurnManagerService);
+			IPropertyService propertyService) {
+		return new TaskAnalysisAgent(chatModel, toolService, propertyService.getToolApprovalMode());
 	}
 
 	@Bean
@@ -118,9 +117,9 @@ public class ApplicationAgentAutoConfiguration {
 
 	@Bean
 	public ActionPlusAgent actionPlusAgent(ChatModel chatModel, IToolService toolService,
-			IPropertyService propertyService) {
+			IPropertyService propertyService, IAgentTurnManagerService agentTurnManagerService) {
 		ToolApprovalMode mode = propertyService.getToolApprovalMode();
-		return new ActionPlusAgent(chatModel, toolService, mode);
+		return new ActionPlusAgent(chatModel, toolService, mode, agentTurnManagerService);
 	}
 
 	/**

@@ -87,8 +87,7 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 	 */
 	@Override
 	public void handleInteractionResponse(String turnId, InteractionResponse response) {
-		log.info("处理用户交互响应: turnId={}, requestId={}, option={}", turnId, response.getRequestId(),
-				response.getSelectedOptionId());
+		log.info("处理用户交互响应: turnId={},  option={}", turnId, response.getSelectedOptionId());
 
 		TurnState state = turns.get(turnId);
 
@@ -167,20 +166,20 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 		// 执行Agent流式任务
 		Disposable execution = agentStrategy.executeStreamWithInteraction(message, state, context)
 			.map(this::toSSE)
-			// .doOnNext(event -> {
-			//
-			// if (event.data().getType() == AgentExecutionEvent.EventType.TOOL_APPROVAL)
-			// {
-			// // 创建等待点
-			// Sinks.One<InteractionResponse> approvalGate = Sinks.one();
-			// state.setPendingApproval(approvalGate);
-			// }
-			// // 推送事件到Sink
-			// Sinks.EmitResult result = state.getSink().tryEmitNext(event);
-			// if (result.isFailure()) {
-			// log.warn("推送事件失败: turnId={}, result={}", state.getTurnId(), result);
-			// }
-			// })
+			.doOnNext(event -> {
+				log.debug("推送SSE事件: turnId={}, eventType={}", state.getTurnId(), event.event());
+
+				if (event.data().getType() == AgentExecutionEvent.EventType.TOOL_APPROVAL) {
+					// 创建等待点
+					Sinks.One<InteractionResponse> approvalGate = Sinks.one();
+					state.setPendingApproval(approvalGate);
+				}
+				// 推送事件到Sink
+				Sinks.EmitResult result = state.getSink().tryEmitNext(event);
+				if (result.isFailure()) {
+					log.warn("推送事件失败: turnId={}, result={}", state.getTurnId(), result);
+				}
+			})
 			.doOnError(error -> {
 				log.error("Agent执行异常: turnId={}", state.getTurnId(), error);
 				state.getSink().tryEmitNext(toSSE(AgentExecutionEvent.error(error)));

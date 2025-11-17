@@ -20,11 +20,6 @@ import java.util.Map;
 public class InteractionResponse {
 
 	/**
-	 * 对应的请求ID
-	 */
-	private String requestId;
-
-	/**
 	 * 会话ID
 	 */
 	private String sessionId;
