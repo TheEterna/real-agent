@@ -220,7 +220,7 @@ const { messages } = useSSE()
 ##### 命名规范 (严格执行)
 ```typescript
 // ✅ 正确命名
-Component: PascalCase     // MessageItem.vue
+Component: PascalCase     // ReActMessageItem.vue
 File: kebab-case         // color-utils.ts
 Variable: camelCase      // sessionId
 Constant: UPPER_CASE     // EVENT_TYPE

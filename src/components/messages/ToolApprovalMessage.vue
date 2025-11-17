@@ -7,7 +7,6 @@ import { CaretUpFilled } from '@ant-design/icons-vue';
 import {UIMessage} from "@/types/events.js";
 const props = defineProps<{
   message: UIMessage
-  sessionId?: string
 }>()
 
 const emit = defineEmits<{

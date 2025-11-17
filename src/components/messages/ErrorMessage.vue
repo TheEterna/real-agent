@@ -49,10 +49,6 @@ const handleCopy = async () => {
     copySuccess.value = true
     emit('copied', true)
 
-    notification.success({
-      message: '已复制',
-      duration: 1.5
-    })
 
     // 2秒后重置复制状态
     setTimeout(() => {
@@ -74,13 +70,13 @@ const handleCopy = async () => {
 <template>
   <div
     ref="containerRef"
-    class="group relative bg-red-50 rounded-xl p-4 text-red-800"
+    class="group relative bg-red-50 rounded-xl py-4 pl-5 pr-15 text-red-800"
   >
     <!-- 复制按钮 - 右上角，hover时显示 -->
     <button
       @click="handleCopy"
       :disabled="isCopying"
-      class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 ease-in-out
+      class="absolute top-3 right-3 opacity-0 transition-all duration-200 ease-in-out
              flex items-center gap-1.5 px-2 py-1 text-xs
              border border-red-300 rounded-md bg-white text-red-700
              hover:text-white hover:-translate-y-0.5
@@ -90,11 +86,15 @@ const handleCopy = async () => {
     </button>
 
     <!-- 错误内容 -->
-    <div class="pr-16">
+    <div>
       <div class="text-sm leading-relaxed text-red-800 break-words">
         {{ errorMessage }}
       </div>
     </div>
   </div>
 </template>
-
+<style scoped>
+.group:hover>button {
+  opacity: 1!important;
+}
+</style>

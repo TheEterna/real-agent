@@ -11,7 +11,11 @@ export default defineConfig({
         // 允许通过环境变量关闭以排查 Monaco 相关错误：VITE_DEVTOOLS=false
         vueDevTools(),
         vue(),
-        monacoEditorPlugin()
+        monacoEditorPlugin({
+            languages: ['json', 'javascript', 'typescript', 'html', 'css', 'java', 'python'],
+            // 可选：指定需要支持的主题
+            themes: ['vs-dark', 'vs-light']
+        })
     ].filter(Boolean) as any,
     resolve: {
         alias: {

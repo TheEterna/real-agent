@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import ToolBox from './ToolBox.vue'
 import { defineAsyncComponent } from 'vue'
-import { UIMessage, EventType, MessageType } from '@/types/events'
+import { UIMessage, EventType, EventType } from '@/types/events'
 import ErrorMessage from './ErrorMessage.vue'
 
 const MarkdownViewer = defineAsyncComponent(() => import('./MarkdownViewer.vue'))
@@ -12,38 +12,21 @@ const props = defineProps<{
   message: UIMessage
 }>()
 
-// 判断是否应该启用打字机效果
-// 只对 THINKING、ACTION、OBSERVING 等流式输出的消息启用
-const shouldUseTypewriter = computed(() => {
-  const mes = props.message
-  if (mes.type !== MessageType.Assistant) return false
 
-  // 对思考、行动、观察阶段启用打字机效果
-  return [
-    EventType.THINKING,
-    EventType.ACTION,
-    EventType.OBSERVING,
-    EventType.TASK_ANALYSIS,
-    EventType.THOUGHT,
-    EventType.INIT_PLAN,
-    EventType.UPDATE_PLAN,
-    EventType.ADVANCE_PLAN
-  ].includes(mes.eventType as EventType)
-})
 // 主题样式需要的语义类名：thinking/action/observing/tool/error/completed/system/user
 const messageCssClass = computed(() => {
   const mes = props.message
-  if (mes.type === MessageType.Tool) return 'tool'
-  if (mes.type === MessageType.ToolApproval) return 'tool_approval'
-  if (mes.eventType === EventType.PROGRESS) return 'progress'
-  if (mes.eventType === EventType.DONEWITHWARNING) return 'warning'
-  if (mes.type === MessageType.Error) {
+  if (mes.type === EventType.TOOL) return 'tool'
+  if (mes.type === EventType.TOOL_APPROVAL) return 'tool_approval'
+  if (mes.type === EventType.PROGRESS) return 'progress'
+  if (mes.type === EventType.DONEWITHWARNING) return 'warning'
+  if (mes.type === EventType.ERROR) {
     return 'error'
   }
-  if (mes.type === MessageType.System) return 'system'
-  if (mes.type === MessageType.User) return 'user'
-  if (mes.type === MessageType.Assistant) {
-    switch (mes.eventType) {
+  if (mes.type === EventType.SYSTEM) return 'system'
+  if (mes.type === EventType.USER) return 'user'
+  if (mes.type === EventType.ASSISTANT) {
+    switch (mes.type) {
       case EventType.THINKING: return 'thinking'
       case EventType.ACTION: return 'action'
       case EventType.OBSERVING: return 'observing'
@@ -66,13 +49,13 @@ const formatTime = (ts?: Date | string) => {
   <div :class="['message', messageCssClass]">
     <!-- 错误消息使用专用组件 -->
     <ErrorMessage
-      v-if="props.message.type === MessageType.Error"
+      v-if="props.message.type === EventType.ERROR"
       :message="props.message"
     />
 
     <!-- 其他消息类型使用原有渲染逻辑 -->
     <template v-else>
-      <div v-if="props.message.type !== MessageType.User" class="message-header">
+      <div v-if="props.message.type !== EventType.USER" class="message-header">
         <span class="sender">{{ props.message.sender }}</span>
         <span class="startTime">{{ formatTime((props.message as any).startTime) }}</span>
       </div>
@@ -80,12 +63,12 @@ const formatTime = (ts?: Date | string) => {
       <div class="message-body">
 
          <!-- 嵌入：若该消息节点包含 TOOL 事件，则在同一消息框内追加工具框列表 -->
-        <div v-if="props.message.type === MessageType.Tool" class="embedded-tools">
+        <div v-if="props.message.type === EventType.TOOL" class="embedded-tools">
           <ToolBox :message="props.message" />
         </div>
 
         <!-- 工具审批 -->
-        <div v-else-if="props.message.type === MessageType.ToolApproval">
+        <div v-else-if="props.message.type === EventType.TOOL_APPROVAL">
           <ToolApprovalCard :approval="(props.message as any).approval" />
         </div>
 

@@ -204,7 +204,7 @@ import '@/styles/themes/theme-react-plus.css'
 `MessageItem.vue` 不需要任何修改，会自动读取父级的 CSS 变量：
 
 ```vue
-<!-- MessageItem.vue -->
+<!-- ReActMessageItem.vue -->
 <style scoped>
 .message { 
   background: var(--message-bg, white);  /* 自动读取主题变量 */
@@ -293,9 +293,9 @@ background: var(--message-bg, #ffffff);
 变量命名遵循 `--{component}-{element}-{property}` 格式：
 
 ```css
---message-thinking-bg       /* MessageItem 组件的 thinking 状态的背景色 */
---message-action-border     /* MessageItem 组件的 action 状态的边框色 */
---message-user-text         /* MessageItem 组件的 user 消息的文本色 */
+--message-thinking-bg       /* ReActMessageItem 组件的 thinking 状态的背景色 */
+--message-action-border     /* ReActMessageItem 组件的 action 状态的边框色 */
+--message-user-text         /* ReActMessageItem 组件的 user 消息的文本色 */
 ```
 
 ### 4. 主题独立性

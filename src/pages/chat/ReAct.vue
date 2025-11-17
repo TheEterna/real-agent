@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {ref, onMounted, onUnmounted, nextTick, computed, h, watch} from 'vue'
-import {UIMessage, MessageType, EventType} from '@/types/events'
+import {UIMessage, EventType } from '@/types/events'
 import {AgentType} from '@/types/session'
 import {useChatStore} from '@/stores/chatStore'
 import StatusIndicator from '@/components/StatusIndicator.vue'
-import MessageItem from '@/components/MessageItem.vue'
+import ReActMessageItem from '@/components/ReActMessageItem.vue'
 import {useSSE} from '@/composables/useSSE'
 import {notification} from 'ant-design-vue'
 import {SendOutlined, PaperClipOutlined, FileTextOutlined} from '@ant-design/icons-vue'
@@ -220,7 +220,7 @@ const sendMessage = async () => {
   if (!inputMessage.value.trim() || isLoading.value) return
 
   const userMessage: UIMessage = {
-    type: MessageType.User,
+    type: EventType.USER,
     sender: '用户',
     message: inputMessage.value,
     startTime: new Date()
@@ -235,12 +235,11 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    await executeReAct(currentMessage, sessionId.value)
+    await executeReAct(currentMessage, sessionId)
   } catch (error) {
     console.error('发送消息失败:', error)
     messages.value.push({
-      type: MessageType.Error,
-      eventType: 'ERROR',
+      type: EventType.ERROR,
       sender: 'System',
       message: '发送失败: ' + (error as Error).message,
       startTime: new Date()
@@ -254,7 +253,7 @@ const sendMessage = async () => {
 }
 
 // 会话切换：保存旧会话消息并加载新会话消息
-watch(() => chat.sessionId.value, (newId, oldId) => {
+watch(() => chat.sessionId, (newId, oldId) => {
   if (oldId) {
     chat.setSessionMessages(oldId, messages.value)
   }
@@ -265,8 +264,8 @@ watch(() => chat.sessionId.value, (newId, oldId) => {
 
 // 消息变化时，更新当前会话的消息，并触碰更新时间
 watch(messages, (val) => {
-  chat.setSessionMessages(sessionId.value, val)
-  chat.touchSession(sessionId.value)
+  chat.setSessionMessages(sessionId, val)
+  chat.touchSession(sessionId)
 }, {deep: true})
 
 // 输入区工具栏
@@ -345,42 +344,7 @@ const formatTime = (date: any) => {
   })
 }
 
-// 获取状态图标
-const getStatusIcon = (status: string): string => {
-  const iconMap = {
-    'running': 'icon-running',
-    'completed': 'icon-completed',
-    'error': 'icon-error',
-    'idle': ''
-  }
-  return iconMap[status as keyof typeof iconMap] || ''
-}
 
-// 开发模式测试功能
-const isDevelopment = import.meta.env.DEV
-
-const testInitPlan = () => {
-  const plan = generateTestPlan()
-  chat.setSessionPlan(sessionId.value, plan)
-  chat.setPlanWidgetMode('ball')
-  notification.success({
-    message: '测试计划已创建',
-    description: '已生成测试计划数据，状态球已显示'
-  })
-}
-
-const testSimplePlan = () => {
-  const plan = generateSimplePlan()
-  chat.setSessionPlan(sessionId.value, plan)
-  chat.setPlanWidgetMode('ball')
-  notification.success({
-    message: '简单计划已创建',
-    description: '已生成简单测试计划数据，状态球已显示'
-  })
-}
-
-
-// 渲染Markdown
 // 兼容 Vite 对 CommonJS/ESM 插件的导入：有的为 default，有的为命名空间对象
 const resolvePlugin = (p: any) => {
   if (!p) return p
@@ -420,340 +384,6 @@ const md = new MarkdownIt({
     .use(resolvePlugin(mkatex))
 
 
-// 组件挂载
-// onMounted(() => {
-//   // 加载当前会话已存在的消息
-//   const existing = chat.getSessionMessages(sessionId.value)
-//   if (existing && existing.length > 0) {
-//     messages.value = [...existing]
-//   } else {
-//     // 全面的测试数据 - 覆盖所有渲染情况
-//     const testMessages: UIMessage[] = [
-//       // 1. 系统欢迎消息
-//       {
-//         type: MessageType.System,
-//         sender: 'ReAct+ Assistant',
-//         message: `🚀 **欢迎使用 ReAct+ 智能体！**
-//
-// 我是新一代增强版 ReAct 助手，具备以下能力：
-//
-// ✨ **智能工具审批** - 执行工具前会请求您的确认
-// 🧠 **深度推理** - 多层次思考和分析
-// 🔧 **工具链协作** - 智能选择和组合使用工具
-// 📊 **结果验证** - 自动验证和优化执行结果
-// 🎯 **目标导向** - 始终聚焦于解决您的核心问题
-//
-// 现在，请告诉我您希望我帮您解决什么问题？`,
-//         startTime: new Date(Date.now() - 300000),
-//         nodeId: 'welcome-msg'
-//       },
-//
-//       // 2. 用户消息
-//       {
-//         type: MessageType.User,
-//         sender: '用户',
-//         message: '请帮我分析一下当前项目的代码结构，并给出优化建议',
-//         startTime: new Date(Date.now() - 250000),
-//         nodeId: 'user-msg-1'
-//       },
-//
-//       // 3. Assistant 思考消息
-//       {
-//         type: MessageType.Assistant,
-//         eventType: EventType.THINKING,
-//         sender: 'ReAct+ Assistant',
-//         message: `我需要分析您的项目结构。让我先思考一下分析的步骤：
-//
-// 1. 首先查看项目的文件结构和架构
-// 2. 分析代码质量和组织方式
-// 3. 识别潜在的优化点
-// 4. 提供具体的改进建议
-//
-// 让我开始执行这个任务...`,
-//         startTime: new Date(Date.now() - 240000),
-//         nodeId: 'thinking-msg-1'
-//       },
-//
-//       // 4. Assistant 行动消息
-//       {
-//         type: MessageType.Assistant,
-//         eventType: EventType.ACTION,
-//         sender: 'ReAct+ Assistant',
-//         message: `正在执行代码结构分析：
-//
-// 🔍 **步骤 1**: 扫描项目文件结构
-// - 分析 src/ 目录组织
-// - 检查配置文件完整性
-// - 评估依赖管理情况
-//
-// 🔧 **步骤 2**: 代码质量检查
-// - TypeScript 类型覆盖率
-// - 组件复用性分析
-// - API 设计一致性检查`,
-//         startTime: new Date(Date.now() - 220000),
-//         nodeId: 'action-msg-1'
-//       },
-//
-//       // 5. 工具调用消息
-//       {
-//         type: MessageType.Tool,
-//         sender: 'File System Tool',
-//         message: '扫描项目文件结构',
-//         data: {
-//           toolName: 'file_scanner',
-//           args: { path: './src', recursive: true },
-//           result: {
-//             totalFiles: 45,
-//             directories: ['components', 'pages', 'stores', 'types', 'styles'],
-//             largestFiles: [
-//               { name: 'Index.vue', size: '15KB', lines: 882 },
-//               { name: 'MessageItem.vue', size: '8KB', lines: 170 },
-//               { name: 'react-plus.css', size: '12KB', lines: 791 }
-//             ]
-//           }
-//         },
-//         startTime: new Date(Date.now() - 200000),
-//         nodeId: 'tool-msg-1'
-//       },
-//
-//       // 6. Assistant 观察消息
-//       {
-//         type: MessageType.Assistant,
-//         eventType: EventType.OBSERVING,
-//         sender: 'ReAct+ Assistant',
-//         message: `通过文件扫描工具的分析结果，我观察到：
-//
-// 📊 **项目规模**: 45个文件，结构清晰
-// 📁 **目录组织**: 采用 Vue 3 + TypeScript + Vite 现代化技术栈
-// 📝 **代码量**: 主要组件代码量适中，可维护性良好
-//
-// 现在让我进行更深入的代码质量分析...`,
-//         startTime: new Date(Date.now() - 180000),
-//         nodeId: 'observing-msg-1'
-//       },
-//
-//       // 7. 工具审批消息
-//       {
-//         type: MessageType.ToolApproval,
-//         sender: 'System',
-//         message: '需要您的审批才能执行工具',
-//         startTime: new Date(Date.now() - 160000),
-//         nodeId: 'approval-msg-1',
-//         approval: {
-//           toolName: 'code_analyzer',
-//           args: {
-//             target: './src',
-//             depth: 'deep',
-//             includePrivate: true
-//           },
-//           riskLevel: 'medium',
-//           expectedResult: '分析代码质量指标和潜在问题',
-//           nodeId: 'approval-msg-1'
-//         }
-//       },
-//
-//       // 8. 另一个工具调用消息（JSON数据）
-//       {
-//         type: MessageType.Tool,
-//         sender: 'Code Quality Tool',
-//         message: 'TypeScript 类型检查完成',
-//         data: {
-//           toolName: 'typescript_checker',
-//           result: {
-//             errors: 0,
-//             warnings: 3,
-//             typeCoverage: 94.5,
-//             issues: [
-//               {
-//                 file: 'src/components/ToolBox.vue',
-//                 line: 23,
-//                 message: 'Implicit any type',
-//                 severity: 'warning'
-//               },
-//               {
-//                 file: 'src/pages/chat/ReAct.vue',
-//                 line: 156,
-//                 message: 'Unused import',
-//                 severity: 'warning'
-//               }
-//             ],
-//             suggestions: [
-//               '添加更严格的 TypeScript 配置',
-//               '使用 ESLint 规则自动修复未使用的导入',
-//               '考虑添加 Prettier 格式化工具'
-//             ]
-//           }
-//         },
-//         startTime: new Date(Date.now() - 140000),
-//         nodeId: 'tool-msg-2'
-//       },
-//
-//       // 9. 错误消息
-//       {
-//         type: MessageType.Error,
-//         eventType: EventType.ERROR,
-//         sender: 'System Error',
-//         message: `❌ **网络连接超时**
-//
-// 无法连接到代码质量检查服务。请检查：
-//
-// 1. 网络连接是否正常
-// 2. 服务器是否可访问
-// 3. API 密钥是否有效
-//
-// **错误详情**: Connection timeout after 30s
-// **错误代码**: NET_TIMEOUT_001`,
-//         startTime: new Date(Date.now() - 120000),
-//         nodeId: 'error-msg-1'
-//       },
-//
-//       // 10. 带警告的完成消息
-//       {
-//         type: MessageType.Assistant,
-//         eventType: EventType.DONEWITHWARNING,
-//         sender: 'ReAct+ Assistant',
-//         message: `⚠️ **分析已完成（有警告）**
-//
-// 虽然遇到了网络问题，但基于已收集的数据，我可以给出以下分析结果：
-//
-// ## 📋 项目结构分析报告
-//
-// ### ✅ 优势
-// - **架构清晰**: 采用 Vue 3 + TypeScript + Vite 现代化技术栈
-// - **组件化**: 良好的组件拆分和复用设计
-// - **类型安全**: 94.5% TypeScript 覆盖率
-//
-// ### ⚠️ 改进建议
-// 1. **代码规范**: 添加 ESLint + Prettier 统一代码风格
-// 2. **类型完善**: 修复 3 个类型警告，提升类型安全性
-// 3. **测试覆盖**: 建议添加单元测试和端到端测试
-// 4. **性能优化**: 考虑使用 lazy loading 和 tree shaking
-//
-// ### 🎯 下一步行动
-// - 建议优先修复 TypeScript 警告
-// - 可以考虑引入代码质量工具链`,
-//         startTime: new Date(Date.now() - 100000),
-//         nodeId: 'done-warning-msg-1'
-//       },
-//
-//       // 11. 用户回复
-//       {
-//         type: MessageType.User,
-//         sender: '用户',
-//         message: '感谢分析！请帮我生成一个改进代码质量的具体执行计划',
-//         startTime: new Date(Date.now() - 80000),
-//         nodeId: 'user-msg-2'
-//       },
-//
-//       // 12. 复杂的 Markdown 消息（代码块、表格、列表）
-//       {
-//         type: MessageType.Assistant,
-//         sender: 'ReAct+ Assistant',
-//         message: `# 🚀 代码质量改进执行计划
-//
-// 基于刚才的分析，我为您制定了一个系统化的改进计划：
-//
-// ## 📅 阶段一：基础设施完善（预计 2-3 天）
-//
-// ### 1. 代码格式化工具链
-// \`\`\`bash
-// # 安装 ESLint 和 Prettier
-// npm install -D eslint @vue/eslint-config-typescript prettier
-// npm install -D @vue/eslint-config-prettier eslint-plugin-vue
-//
-// # 创建 .eslintrc.js 配置
-// echo "module.exports = { extends: ['@vue/typescript/recommended'] }" > .eslintrc.js
-// \`\`\`
-//
-// ### 2. TypeScript 配置优化
-// \`\`\`json
-// {
-//   "compilerOptions": {
-//     "strict": true,
-//     "noImplicitAny": true,
-//     "noUnusedLocals": true,
-//     "noUnusedParameters": true
-//   }
-// }
-// \`\`\`
-//
-// ## 📊 阶段二：代码质量提升（预计 3-4 天）
-//
-// | 优先级 | 任务 | 预计时间 | 负责人 |
-// |--------|------|----------|---------|
-// | 🔴 高 | 修复 TypeScript 警告 | 0.5天 | 开发者 |
-// | 🟡 中 | 添加 ESLint 规则 | 1天 | 开发者 |
-// | 🟢 低 | 统一代码风格 | 1天 | 全团队 |
-//
-// ### 具体修复清单：
-// - [ ] **src/components/ToolBox.vue:23** - 添加明确类型注解
-// - [ ] **src/pages/chat/ReAct.vue:156** - 移除未使用的导入
-// - [ ] **全局** - 启用严格模式检查
-//
-// ## 🧪 阶段三：测试体系建设（预计 1-2 周）
-//
-// ### 单元测试框架
-// \`\`\`bash
-// # 安装 Vitest 测试框架
-// npm install -D vitest @vue/test-utils jsdom
-//
-// # 创建测试配置
-// npm run test:unit
-// \`\`\`
-//
-// ### 测试覆盖率目标
-// - **组件测试**: 达到 80% 覆盖率
-// - **工具函数**: 达到 95% 覆盖率
-// - **核心业务逻辑**: 达到 90% 覆盖率
-//
-// ## 📈 阶段四：性能优化（持续进行）
-//
-// ### 代码分割策略
-// \`\`\`typescript
-// // 路由级别的懒加载
-// const Index = () => import('@/pages/chat/Index.vue')
-//
-// // 组件级别的异步加载
-// const MessageItem = defineAsyncComponent(() => import('@/components/MessageItem.vue'))
-// \`\`\`
-//
-// ---
-//
-// **💡 提示**: 这个计划可以根据团队情况和项目优先级进行调整。建议从阶段一开始，循序渐进地实施。
-//
-// 您希望我详细说明哪个阶段的具体实施步骤？`,
-//         startTime: new Date(Date.now() - 60000),
-//         nodeId: 'complex-markdown-msg'
-//       },
-//
-//       // 13. 系统状态消息
-//       {
-//         type: MessageType.System,
-//         sender: 'ReAct+ Assistant',
-//         message: `🔄 **系统状态更新**
-//
-// 当前会话统计：
-// - 消息总数: 13 条
-// - 工具调用: 2 次
-// - 代码分析: 已完成
-// - 优化建议: 已生成
-//
-// 系统运行正常，随时准备为您提供更多帮助。`,
-//         startTime: new Date(Date.now() - 40000),
-//         nodeId: 'system-status-msg'
-//       }
-//     ]
-//
-//     messages.value = testMessages
-//   }
-//
-//
-//   // 监听滚动，控制"下滑按钮"显隐
-//   chatContent.value?.addEventListener('scroll', updateScrollButtonVisibility)
-//   updateScrollButtonVisibility()
-// })
-
-
 </script>
 
 <template>
@@ -773,7 +403,7 @@ const md = new MarkdownIt({
       <div class="messages-container">
         <div v-for="(message, index) in messages" :key="index"
              :id="message.nodeId ? 'msg-' + message.nodeId : undefined">
-          <MessageItem :message="message"/>
+          <ReActMessageItem :message="message"/>
         </div>
 
         <!-- 加载状态 -->
@@ -810,37 +440,7 @@ const md = new MarkdownIt({
             </a-menu>
           </template>
         </a-dropdown>
-        <!-- 计划侧边栏切换按钮 -->
-        <a-button
-          size="middle"
-          class="toolbar-btn plan-toggle-btn"
-          :type="chat.planVisible.value ? 'primary' : 'default'"
-          @click="chat.togglePlanVisibility"
-          :disabled="!chat.getCurrentPlan()"
-        >
-          <template #icon>📋</template>
-          {{ chat.planVisible.value ? '隐藏计划' : '显示计划' }}
-        </a-button>
-        <!-- 开发模式测试按钮 -->
-        <template v-if="isDevelopment">
-          <a-divider type="vertical" />
-          <a-button
-            size="small"
-            type="dashed"
-            @click="testInitPlan"
-            class="dev-test-btn"
-          >
-            🧪 测试计划
-          </a-button>
-          <a-button
-            size="small"
-            type="dashed"
-            @click="testSimplePlan"
-            class="dev-test-btn"
-          >
-            📝 简单计划
-          </a-button>
-        </template>
+
       </div>
 
       <div

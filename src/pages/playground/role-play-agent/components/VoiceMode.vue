@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick, getCurrentInstance, reactive } from 'vue'
 import { appendMessage, useChatStore } from '@/stores/chatStore'
-import { MessageType } from '@/types/events'
+import { EventType } from '@/types/events'
 import { PauseOutlined, CloseOutlined, AudioMutedOutlined, AudioTwoTone } from '@ant-design/icons-vue'
 
 interface Props {
@@ -323,7 +323,7 @@ function openWs() {
         case 'user_final': {
           const text = textOf(payload)
           asrText.value = text
-          if (text.trim()) appendMessage(props.sessionId, { type: MessageType.User, sender: 'user', message: text })
+          if (text.trim()) appendMessage(props.sessionId, { type: EventType.USER, sender: 'user', message: text })
           assistantResponding.value = true
           break
         }
@@ -380,7 +380,7 @@ function openWs() {
           try { playerNode?.port.postMessage({ type: 'done' }) } catch {}
           const reply = llmText.value.trim()
           if (reply) {
-            appendMessage(props.sessionId, { type: MessageType.Assistant, sender: 'assistant', message: reply })
+            appendMessage(props.sessionId, { type: EventType.ASSISTANT, sender: 'assistant', message: reply })
             console.log('[WS] done - saved assistant message:', reply)
           }
           // 清空当前对话文本，准备下一轮
@@ -484,10 +484,10 @@ function base64ToArrayBuffer(b64: string): ArrayBuffer {
             v-for="(msg, index) in messages"
             :key="index"
             class="message-item"
-            :class="{ 'user': msg.type === MessageType.User, 'assistant': msg.type === MessageType.Assistant }"
+            :class="{ 'user': msg.type === EventType.USER, 'assistant': msg.type === EventType.ASSISTANT }"
           >
-            <div class="bubble" :class="msg.type === MessageType.User ? 'user' : 'ai'">
-              <div class="bubble-label">{{ msg.type === MessageType.User ? '你' : 'AI' }}</div>
+            <div class="bubble" :class="msg.type === EventType.USER ? 'user' : 'ai'">
+              <div class="bubble-label">{{ msg.type === EventType.USER ? '你' : 'AI' }}</div>
               <div class="bubble-text">{{ msg.message }}</div>
             </div>
           </div>

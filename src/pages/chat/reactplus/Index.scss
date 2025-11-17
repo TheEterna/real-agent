@@ -61,7 +61,7 @@ $font-size-base: 1rem;
 $font-size-lg: 1.125rem;
 $font-size-xl: 1.25rem;
 $line-height-tight: 1.25;
-$line-height-normal: 1.5;
+$line-height-normal: 1.7;
 $line-height-relaxed: 1.75;
 
 /* 圆角 - 瓷器圆润 */
@@ -84,7 +84,7 @@ $transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 $transition-spring: 600ms cubic-bezier(0.34, 1.56, 0.64, 1); /* 弹簧效果 - 龙腾之态 */
 
-/* $$$$$$$$$$ MessageItem 青花瓷主题变量 $$$$$$$$$$ */
+/* $$$$$$$$$$ ReActMessageItem 青花瓷主题变量 $$$$$$$$$$ */
 
 /* 基础消息样式 */
 $message-spacing: 1.2rem;
@@ -99,45 +99,8 @@ $message-border-width: 3px;
 $message-header-text: #5B7373; /* 次墨色 */
 $message-sender-text: #3A5F5F; /* 深青色 */
 
-/* 用户消息 - 淡青瓷 */
-$message-user-bg: #F8FCFC;
-$message-user-border: #C8D8D8;
-$message-user-text: #5B8A8A;
 
-/* Thinking 消息 - 琥珀青 */
-$message-thinking-bg: #F8F8F0;
-$message-thinking-border: #D0A048; /* 秋叶金 */
-$message-thinking-text: #8B7536;
 
-/* Action 消息 - 翠竹青 */
-$message-action-bg: #F0F8F4;
-$message-action-border: #52A885; /* 翠竹绿 */
-$message-action-text: #3A7860;
-
-/* Observing 消息 - 紫砂青 */
-$message-observing-bg: #F4F0F8;
-$message-observing-border: #8B7BA8;
-$message-observing-text: #5B4B78;
-
-/* Tool 消息 - 湖水青 */
-$message-tool-bg: #F0F8FC;
-$message-tool-border: #6B9AB8;
-$message-tool-text: #4A6878;
-
-/* Error 消息 - 朱砂红 */
-$message-error-bg: #FCF0F0;
-$message-error-border: #C85A5A;
-$message-error-text: #A03838;
-
-/* Progress 消息 - 蜜蜡黄 */
-$message-progress-bg: #FCF8F0;
-$message-progress-border: #D8B870;
-$message-progress-text: #A08850;
-
-/* Warning 消息 - 琥珀黄 */
-$message-warning-bg: #FCF4E8;
-$message-warning-border: #D0A048;
-$message-warning-text: #A08038;
 
 /* $$$$$$$$$$$$$ 🖥️ 极客模式终端界面样式 $$$$$$$$$$$$$ */
 .geek-mode-wrapper {
@@ -263,6 +226,7 @@ $message-warning-text: #A08038;
 /* $$$$$$$$$$$$$ TOP STATUS BAR $$$$$$$$$$$$$ */
 .react-plus-app {
   position: relative;
+  line-height: $line-height-normal;
   color: $text-primary;
   display: flex;
   flex-direction: column;
@@ -443,10 +407,11 @@ $message-warning-text: #A08038;
   }
 
   .message-wrapper {
-    width: 790px;
+    width: 770px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
   }
 
 

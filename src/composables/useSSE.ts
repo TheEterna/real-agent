@@ -1,57 +1,40 @@
 import {ref, nextTick} from 'vue'
-import {UIMessage, EventType, BaseEventItem, InitPlanEventData, UpdatePlanEventData, AdvancePlanEventData, PlanData} from '../types/events'
-import {MessageType} from '@/types/events'
-import {MessageTypeMap} from '../constants/ui'
+import {UIMessage, EventType, BaseEventItem, InitPlanEventData, UpdatePlanEventData, AdvancePlanEventData, PlanData} from '@/types/events'
 import {ConnectionStatus, TaskStatus, ProgressInfo} from '@/types/status'
-import {TypeFlags} from 'typescript'
 import {NotificationType} from '@/types/notification'
 import { useChatStore } from '@/stores/chatStore'
-
+const ssePromise = import('sse.js')
 // === 新增接口定义 ===
 
-/** SSE上下文，提供给事件处理器的上下文信息 */
-interface SSEContext {
-    messages: UIMessage[]
-    nodeIndex: Record<string, number>
-    connectionStatus: ConnectionStatus
-    taskStatus: TaskStatus
-    progress: ProgressInfo | null
-    currentTaskTitle: string
-    source?: any
-    scrollToBottom: () => Promise<void>
-}
 
 /** 自定义事件处理器映射 */
 interface SSEEventHandlers {
-    onStarted?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onThinking?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onAction?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onActing?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onObserving?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onCollaborating?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onExecuting?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onTool?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onToolApproval?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onInteraction?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onPartialResult?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onProgress?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onDone?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onDoneWithWarning?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onError?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onCompleted?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onDefault?: (event: BaseEventItem, context: SSEContext) => void | boolean
+    onStarted?: (event: BaseEventItem) => void | boolean
+    onThinking?: (event: BaseEventItem) => void | boolean
+    onAction?: (event: BaseEventItem) => void | boolean
+    onActing?: (event: BaseEventItem) => void | boolean
+    onObserving?: (event: BaseEventItem) => void | boolean
+    onExecuting?: (event: BaseEventItem) => void | boolean
+    onTool?: (event: BaseEventItem) => void | boolean
+    onToolApproval?: (event: BaseEventItem) => void | boolean
+    onInteraction?: (event: BaseEventItem) => void | boolean
+    onProgress?: (event: BaseEventItem) => void | boolean
+    onDone?: (event: BaseEventItem) => void | boolean
+    onDoneWithWarning?: (event: BaseEventItem) => void | boolean
+    onError?: (event: BaseEventItem) => void | boolean
+    onCompleted?: (event: BaseEventItem) => void | boolean
+    onDefault?: (event: BaseEventItem) => void | boolean
 
     // ReActPlus 专属事件处理器
-    onTaskAnalysis?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onThought?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onInitPlan?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onUpdatePlan?: (event: BaseEventItem, context: SSEContext) => void | boolean
-    onAdvancePlan?: (event: BaseEventItem, context: SSEContext) => void | boolean
+    onTaskAnalysis?: (event: BaseEventItem) => void | boolean
+    onThought?: (event: BaseEventItem) => void | boolean
+    onInitPlan?: (event: BaseEventItem) => void | boolean
+    onUpdatePlan?: (event: BaseEventItem) => void | boolean
+    onAdvancePlan?: (event: BaseEventItem) => void | boolean
 }
 
 /** Agent执行配置 */
 interface AgentExecuteOptions {
-    agentType: string
     endpoint: string
     method?: 'POST' | 'GET'
     headers?: Record<string, string>
@@ -74,6 +57,14 @@ interface SSEOptions {
         nodeId?: string,
         type: NotificationType
     }) => void
+}
+
+function updateThoughtMessage(event: BaseEventItem) {
+    
+}
+
+function updateTaskAnalysisMessage(event: BaseEventItem) {
+    
 }
 
 export function useSSE(options: SSEOptions = {}) {
@@ -100,126 +91,87 @@ export function useSSE(options: SSEOptions = {}) {
     }
 
     const getSenderByEventType = (event: BaseEventItem): string => {
-        console.log(event.agentId)
         return event.agentId || "Agent"
     }
 
     // === 默认事件处理器实现（策略模式） ===
 
-    /** 创建SSE上下文对象 */
-    const createContext = (source?: any): SSEContext => ({
-        messages: messages.value,
-        nodeIndex: nodeIndex.value,
-        connectionStatus: connectionStatus.value as ConnectionStatus,
-        taskStatus: taskStatus.value as TaskStatus,
-        progress: progress.value,
-        currentTaskTitle: currentTaskTitle.value,
-        source,
-        scrollToBottom
-    })
 
     /** 更新消息到消息列表（默认的消息聚合逻辑） */
     const updateMessage = (event: BaseEventItem): void => {
         const nodeId: string = event.nodeId as string
-        const eventType: string = event.type
-        const messageType = MessageTypeMap[eventType] || MessageTypeMap[EventType.STARTED]
-        let message = (event.message || '').toString()
-        const startTime = event.startTime || Date.now()
+        const sessionId: string | undefined = event.sessionId
+        const turnId: string | undefined = event.turnId
+        const type: EventType = event.type
+        const message = (event.message || '').toString()
+        const data = event.data
+        const startTime = event.startTime || new Date()
+        const endTime = event.endTime ?? new Date()
+
+
 
         const index = nodeIndex.value[nodeId]
 
-        if (index !== undefined) {
+        if (type === EventType.TOOL) {
+            // 工具事件作为独立消息插入
+            const toolMsg: UIMessage = {
+                nodeId: nodeId,
+                sessionId: sessionId,
+                turnId: turnId,
+                type: type,
+                sender: getSenderByEventType(event),
+                message: message,
+                data: data,
+                startTime: startTime,
+                endTime: endTime,
+                meta: event.meta
+            }
+            messages.value.push(toolMsg)
+        }
+        else if (type === EventType.TOOL_APPROVAL) {
+
+            const toolApprovalMsg: UIMessage = {
+                nodeId: nodeId,
+                sessionId: sessionId,
+                turnId: turnId,
+                type: type,
+                sender: getSenderByEventType(event),
+                message: message,
+                data: data,
+                startTime: startTime,
+                endTime: endTime,
+                meta: event.meta
+            }
+            messages.value.push(toolApprovalMsg)
+        } else if (index !== undefined) {
             // nodeId已存在，更新现有消息
             const node = messages.value[index]
-            if (eventType === EventType.TOOL) {
-                // 工具事件作为独立消息插入
-                const toolMsg: UIMessage = {
-                    nodeId,
-                    sessionId: event.sessionId,
-                    type: MessageTypeMap[EventType.TOOL],
-                    eventType: eventType,
-                    sender: getSenderByEventType(event),
-                    startTime: startTime,
-                    message: event.message,
-                    data: event.data,
-                    meta: event.meta
-                }
-                messages.value.push(toolMsg)
-            }
 
-            else if (eventType === EventType.TOOL_APPROVAL) {
-                node.type = MessageTypeMap[EventType.TOOL_APPROVAL]
-                node.eventType = eventType
-                node.sender = getSenderByEventType(event)
-                node.approval = event.data
-                node.approval = event.message
-                node.startTime = startTime
-                node.events?.push?.(event)
-                node.meta = event.meta
-            }
-            else {
-                // 非工具事件：累积到message字段
-                node.message = node.message ? `${node.message}${message}` : message
-                node.type = messageType
-                node.eventType = eventType
-                node.startTime = startTime
-                node.events?.push?.(event)
-                node.meta = event.meta
-            }
+            // 非工具事件：累积到message字段
+            node.message = node.message ? `${node.message}${message}` : message
+            node.events?.push?.(event)
+
         } else {
-            // 首次出现该nodeId
-            if (eventType === EventType.TOOL) {
 
-                const toolMsg: UIMessage = {
-                    nodeId,
-                    sessionId: event.sessionId,
-                    type: MessageTypeMap[EventType.TOOL],
-                    eventType: eventType,
-                    sender: getSenderByEventType(event),
-                    startTime: startTime,
-                    message: event.message,
-                    data: event.data,
-                    meta: event.meta,
-                }
+            // 非工具事件作为主消息创建并建立nodeIndex
 
-                messages.value.push(toolMsg)
-                nodeIndex.value[nodeId] = messages.value.length - 1
+            const firstNodeMessage: UIMessage = {
+                nodeId: nodeId,
+                sessionId: sessionId,
+                turnId: turnId,
+                type: type,
+                sender: getSenderByEventType(event),
+                message: message,
+                data: data,
+                startTime: startTime,
+                endTime: endTime,
+                meta: event.meta
             }
-            else if (eventType === EventType.TOOL_APPROVAL) {
-
-                const toolMsg: UIMessage = {
-                    nodeId,
-                    sessionId: event.sessionId,
-                    type: MessageTypeMap[EventType.TOOL],
-                    eventType: eventType,
-                    sender: getSenderByEventType(event),
-                    startTime: startTime,
-                    message: event.message,
-                    data: event.data,
-                    meta: event.meta,
-                }
-                messages.value.push(toolMsg)
-                nodeIndex.value[nodeId] = messages.value.length - 1
-            }
-            else {
-                // 非工具事件作为主消息创建并建立nodeIndex
-                const node: UIMessage = {
-                    nodeId: nodeId,
-                    sessionId: event.sessionId,
-                    type: messageType,
-                    eventType: eventType,
-                    sender: getSenderByEventType(event),
-                    message: message,
-                    startTime: startTime,
-                    events: [event],
-                    approval: eventType === EventType.TOOL_APPROVAL ? event.data : undefined,
-                    meta: event.meta
-                }
-                messages.value.push(node)
-                nodeIndex.value[nodeId] = messages.value.length - 1
-            }
+            messages.value.push(firstNodeMessage)
+            nodeIndex.value[nodeId] = messages.value.length - 1
         }
     }
+
 
     /** 默认事件处理器映射 */
     const defaultHandlers: Required<SSEEventHandlers> = {
@@ -238,9 +190,6 @@ export function useSSE(options: SSEOptions = {}) {
         onObserving: (event: BaseEventItem) => {
             updateMessage(event)
         },
-        onCollaborating: (event: BaseEventItem) => {
-            updateMessage(event)
-        },
         onExecuting: (event: BaseEventItem) => {
             updateMessage(event)
         },
@@ -253,17 +202,14 @@ export function useSSE(options: SSEOptions = {}) {
         onInteraction: (event: BaseEventItem) => {
             updateMessage(event)
         },
-        onPartialResult: (event: BaseEventItem) => {
-            updateMessage(event)
-        },
-        onProgress: (event: BaseEventItem, context: SSEContext) => {
+        onProgress: (event: BaseEventItem) => {
             const message = (event.message || '').toString()
-            const startTime = event.startTime || Date.now()
+            const startTime = event.startTime || new Date()
             progress.value = new ProgressInfo(message, startTime, event.agentId as any)
         },
         onDone: (event: BaseEventItem) => {
             const message = (event.message || '').toString()
-            const startTime = event.startTime || Date.now()
+            const startTime = event.startTime || new Date()
             options?.onDoneNotice?.({
                 text: message,
                 startTime,
@@ -274,7 +220,7 @@ export function useSSE(options: SSEOptions = {}) {
         },
         onDoneWithWarning: (event: BaseEventItem) => {
             const message = (event.message || '').toString()
-            const startTime = event.startTime || Date.now()
+            const startTime = event.startTime || new Date()
             progress.value = null
             options?.onDoneNotice?.({
                 text: message,
@@ -286,7 +232,7 @@ export function useSSE(options: SSEOptions = {}) {
         },
         onError: (event: BaseEventItem) => {
             const message = (event.message || '').toString()
-            const startTime = event.startTime || Date.now()
+            const startTime = event.startTime || new Date()
             options?.onDoneNotice?.({
                 text: '[ERROR] ' + message,
                 startTime,
@@ -295,14 +241,12 @@ export function useSSE(options: SSEOptions = {}) {
                 type: NotificationType.ERROR
             })
         },
-        onCompleted: (event: BaseEventItem, context: SSEContext) => {
+        onCompleted: (event: BaseEventItem) => {
             // COMPLETED为流结束信号，不写入消息列表，但需要更新状态
             connectionStatus.value.set('disconnected')
             taskStatus.value.set('completed')
             progress.value = null // 清空进度信息
-            if (context.source) {
-                closeSource(context.source)
-            }
+            closeSource(source)
         },
         onDefault: (event: BaseEventItem) => {
             updateMessage(event)
@@ -311,15 +255,14 @@ export function useSSE(options: SSEOptions = {}) {
         // ReActPlus 专属事件处理器的默认实现
         onTaskAnalysis: (event: BaseEventItem) => {
             // 任务分析阶段：累积消息到独立节点
-            updateMessage(event)
+            updateTaskAnalysisMessage(event)
         },
         onThought: (event: BaseEventItem) => {
             // 思维链生成：累积消息到独立节点
-            updateMessage(event)
+            updateThoughtMessage(event)
         },
         onInitPlan: (event: BaseEventItem) => {
             // 初始化计划：处理计划创建
-            updateMessage(event)
 
             // 处理计划数据，集成到ChatStore
             if (event.data && event.sessionId) {
@@ -338,7 +281,6 @@ export function useSSE(options: SSEOptions = {}) {
         },
         onUpdatePlan: (event: BaseEventItem) => {
             // 更新计划：处理计划修改
-            updateMessage(event)
 
             // 更新ChatStore中的计划数据
             if (event.data && event.sessionId) {
@@ -356,7 +298,6 @@ export function useSSE(options: SSEOptions = {}) {
         },
         onAdvancePlan: (event: BaseEventItem) => {
             // 推进计划：处理阶段推进
-            updateMessage(event)
 
             // 处理阶段推进逻辑
             if (event.data && event.sessionId) {
@@ -387,7 +328,6 @@ export function useSSE(options: SSEOptions = {}) {
     const handleEvent = (event: BaseEventItem, source?: any): void => {
         if (!event?.type) return
 
-        const context = createContext(source)
         const eventType = event.type
         const customHandlers = options.handlers || {}
         const enableDefault = options.enableDefaultHandlers !== false
@@ -398,7 +338,7 @@ export function useSSE(options: SSEOptions = {}) {
         // 优先使用自定义处理器
         const customHandler = customHandlers[handlerName]
         if (customHandler) {
-            const result = customHandler(event, context)
+            const result = customHandler(event)
             // 如果自定义处理器返回false，则跳过默认处理器
             if (result === false) return
         }
@@ -406,7 +346,7 @@ export function useSSE(options: SSEOptions = {}) {
         // 如果启用默认处理器且没有被自定义处理器阻止，则执行默认处理
         if (enableDefault) {
             const defaultHandler = defaultHandlers[handlerName]
-            defaultHandler(event, context)
+            defaultHandler(event)
         }
     }
 
@@ -418,12 +358,10 @@ export function useSSE(options: SSEOptions = {}) {
             [EventType.ACTION]: 'onAction',
             [EventType.ACTING]: 'onActing',
             [EventType.OBSERVING]: 'onObserving',
-            [EventType.COLLABORATING]: 'onCollaborating',
             [EventType.EXECUTING]: 'onExecuting',
             [EventType.TOOL]: 'onTool',
             [EventType.TOOL_APPROVAL]: 'onToolApproval',
             [EventType.INTERACTION]: 'onInteraction',
-            [EventType.PARTIAL_RESULT]: 'onPartialResult',
             [EventType.PROGRESS]: 'onProgress',
             [EventType.DONE]: 'onDone',
             [EventType.DONEWITHWARNING]: 'onDoneWithWarning',
@@ -455,8 +393,7 @@ export function useSSE(options: SSEOptions = {}) {
     ): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
             // 动态 import，避免在 SSR 或测试环境报错
-            import('sse.js')
-                .then(({SSE}) => {
+            ssePromise.then(({SSE}) => {
                     currentTaskTitle.value = text || ''
                     // 启动新任务时清理进度
                     progress.value = null
@@ -484,7 +421,6 @@ export function useSSE(options: SSEOptions = {}) {
                         scrollToBottom()
                     })
 
-                    // === 重要：使用新的事件分发机制 ===
 
                     /** 创建事件监听器的工厂函数 */
                     const createEventListener = (eventName: string) => (messageEvent: MessageEvent) => {
@@ -499,7 +435,6 @@ export function useSSE(options: SSEOptions = {}) {
 
                     // 为每个事件类型创建专属的监听器函数
 
-
                     const onStarted = createEventListener('STARTED')
                     const onProgress = createEventListener('PROGRESS')
                     const onAgentSelected = createEventListener('AGENT_SELECTED')
@@ -507,8 +442,6 @@ export function useSSE(options: SSEOptions = {}) {
                     const onAction = createEventListener('ACTION')
                     const onActing = createEventListener('ACTING')
                     const onObserving = createEventListener('OBSERVING')
-                    const onCollaborating = createEventListener('COLLABORATING')
-                    const onPartialResult = createEventListener('PARTIAL_RESULT')
                     const onDone = createEventListener('DONE')
                     const onExecuting = createEventListener('EXECUTING')
                     const onError = createEventListener('ERROR')
@@ -534,8 +467,6 @@ export function useSSE(options: SSEOptions = {}) {
                     source.addEventListener('ACTION', onAction)
                     source.addEventListener('ACTING', onActing)
                     source.addEventListener('OBSERVING', onObserving)
-                    source.addEventListener('COLLABORATING', onCollaborating)
-                    source.addEventListener('PARTIAL_RESULT', onPartialResult)
                     source.addEventListener('DONE', onDone)
                     source.addEventListener('EXECUTING', onExecuting)
                     source.addEventListener('ERROR', onError)
@@ -552,23 +483,7 @@ export function useSSE(options: SSEOptions = {}) {
                     source.addEventListener('UPDATE_PLAN', onUpdatePlan)
                     source.addEventListener('ADVANCE_PLAN', onAdvancePlan)
 
-                    source.addEventListener('error', (err: any) => {
-                        connectionStatus.value.set('error')
-                        taskStatus.value.set('error')
-                        closeSource(source)
-                        messages.value.push({
-                            nodeId: 'error',
-                            startTime: new Date(),
-                            eventType: EventType.ERROR,
-                            data: err,
-                            sessionId: sessionId,
-                            type: MessageType.Error,
-                            sender: 'System Error',
-                            message: '❌ 连接失败，请检查后端服务是否正常运行。' + err?.message
-                        })
-                        scrollToBottom()
-                        reject(new Error('SSE连接失败: ' + (err?.message || err?.type || '未知错误')))
-                    })
+                    source.addEventListener('ERROR', onError)
 
                     try {
                         (source as any).stream()
@@ -589,14 +504,12 @@ export function useSSE(options: SSEOptions = {}) {
      */
     const executeReAct = async (text: string, sessionId: string): Promise<void> => {
         return executeAgent(text, sessionId, {
-            agentType: 'ReAct',
             endpoint: '/api/agent/chat/react/stream',
             method: 'POST',
             payload: {
                 message: text,
                 userId: 'user-001',
                 sessionId,
-                agentType: 'ReAct',
             }
         })
     }
@@ -607,14 +520,12 @@ export function useSSE(options: SSEOptions = {}) {
      */
     const executeReActPlus = async (text: string, sessionId: string): Promise<void> => {
         return executeAgent(text, sessionId, {
-            agentType: 'ReAct',
             endpoint: '/api/agent/chat/react-plus/stream',
             method: 'POST',
             payload: {
                 message: text,
                 userId: 'user-001',
                 sessionId,
-                agentType: 'ReAct',
             }
         })
     }
@@ -631,7 +542,6 @@ export function useSSE(options: SSEOptions = {}) {
         progress,
 
         // 执行方法（重构后的新接口）
-        executeAgent,          // 新增：通用 Agent 执行方法
         executeReAct,          // 保留：向后兼容的快捷方法
         executeReActPlus,          // 保留：向后兼容的快捷方法
 
@@ -639,7 +549,5 @@ export function useSSE(options: SSEOptions = {}) {
         handleEvent,           // 新增：手动处理SSE事件的方法
         updateMessage,         // 新增：手动更新消息的方法
 
-        // 工具函数（新增）
-        createContext,         // 新增：创建SSE上下文的方法
     }
 }

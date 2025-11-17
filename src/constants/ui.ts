@@ -1,32 +1,30 @@
-import { EventType, MessageType } from '../types/events'
+import { EventType, EventType } from '../types/events'
 
 
 
 // Map EventType => MessageType used by UI renderer
-export const MessageTypeMap: Record<string, MessageType> = {
-  [EventType.STARTED]: MessageType.System,
-  [EventType.PROGRESS]: MessageType.System,
-  [EventType.AGENT_SELECTED]: MessageType.System,
-  [EventType.THINKING]: MessageType.Assistant, // rendered as thinking
-  [EventType.ACTION]: MessageType.Assistant,   // rendered as action in UI component
-  [EventType.ACTING]: MessageType.Assistant,
-  [EventType.OBSERVING]: MessageType.Assistant,
-  [EventType.COLLABORATING]: MessageType.Assistant,
-  [EventType.PARTIAL_RESULT]: MessageType.Assistant,
-  [EventType.DONE]: MessageType.System,
-  [EventType.EXECUTING]: MessageType.Assistant,
-  [EventType.ERROR]: MessageType.Error,
-  [EventType.TOOL]: MessageType.Tool,
-  [EventType.DONEWITHWARNING]: MessageType.System,
-  [EventType.TOOL_APPROVAL]: MessageType.ToolApproval,
-  [EventType.INTERACTION]: MessageType.ToolApproval, // 通用交互请求，使用与工具审批相同的UI
-  [EventType.COMPLETED]: MessageType.System,
+export const MessageTypeMap: Record<string, EventType> = {
+  [EventType.STARTED]: EventType.SYSTEM,
+  [EventType.PROGRESS]: EventType.SYSTEM,
+  [EventType.AGENT_SELECTED]: EventType.SYSTEM,
+  [EventType.THINKING]: EventType.ASSISTANT, // rendered as thinking
+  [EventType.ACTION]: EventType.ASSISTANT,   // rendered as action in UI component
+  [EventType.ACTING]: EventType.ASSISTANT,
+  [EventType.OBSERVING]: EventType.ASSISTANT,
+  [EventType.DONE]: EventType.SYSTEM,
+  [EventType.EXECUTING]: EventType.ASSISTANT,
+  [EventType.ERROR]: EventType.ERROR,
+  [EventType.TOOL]: EventType.TOOL,
+  [EventType.DONEWITHWARNING]: EventType.SYSTEM,
+  [EventType.TOOL_APPROVAL]: EventType.TOOL_APPROVAL,
+  [EventType.INTERACTION]: EventType.TOOL_APPROVAL, // 通用交互请求，使用与工具审批相同的UI
+  [EventType.COMPLETED]: EventType.SYSTEM,
 
   // ReActPlus 专属事件类型
-  [EventType.TASK_ANALYSIS]: MessageType.Assistant,  // 任务分析阶段
-  [EventType.THOUGHT]: MessageType.Assistant,        // 思维链生成
-  [EventType.INIT_PLAN]: MessageType.Assistant,      // 初始化计划
-  [EventType.UPDATE_PLAN]: MessageType.Assistant,    // 更新计划
-  [EventType.ADVANCE_PLAN]: MessageType.Assistant,   // 推进计划
+  [EventType.TASK_ANALYSIS]: EventType.ASSISTANT,  // 任务分析阶段
+  [EventType.THOUGHT]: EventType.ASSISTANT,        // 思维链生成
+  [EventType.INIT_PLAN]: EventType.ASSISTANT,      // 初始化计划
+  [EventType.UPDATE_PLAN]: EventType.ASSISTANT,    // 更新计划
+  [EventType.ADVANCE_PLAN]: EventType.ASSISTANT,   // 推进计划
 }
 

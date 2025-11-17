@@ -40,8 +40,6 @@ const agentNameMap: Record<AgentType, string> = {
   [AgentType.Coding]: 'Coding',
 }
 
-// 获取当前session
-const currentSession = computed(() => chat.getCurrentSession())
 
 // 获取当前应该渲染的组件
 const getComponentForAgent = (agentType: AgentType) => {
