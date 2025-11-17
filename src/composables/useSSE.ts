@@ -4,7 +4,15 @@ import {ConnectionStatus, TaskStatus, ProgressInfo} from '@/types/status'
 import {NotificationType} from '@/types/notification'
 import { useChatStore } from '@/stores/chatStore'
 const ssePromise = import('sse.js')
-// === 新增接口定义 ===
+
+// === SSE 相关接口定义 ===
+
+/** SSE 连接源接口 */
+interface SSESource {
+    addEventListener(event: string, handler: (e: MessageEvent) => void): void
+    close(): void
+    stream(): void
+}
 
 
 /** 自定义事件处理器映射 */
@@ -45,8 +53,6 @@ interface AgentExecuteOptions {
 interface SSEOptions {
     /** 自定义事件处理器 */
     handlers?: SSEEventHandlers
-    /** 是否启用默认处理器，默认为true */
-    enableDefaultHandlers?: boolean
     /** 滚动到底部回调 */
     onScrollToBottom?: () => void
     /** 完成通知回调 */
@@ -59,14 +65,6 @@ interface SSEOptions {
     }) => void
 }
 
-function updateThoughtMessage(event: BaseEventItem) {
-    
-}
-
-function updateTaskAnalysisMessage(event: BaseEventItem) {
-    
-}
-
 export function useSSE(options: SSEOptions = {}) {
     // === 响应式状态 ===
     const messages = ref<UIMessage[]>([])
@@ -76,14 +74,37 @@ export function useSSE(options: SSEOptions = {}) {
     const progress = ref<ProgressInfo | null>(null)
     const currentTaskTitle = ref<string>("")
 
+    // === SSE 连接管理 ===
+    const activeSource = ref<SSESource | null>(null)
+
     // === 工具函数 ===
-    const closeSource = (source: any) => {
+    const closeSource = (source: SSESource | null) => {
         try {
             if (source && typeof source.close === 'function') source.close()
         } catch (e) {
-            console.error(e)
+            console.error('Failed to close SSE source:', e)
         }
     }
+
+    /** 关闭当前活动的 SSE 连接 */
+    const closeActiveSource = () => {
+        if (activeSource.value) {
+            closeSource(activeSource.value)
+            activeSource.value = null
+        }
+    }
+
+    /** 清理所有状态和资源 */
+    const cleanup = () => {
+        closeActiveSource()
+        messages.value = []
+        nodeIndex.value = {}
+        progress.value = null
+        taskStatus.value.set('idle')
+        connectionStatus.value.set('disconnected')
+        currentTaskTitle.value = ""
+    }
+
 
     const scrollToBottom = async () => {
         await nextTick()
@@ -99,16 +120,20 @@ export function useSSE(options: SSEOptions = {}) {
 
     /** 更新消息到消息列表（默认的消息聚合逻辑） */
     const updateMessage = (event: BaseEventItem): void => {
-        const nodeId: string = event.nodeId as string
-        const sessionId: string | undefined = event.sessionId
-        const turnId: string | undefined = event.turnId
-        const type: EventType = event.type
+        // 安全的类型检查，避免强制断言
+        const nodeId = event.nodeId
+        if (!nodeId) {
+            console.warn('Event missing nodeId, cannot aggregate messages', event)
+            return
+        }
+
+        const sessionId = event.sessionId
+        const turnId = event.turnId
+        const type = event.type as EventType
         const message = (event.message || '').toString()
         const data = event.data
         const startTime = event.startTime || new Date()
         const endTime = event.endTime ?? new Date()
-
-
 
         const index = nodeIndex.value[nodeId]
 
@@ -168,6 +193,83 @@ export function useSSE(options: SSEOptions = {}) {
                 meta: event.meta
             }
             messages.value.push(firstNodeMessage)
+            // 立即建立nodeIndex映射
+            nodeIndex.value[nodeId] = messages.value.length - 1
+
+        }
+    }
+
+    /** 更新思考消息（ReActPlus专用） */
+    const updateThoughtMessage = (event: BaseEventItem): void => {
+        const nodeId = event.nodeId
+        if (!nodeId) {
+            console.warn('THOUGHT event missing nodeId, falling back to default handling', event)
+            updateMessage(event)
+            return
+        }
+
+        const index = nodeIndex.value[nodeId]
+        const message = (event.message || '').toString()
+
+        if (index !== undefined) {
+            // nodeId已存在，累积思考内容到现有消息
+            // nodeId已存在，累积思考内容到现有消息 - 使用响应式更新
+            const node = messages.value[index]
+            node.message = node.message ? `${node.message}${message}` : message
+            node.events?.push?.(event)
+        } else {
+            // 创建新的思考消息节点
+            const thoughtMessage: UIMessage = {
+                nodeId: nodeId,
+                sessionId: event.sessionId,
+                turnId: event.turnId,
+                type: 'assistant' as any, // 思考属于assistant类型
+                sender: getSenderByEventType(event),
+                message: message,
+                data: event.data,
+                startTime: event.startTime || new Date(),
+                endTime: event.endTime,
+                events: [event],
+                meta: event.meta
+            }
+            messages.value.push(thoughtMessage)
+            nodeIndex.value[nodeId] = messages.value.length - 1
+        }
+    }
+
+    /** 更新任务分析消息（ReActPlus专用） */
+    const updateTaskAnalysisMessage = (event: BaseEventItem): void => {
+        const nodeId = event.nodeId
+        if (!nodeId) {
+            console.warn('TASK_ANALYSIS event missing nodeId, falling back to default handling', event)
+            updateMessage(event)
+            return
+        }
+
+        const index = nodeIndex.value[nodeId]
+        const message = (event.message || '').toString()
+
+        if (index !== undefined) {
+            // nodeId已存在，累积任务分析内容到现有消息 - 使用响应式更新
+            const node = messages.value[index]
+            node.message = node.message ? `${node.message}${message}` : message
+            node.events?.push?.(event)
+        } else {
+            // 创建新的任务分析消息节点
+            const analysisMessage: UIMessage = {
+                nodeId: nodeId,
+                sessionId: event.sessionId,
+                turnId: event.turnId,
+                type: 'assistant' as any, // 任务分析属于assistant类型
+                sender: getSenderByEventType(event),
+                message: message,
+                data: event.data,
+                startTime: event.startTime || new Date(),
+                endTime: event.endTime,
+                events: [event],
+                meta: event.meta
+            }
+            messages.value.push(analysisMessage)
             nodeIndex.value[nodeId] = messages.value.length - 1
         }
     }
@@ -176,7 +278,10 @@ export function useSSE(options: SSEOptions = {}) {
     /** 默认事件处理器映射 */
     const defaultHandlers: Required<SSEEventHandlers> = {
         onStarted: (event: BaseEventItem) => {
-            updateMessage(event)
+            console.log("chat started：" + event.message)
+            const startTime = event.startTime || new Date()
+            progress.value = new ProgressInfo(event.message, startTime, event.agentId as any)
+
         },
         onThinking: (event: BaseEventItem) => {
             updateMessage(event)
@@ -214,7 +319,7 @@ export function useSSE(options: SSEOptions = {}) {
                 text: message,
                 startTime,
                 title: currentTaskTitle.value || '',
-                nodeId: (event.nodeId as string) || undefined,
+                nodeId: event.nodeId || undefined,
                 type: NotificationType.WARNING
             })
         },
@@ -226,27 +331,40 @@ export function useSSE(options: SSEOptions = {}) {
                 text: message,
                 startTime,
                 title: currentTaskTitle.value || '',
-                nodeId: (event.nodeId as string) || undefined,
+                nodeId: event.nodeId || undefined,
                 type: NotificationType.WARNING
             })
         },
         onError: (event: BaseEventItem) => {
             const message = (event.message || '').toString()
             const startTime = event.startTime || new Date()
+
+            // 1. 更新消息列表 - 确保错误信息在聊天记录中可见
+            updateMessage(event)
+
+            // 2. 更新状态 - 同步任务状态、进度和连接状态
+            taskStatus.value.set('error')
+            progress.value = null
+            connectionStatus.value.set('disconnected')
+
+            // 3. 发送错误通知
             options?.onDoneNotice?.({
                 text: '[ERROR] ' + message,
                 startTime,
                 title: currentTaskTitle.value || '',
-                nodeId: (event.nodeId as string) || undefined,
+                nodeId: event.nodeId || undefined,
                 type: NotificationType.ERROR
             })
+
+            // 4. 关闭连接防止资源泄露
+            closeActiveSource()
         },
         onCompleted: (event: BaseEventItem) => {
             // COMPLETED为流结束信号，不写入消息列表，但需要更新状态
             connectionStatus.value.set('disconnected')
             taskStatus.value.set('completed')
             progress.value = null // 清空进度信息
-            closeSource(source)
+            closeActiveSource() // 使用新的安全关闭方法
         },
         onDefault: (event: BaseEventItem) => {
             updateMessage(event)
@@ -271,7 +389,6 @@ export function useSSE(options: SSEOptions = {}) {
                     const planData = event.data as InitPlanEventData
                     if (planData.plan) {
                         chatStore.setSessionPlan(event.sessionId, planData.plan)
-                        chatStore.setPlanVisibility(true) // 自动显示计划侧边栏
                         console.log('Plan initialized for session:', event.sessionId, planData.plan)
                     }
                 } catch (error) {
@@ -325,12 +442,11 @@ export function useSSE(options: SSEOptions = {}) {
      * @param event SSE事件对象
      * @param source SSE连接源（可选）
      */
-    const handleEvent = (event: BaseEventItem, source?: any): void => {
-        if (!event?.type) return
+    const handleEvent = (event: BaseEventItem, source?: SSESource): void => {
+
 
         const eventType = event.type
         const customHandlers = options.handlers || {}
-        const enableDefault = options.enableDefaultHandlers !== false
 
         // 获取事件类型对应的处理器名称
         const handlerName = getHandlerNameByEventType(eventType)
@@ -343,11 +459,11 @@ export function useSSE(options: SSEOptions = {}) {
             if (result === false) return
         }
 
-        // 如果启用默认处理器且没有被自定义处理器阻止，则执行默认处理
-        if (enableDefault) {
-            const defaultHandler = defaultHandlers[handlerName]
-            defaultHandler(event)
-        }
+        // 执行默认处理
+        console.log('default handle event: ', eventType)
+        const defaultHandler = defaultHandlers[handlerName]
+        defaultHandler(event)
+
     }
 
     /** 根据事件类型获取处理器方法名称 */
@@ -380,6 +496,7 @@ export function useSSE(options: SSEOptions = {}) {
 
     // === 通用 Agent 执行器 ===
 
+
     /**
      * 通用的 Agent 执行方法
      * @param text 用户输入文本
@@ -391,106 +508,89 @@ export function useSSE(options: SSEOptions = {}) {
         sessionId: string,
         agentOptions: AgentExecuteOptions
     ): Promise<void> => {
+
         return new Promise<void>((resolve, reject) => {
             // 动态 import，避免在 SSR 或测试环境报错
             ssePromise.then(({SSE}) => {
-                    currentTaskTitle.value = text || ''
-                    // 启动新任务时清理进度
-                    progress.value = null
+                // 启动新任务前先清理之前的连接
+                closeActiveSource()
 
-                    const defaultHeaders = {
-                        'Content-Type': 'application/json',
-                        Accept: 'text/event-stream',
-                        'Cache-Control': 'no-cache',
-                    }
+                currentTaskTitle.value = text || ''
+                progress.value = null
 
-                    const source = new SSE(agentOptions.endpoint, {
-                        method: agentOptions.method || 'POST',
-                        headers: { ...defaultHeaders, ...(agentOptions.headers || {}) },
-                        payload: agentOptions.payload ? JSON.stringify(agentOptions.payload) : undefined,
-                    })
+                const defaultHeaders = {
+                    'Content-Type': 'application/json',
+                    Accept: 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                }
 
-                    const closeAndResolve = () => {
-                        closeSource(source)
-                        resolve()
-                    }
+                const source = new SSE(agentOptions.endpoint, {
+                    method: agentOptions.method || 'POST',
+                    headers: { ...defaultHeaders, ...(agentOptions.headers || {}) },
+                    payload: agentOptions.payload ? JSON.stringify(agentOptions.payload) : undefined,
+                }) as SSESource
 
-                    source.addEventListener('open', () => {
-                        connectionStatus.value.set('connected')
-                        taskStatus.value.set('running')
-                        scrollToBottom()
-                    })
+                // 保存当前活动连接的引用
+                activeSource.value = source
 
-
-                    /** 创建事件监听器的工厂函数 */
-                    const createEventListener = (eventName: string) => (messageEvent: MessageEvent) => {
-                        if (!messageEvent?.data) return
-                        try {
-                            const event = JSON.parse(messageEvent.data) as BaseEventItem
-                            handleEvent(event, source)
-                        } catch (e) {
-                            console.error(`Failed to parse ${eventName} event:`, e)
-                        }
-                    }
-
-                    // 为每个事件类型创建专属的监听器函数
-
-                    const onStarted = createEventListener('STARTED')
-                    const onProgress = createEventListener('PROGRESS')
-                    const onAgentSelected = createEventListener('AGENT_SELECTED')
-                    const onThinking = createEventListener('THINKING')
-                    const onAction = createEventListener('ACTION')
-                    const onActing = createEventListener('ACTING')
-                    const onObserving = createEventListener('OBSERVING')
-                    const onDone = createEventListener('DONE')
-                    const onExecuting = createEventListener('EXECUTING')
-                    const onError = createEventListener('ERROR')
-                    const onTool = createEventListener('TOOL')
-                    const onDoneWithWarning = createEventListener('DONEWITHWARNING')
-                    const onToolApproval = createEventListener('TOOL_APPROVAL')
-                    const onInteraction = createEventListener('INTERACTION')
-                    const onCompleted = createEventListener('COMPLETED')
-
-                    // ReActPlus 专属事件监听器
-                    const onTaskAnalysis = createEventListener('TASK_ANALYSIS')
-                    const onThought = createEventListener('THOUGHT')
-                    const onInitPlan = createEventListener('INIT_PLAN')
-                    const onUpdatePlan = createEventListener('UPDATE_PLAN')
-                    const onAdvancePlan = createEventListener('ADVANCE_PLAN')
-
-                    // 监听所有可能的事件类型，每个事件使用专属的监听器
-                    source.addEventListener('message', onExecuting)
-                    source.addEventListener('STARTED', onStarted)
-                    source.addEventListener('PROGRESS', onProgress)
-                    source.addEventListener('AGENT_SELECTED', onAgentSelected)
-                    source.addEventListener('THINKING', onThinking)
-                    source.addEventListener('ACTION', onAction)
-                    source.addEventListener('ACTING', onActing)
-                    source.addEventListener('OBSERVING', onObserving)
-                    source.addEventListener('DONE', onDone)
-                    source.addEventListener('EXECUTING', onExecuting)
-                    source.addEventListener('ERROR', onError)
-                    source.addEventListener('TOOL', onTool)
-                    source.addEventListener('DONEWITHWARNING', onDoneWithWarning)
-                    source.addEventListener('TOOL_APPROVAL', onToolApproval)
-                    source.addEventListener('INTERACTION', onInteraction)
-                    source.addEventListener('COMPLETED', onCompleted)
-
-                    // 监听 ReActPlus 专属事件
-                    source.addEventListener('TASK_ANALYSIS', onTaskAnalysis)
-                    source.addEventListener('THOUGHT', onThought)
-                    source.addEventListener('INIT_PLAN', onInitPlan)
-                    source.addEventListener('UPDATE_PLAN', onUpdatePlan)
-                    source.addEventListener('ADVANCE_PLAN', onAdvancePlan)
-
-                    source.addEventListener('ERROR', onError)
-
-                    try {
-                        (source as any).stream()
-                    } catch (e: any) {
-                        reject(new Error('启动SSE流失败: ' + (e?.message || '未知错误')))
-                    }
+                source.addEventListener('open', () => {
+                    connectionStatus.value.set('connected')
+                    taskStatus.value.set('running')
+                    scrollToBottom()
                 })
+
+
+                /** 创建事件监听器的工厂函数 */
+                const createEventListener = (eventName: string) => (messageEvent: MessageEvent) => {
+                    console.log(`[SSE] 收到事件: ${eventName}`, messageEvent.data)
+                    if (!messageEvent?.data) return
+                    try {
+                        const event = JSON.parse(messageEvent.data) as BaseEventItem
+                        console.log(`[SSE] 解析事件成功: ${eventName}`, event)
+                        handleEvent(event, source)
+                    } catch (e) {
+                        console.error(`Failed to parse ${eventName} event:`, e)
+                    }
+                }
+
+                // 定义所有需要监听的事件类型（避免重复注册）
+                const EVENT_TYPES = [
+                    // 基础事件
+                    'STARTED', 'PROGRESS', 'AGENT_SELECTED', 'THINKING',
+                    'ACTION', 'ACTING', 'OBSERVING', 'DONE', 'EXECUTING',
+                    'ERROR', 'TOOL', 'DONEWITHWARNING', 'TOOL_APPROVAL',
+                    'INTERACTION', 'COMPLETED',
+                    // ReActPlus 专属事件
+                    'TASK_ANALYSIS', 'THOUGHT', 'INIT_PLAN',
+                    'UPDATE_PLAN', 'ADVANCE_PLAN'
+                ] as const
+
+                // 统一注册所有事件监听器
+                EVENT_TYPES.forEach(eventType => {
+                    source.addEventListener(eventType, createEventListener(eventType))
+                })
+
+                // 特别重要：监听默认的 'message' 事件
+                source.addEventListener('message', createEventListener('message'))
+
+                // 监听连接状态事件
+                source.addEventListener('error', (event: Event) => {
+                    console.error('[SSE] 连接错误:', event)
+                    connectionStatus.value.set('error')
+                    taskStatus.value.set('error')
+                })
+
+                source.addEventListener('close', () => {
+                    console.log('[SSE] 连接关闭')
+                    connectionStatus.value.set('disconnected')
+                })
+
+                try {
+                    source.stream()
+                } catch (e: any) {
+                    reject(new Error('启动SSE流失败: ' + (e?.message || '未知错误')))
+                }
+            })
                 .catch((e) => {
                     reject(new Error('未能加载 sse.js: ' + (e as Error).message))
                 })
@@ -545,9 +645,9 @@ export function useSSE(options: SSEOptions = {}) {
         executeReAct,          // 保留：向后兼容的快捷方法
         executeReActPlus,          // 保留：向后兼容的快捷方法
 
-        // 事件处理（新增，修复ReActPlus的handleEvent问题）
-        handleEvent,           // 新增：手动处理SSE事件的方法
-        updateMessage,         // 新增：手动更新消息的方法
+        // 连接管理（新增）
+        cleanup,               // 新增：清理所有状态和连接
+        closeActiveSource,     // 新增：关闭当前活动连接
 
     }
 }

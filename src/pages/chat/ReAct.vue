@@ -183,8 +183,6 @@ const handleDoneNotice = (node: {
 
 const {
   messages,
-  nodeIndex,
-  connectionStatus,
   taskStatus,
   progress,
   executeReAct
@@ -259,7 +257,6 @@ watch(() => chat.sessionId, (newId, oldId) => {
   }
   const next = chat.getSessionMessages(newId)
   messages.value = next && next.length ? [...next] : []
-  nodeIndex.value = {}
 })
 
 // 消息变化时，更新当前会话的消息，并触碰更新时间

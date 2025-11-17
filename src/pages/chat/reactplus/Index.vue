@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, h, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {InputMode, useModeSwitch} from '@/composables/useModeSwitch'
-import {EventType, UIMessage} from '@/types/events'
+import {BaseEventItem, EventType, UIMessage} from '@/types/events'
 import {useChatStore} from '@/stores/chatStore'
 import ThinkingMessage from '@/components/messages/ThinkingMessage.vue'
 import ToolApprovalMessage from '@/components/messages/ToolApprovalMessage.vue'
@@ -33,7 +33,6 @@ import {generateSimplePlan, generateTestPlan} from "@/utils/planTestData";
 import PlanWidget from '@/components/PlanWidget.vue'
 import CommonMessage from "@/components/messages/CommonMessage.vue";
 
-import {messages as testMessages} from '@/stores/message'
 
 const isDevelopment = (import.meta as any).env?.DEV ?? false
 
@@ -65,14 +64,13 @@ const pendingApprovals = ref<Map<string, any>>(new Map())
 const approvalResults = ref<Map<string, any>>(new Map())
 
 // UI状态管理
-const isLoading = computed(() => taskStatus.value.is('running'))
+const isLoading = computed(() => connectionStatus.value.is('connecting'))
 const chatContent = ref<HTMLElement>()
 const showScrollButton = ref(false)
 
 
 // DOM引用
 const appContainer = ref<HTMLElement>()
-const messageElements = ref<HTMLElement[]>([])
 
 // 发送可用状态
 const canSend = computed(() => inputMessage.value.trim().length > 0 && !isLoading.value)
@@ -202,16 +200,12 @@ let {
   connectionStatus,
   taskStatus,
   progress,
-  executeReAct,
   executeReActPlus,
-  handleEvent,
-  updateMessage
+  closeActiveSource
 } = useSSE({
   onDoneNotice: handleDoneNotice,
-  enableDefaultHandlers: true,  // 启用默认处理器
   handlers: {
-    // 自定义工具审批事件处理器
-    onToolApproval: (event: any, context: any) => {
+    onInitPlan: (event: BaseEventItem) => {
       const approvalId = event.nodeId || `approval-${Date.now()}`
 
       // 存储审批请求
@@ -237,7 +231,6 @@ let {
       }
 
       messages.value.push(approvalMessage)
-      context.scrollToBottom()
 
       // 返回 false 表示跳过默认处理器（我们已经自定义处理了）
       return false
@@ -357,11 +350,9 @@ const sendMessage = async () => {
     message: inputMessage.value,
     startTime: new Date()
   }
-
   messages.value.push(userMessage)
   const currentMessage = inputMessage.value
   inputMessage.value = ''
-
   // 滚动到底部
   await nextTick()
   scrollToBottom()
@@ -397,22 +388,21 @@ watch(() => chat.sessionId, (newId, oldId) => {
   pendingApprovals.value.clear()
   approvalResults.value.clear()
 })
-
 // 消息变化时，更新当前会话的消息，并触碰更新时间
 watch(messages, (val, oldVal) => {
+  console.log('消息变化:', val)
   chat.setSessionMessages(sessionId, val)
   chat.touchSession(sessionId)
-
-  // 🐉 GSAP: 为新添加的消息应用入场动画
-  if (val.length > oldVal.length) {
-    nextTick(() => {
-      const messageElements = document.querySelectorAll('.message-wrapper')
-      const newMessage = messageElements[messageElements.length - 1] as HTMLElement
-      if (newMessage) {
-        animateMessageEntry(newMessage)
-      }
-    })
-  }
+  // GSAP: 为新添加的消息应用入场动画
+  // if (val.length > oldVal.length) {
+  //   nextTick(() => {
+  //     const messageElements = document.querySelectorAll('.message-wrapper')
+  //     const newMessage = messageElements[messageElements.length - 1] as HTMLElement
+  //     if (newMessage) {
+  //       animateMessageEntry(newMessage)
+  //     }
+  //   })
+  // }
 }, {deep: true})
 
 // 根据当前路由设置模式状态
@@ -488,33 +478,6 @@ const onPaste = (e: ClipboardEvent) => {
     pushFilesWithValidation(files)
   }
 }
-
-// ReAct+ 专属模板
-const templates: TemplateItem[] = [
-  new TemplateItem('智能分析任务', '请对以下问题进行深度分析，包括：\n1. 问题拆解和关键要素识别\n2. 多角度思考和风险评估\n3. 制定执行策略和行动计划\n\n问题描述：\n[请在此处描述您的问题]'),
-  new TemplateItem('工具链执行', '请使用相关工具完成以下任务，需要：\n1. 自动选择最适合的工具组合\n2. 按步骤执行并展示中间结果\n3. 对结果进行验证和优化\n\n任务要求：\n[请详细描述任务需求]'),
-  new TemplateItem('数据驱动决策', '基于以下数据和背景，帮助我做出最佳决策：\n\n背景信息：\n- 当前状况：\n- 目标期望：\n- 约束条件：\n- 风险考量：\n\n请提供详细的分析过程和建议方案'),
-  new TemplateItem('目标导向规划', '请帮我制定实现以下目标的详细计划：\n\n目标：[具体目标]\n时间限制：[时间范围]\n资源情况：[可用资源]\n\n需要包括：里程碑设置、风险缓解、执行策略'),
-]
-
-const insertTemplate = (t: string) => {
-  inputMessage.value = (inputMessage.value ? inputMessage.value + '\n\n' : '') + t
-}
-
-// 渲染Markdown
-const resolvePlugin = (p: any) => {
-  if (!p) return p
-  const cand = (p as any).default ?? p
-  if (typeof cand === 'function') return cand
-  for (const key of Object.keys(p)) {
-    const v = (p as any)[key]
-    if (typeof v === 'function') return v
-  }
-  return cand
-}
-
-// 🐉 GSAP 动画系统 - 性能优化版
-//  使用 GSAP Context 统一管理所有动画，确保正确清理
 let gsapContext: gsap.Context | null = null
 
 const initGSAPAnimations = () => {
@@ -837,13 +800,13 @@ const testSimplePlan = () => {
 // 组件挂载
 onMounted(() => {
   // 加载当前会话已存在的消息
-  const existing = chat.getSessionMessages(sessionId)
-  if (existing && existing.length > 0) {
-    messages.value = [...existing]
-  } else {
-    // 全面的测试数据 - 覆盖所有渲染情况
-    messages.value = testMessages
-  }
+  // const existing = chat.getSessionMessages(sessionId)
+  // if (existing && existing.length > 0) {
+  //   messages.value = [...existing]
+  // } else {
+  //   // 全面的测试数据 - 覆盖所有渲染情况
+  //   // messages.value = testMessages
+  // }
 
   // 🐉 初始化 GSAP 动画系统 - 简化版
   nextTick(() => {
@@ -980,7 +943,7 @@ onUnmounted(() => {
             </div>
             <span class="loading-text">
                 {{ progress?.text || '任务执行...' }}
-              </span>
+            </span>
           </div>
         </div>
 
@@ -1077,18 +1040,6 @@ onUnmounted(() => {
                   </a-menu-item-group>
 
                   <a-menu-divider/>
-
-                  <!-- 计划功能 -->
-                  <a-menu-item-group title="计划功能">
-                    <a-menu-item
-                        key="plan-toggle"
-                        @click="chat.togglePlanVisibility"
-                        :disabled="!chat.getCurrentPlan()"
-                    >
-                      <template #icon>📋</template>
-                      {{ chat.planVisible ? '隐藏计划' : '显示计划' }}
-                    </a-menu-item>
-                  </a-menu-item-group>
 
                   <!-- 开发模式测试功能 -->
                   <template v-if="isDevelopment">

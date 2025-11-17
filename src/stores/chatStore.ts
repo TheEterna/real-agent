@@ -29,7 +29,6 @@ const messagesBySession = ref<Record<string, UIMessage[]>>(initialMessages)
 
 // Plan状态管理
 const plansBySession = ref<Record<string, PlanData | null>>({})
-const planVisible = ref<boolean>(false)
 
 // Plan小部件状态管理
 export type PlanWidgetMode = 'hidden' | 'ball' | 'mini' | 'sidebar'
@@ -80,7 +79,6 @@ const store = {
   sessions,
   messagesBySession,
   plansBySession,
-  planVisible,
   planWidgetState,
   switchConversation,
   newConversation,
@@ -175,13 +173,7 @@ const store = {
     delete plansBySession.value[id]
   },
 
-  togglePlanVisibility() {
-    planVisible.value = !planVisible.value
-  },
 
-  setPlanVisibility(visible: boolean) {
-    planVisible.value = visible
-  },
 
   // Plan小部件状态管理方法
   getPlanWidgetMode(): PlanWidgetMode {

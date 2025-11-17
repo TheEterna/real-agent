@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import ToolBox from './ToolBox.vue'
 import { defineAsyncComponent } from 'vue'
-import { UIMessage, EventType, EventType } from '@/types/events'
+import { UIMessage, EventType } from '@/types/events'
 import ErrorMessage from './ErrorMessage.vue'
 
 const MarkdownViewer = defineAsyncComponent(() => import('./MarkdownViewer.vue'))
@@ -25,13 +25,11 @@ const messageCssClass = computed(() => {
   }
   if (mes.type === EventType.SYSTEM) return 'system'
   if (mes.type === EventType.USER) return 'user'
-  if (mes.type === EventType.ASSISTANT) {
-    switch (mes.type) {
-      case EventType.THINKING: return 'thinking'
-      case EventType.ACTION: return 'action'
-      case EventType.OBSERVING: return 'observing'
-      default: return 'assistant'
-    }
+  switch (mes.type) {
+    case EventType.THINKING: return 'thinking'
+    case EventType.ACTION: return 'action'
+    case EventType.OBSERVING: return 'observing'
+    default: return 'assistant'
   }
   return String(mes.type || '').toLowerCase()
 })
