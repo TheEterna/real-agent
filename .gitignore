@@ -48,6 +48,6 @@ tmp/
 temp/
 
 # Package lock files (uncomment one of these if you want to ignore them)
-# package-lock.json
+package-lock.json
 # yarn.lock
 # pnpm-lock.yaml

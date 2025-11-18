@@ -32,6 +32,7 @@ import ToolMessage from "@/components/messages/ToolMessage.vue";
 import {generateSimplePlan, generateTestPlan} from "@/utils/planTestData";
 import PlanWidget from '@/components/PlanWidget.vue'
 import CommonMessage from "@/components/messages/CommonMessage.vue";
+import UserMessage from "@/components/messages/UserMessage.vue";
 
 
 const isDevelopment = (import.meta as any).env?.DEV ?? false
@@ -394,15 +395,15 @@ watch(messages, (val, oldVal) => {
   chat.setSessionMessages(sessionId, val)
   chat.touchSession(sessionId)
   // GSAP: 为新添加的消息应用入场动画
-  // if (val.length > oldVal.length) {
-  //   nextTick(() => {
-  //     const messageElements = document.querySelectorAll('.message-wrapper')
-  //     const newMessage = messageElements[messageElements.length - 1] as HTMLElement
-  //     if (newMessage) {
-  //       animateMessageEntry(newMessage)
-  //     }
-  //   })
-  // }
+  if (val.length > oldVal.length) {
+    nextTick(() => {
+      const messageElements = document.querySelectorAll('.message-wrapper')
+      const newMessage = messageElements[messageElements.length - 1] as HTMLElement
+      if (newMessage) {
+        animateMessageEntry(newMessage)
+      }
+    })
+  }
 }, {deep: true})
 
 // 根据当前路由设置模式状态
@@ -800,13 +801,13 @@ const testSimplePlan = () => {
 // 组件挂载
 onMounted(() => {
   // 加载当前会话已存在的消息
-  // const existing = chat.getSessionMessages(sessionId)
-  // if (existing && existing.length > 0) {
-  //   messages.value = [...existing]
-  // } else {
-  //   // 全面的测试数据 - 覆盖所有渲染情况
-  //   // messages.value = testMessages
-  // }
+  const existing = chat.getSessionMessages(sessionId)
+  if (existing && existing.length > 0) {
+    messages.value = [...existing]
+  } else {
+    // 全面的测试数据 - 覆盖所有渲染情况
+    // messages.value = testMessages
+  }
 
   // 🐉 初始化 GSAP 动画系统 - 简化版
   nextTick(() => {
@@ -898,9 +899,14 @@ onUnmounted(() => {
               :id="message.nodeId ? 'msg-' + message.nodeId : undefined"
               class="message-wrapper"
           >
+            <UserMessage
+                v-if="message.type === EventType.USER"
+                :message="message"
+                class="message-item mb-2.5"
+            />
             <!-- Thinking 消息 - 使用折叠组件 -->
             <ThinkingMessage
-                v-if="message.type === EventType.THINKING"
+                v-else-if="message.type === EventType.THINKING"
                 :content="message.message"
                 :sender="message.sender"
                 :startTime="message.startTime"
@@ -932,6 +938,8 @@ onUnmounted(() => {
             />
             <!-- 普通消息 -->
             <CommonMessage v-else :message="message" class="message-item"/>
+
+<!--            <p>{{ message }}</p>-->
           </div>
 
           <!-- 加载状态 -->

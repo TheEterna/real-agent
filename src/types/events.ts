@@ -70,7 +70,6 @@ export enum PlanPhaseStatus {
   PAUSED = 'PAUSED',             // 已暂停
   FAILED = 'FAILED'              // 执行失败
 }
-
 export interface PlanData {
   goal: string                   // 任务总体目标
   phases: PlanPhase[]           // 计划阶段列表

@@ -70,11 +70,10 @@ const playVideoTransition = async (targetAgent?: AgentType) => {
 
 // 视频过渡事件处理
 const onTransitionStarted = () => {
-  console.log('🎬 青花瓷过渡开始')
+
 }
 
 const onTransitionEnded = () => {
-  console.log('🎬 青花瓷过渡结束')
   showVideoTransition.value = false
   isTransitioning.value = false
 }

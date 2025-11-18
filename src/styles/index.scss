@@ -90,6 +90,26 @@ body {
 .hover\:bg-secondary-800:hover { background-color: $secondary-color-800; }
 .hover\:bg-secondary-900:hover { background-color: $secondary-color-900; }
 
+.shadow-secondary-50 {--tw-shadow-color: $secondary-color-50;}
+.shadow-secondary-75 { --tw-shadow-color: $secondary-color-75; }
+.shadow-secondary-100 { --tw-shadow-color: $secondary-color-100; }
+.shadow-secondary-200 { --tw-shadow-color: $secondary-color-200; }
+.shadow-secondary-300 { --tw-shadow-color: $secondary-color-300; }
+.shadow-secondary-400 { --tw-shadow-color: $secondary-color-400; }
+.shadow-secondary-500 { --tw-shadow-color: $secondary-color-500; }
+.shadow-secondary-600 { --tw-shadow-color: $secondary-color-600; }
+.shadow-secondary-700 { --tw-shadow-color: $secondary-color-700; }
+.shadow-secondary-800 { --tw-shadow-color: $secondary-color-800; }
+.shadow-secondary-900 { --tw-shadow-color: $secondary-color-900; }
+
+
+
+
+
+
+
+
+
 .text-secondary-50 { color: $secondary-color-50; }
 .text-secondary-75 { color: $secondary-color-75; }
 .text-secondary-100 { color: $secondary-color-100; }

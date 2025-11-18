@@ -40,6 +40,34 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+--color-primary: #5a8482;
+--color-primary-0: #f2f2f2;
+--color-primary-50: #f0f7f7;
+--color-primary-75: #e4f1f1;
+--color-primary-100: #d8ebea;
+--color-primary-200: #b8ddd9;
+--color-primary-300: #98cfc8;
+--color-primary-400: #7eb4ab;
+--color-primary-500: #6b9a98;
+--color-primary-600: #5a8482;
+--color-primary-700: #4a6d6c;
+--color-primary-800: #3a5655;
+--color-primary-900: #2a3f3f;
+    
+--color-secondary: #009aa7;
+--color-secondary-50: #e0fafa;
+--color-secondary-75: #bfedf2;
+--color-secondary-100: #99e6e6;
+--color-secondary-200: #66dbda;
+--color-secondary-300: #33cfd2;
+--color-secondary-400: #00bac4;
+--color-secondary-500: #009aa7;
+--color-secondary-600: #007d89;
+--color-secondary-700: #00606b;
+--color-secondary-800: #00454d;
+--color-secondary-900: #002d32;
+
 }
 
 :root {
@@ -50,7 +78,7 @@
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.216 0.006 56.043);
+  --primary: #5a8482;
   --primary-foreground: oklch(0.985 0.001 106.423);
   --secondary: oklch(0.97 0.001 106.424);
   --secondary-foreground: oklch(0.216 0.006 56.043);

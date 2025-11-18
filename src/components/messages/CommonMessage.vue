@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import type { UIMessage } from '@/types/events'
-import { UserOutlined, RobotOutlined } from '@ant-design/icons-vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { getRandomGlassColor } from '@/utils/colorUtils'
@@ -22,12 +21,6 @@ import {
   MessageToolbar,
 } from '@/components/ai-elements/message'
 const props = defineProps<{ message: UIMessage }>()
-import {
-  CopyIcon,
-  RefreshCcwIcon,
-  ThumbsDownIcon,
-  ThumbsUpIcon,
-} from 'lucide-vue-next'
 
 interface Attachment {
   type: 'file'
@@ -63,7 +56,6 @@ const htmlContent = computed(() => {
   const md = marked.parse(raw || '') as string
   return DOMPurify.sanitize(md)
 })
-const message = props.message?.message
 // 头像圆形背景（玻璃浅色）
 const avatarBg = getRandomGlassColor()
 
@@ -103,15 +95,7 @@ function handleBranchChange(index: number) {
 </script>
 
 <template>
-  <!-- 无背景的普通消息，参考 ChatGPT/Gemini：左侧头像 + 右侧富文本 -->
-<!--  <div class="flex items-start gap-3 py-1">-->
-<!--    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full select-none" :style="{ backgroundColor: avatarBg }">-->
-<!--      <component :is="isUser ? UserOutlined : RobotOutlined" />-->
-<!--    </span>-->
-<!--    <div class="flex-1 min-w-0">-->
-<!--      <div class="prose prose-sm max-w-none leading-7 text-slate-800" v-html="htmlContent"></div>-->
-<!--    </div>-->
-<!--  </div>-->
+
   <Message
       from='assistant'
   >
@@ -120,8 +104,7 @@ function handleBranchChange(index: number) {
     <!-- Single version without branch selector -->
 
       <MessageContent>
-        <MessageResponse :content="message" />
-
+        <MessageResponse :content="props.message.message" />
       </MessageContent>
 
   </Message>
