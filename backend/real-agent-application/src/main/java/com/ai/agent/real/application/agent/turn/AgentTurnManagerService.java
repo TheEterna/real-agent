@@ -163,8 +163,8 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 		log.info("开始执行 Agent: turnId={}", state.getTurnId());
 
 		// 执行Agent流式任务
-		Disposable execution = agentStrategy.executeStream(message, state, context)
-			.map(this::toSSE)
+		Disposable execution = agentStrategy.executeStreamWithInteraction(message, state, context)
+			.map(AgentTurnManagerService::toSSE)
 			.doOnNext(event -> {
 				log.debug("推送SSE事件: turnId={}, eventType={}", state.getTurnId(), event.event());
 
