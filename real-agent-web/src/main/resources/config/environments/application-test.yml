@@ -1,0 +1,155 @@
+# 测试环境配置
+# 用于集成测试和自动化测试的配置
+
+# 数据库配置 (测试环境)
+spring:
+  r2dbc:
+    # 测试环境使用内存数据库或专用测试库
+    url: ${DB_URL:r2dbc:mysql://localhost:3306/real_agent_test?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8}
+    username: ${DB_USERNAME:test_user}
+    password: ${DB_PASSWORD:test_password}
+
+    # 测试环境连接池配置
+    pool:
+      initial-size: 1
+      max-size: 5
+      max-idle-time: 5m
+
+  # SQL 初始化 (测试环境)
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:test-schema.sql
+      data-locations: classpath:test-data.sql
+      continue-on-error: false
+
+# AI 模型配置 (测试环境)
+spring:
+  ai:
+    openai:
+      # 测试环境可以使用模拟的 API
+      api-key: ${OPENAI_API_KEY:test-api-key}
+      base-url: ${OPENAI_BASE_URL:http://localhost:8080/mock-ai}
+
+      chat:
+        options:
+          model: qwen-test
+          temperature: 0.0  # 测试环境使用确定性输出
+          max-tokens: 1024
+
+# 日志配置 (测试环境)
+logging:
+  level:
+    # 测试环境适中的日志级别
+    root: INFO
+    com.ai.agent: DEBUG
+    org.springframework.ai: INFO
+    org.springframework.test: DEBUG
+
+  # 测试日志输出到文件
+  file:
+    name: ${LOG_FILE:target/test-logs/test.log}
+
+# Agent 配置 (测试环境)
+agent:
+  react:
+    max-iterations: 3  # 测试环境减少迭代，加快测试速度
+    thinking-timeout: 10s
+    observation-timeout: 5s
+
+  action:
+    tools:
+      approval-mode: AUTO  # 测试环境自动执行
+      execution-timeout: 10s
+
+# 工具配置 (测试环境)
+tool:
+  system:
+    # 测试环境可以启用所有工具
+    task-done:
+      enabled: true
+    time-now:
+      enabled: true
+    http-request:
+      enabled: true
+      sandbox:
+        enabled: false  # 测试环境关闭沙箱限制
+    math-eval:
+      enabled: true
+
+# MCP 配置 (测试环境)
+spring:
+  ai:
+    mcp:
+      client:
+        enabled: ${MCP_CLIENT_ENABLED:false}  # 测试环境可以关闭 MCP
+        request-timeout: 10s
+
+# 监控配置 (测试环境)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+  server:
+    port: 8082  # 测试环境管理端口
+
+# 服务器配置 (测试环境)
+server:
+  port: 0  # 随机端口，避免冲突
+
+# 测试特定配置
+test:
+  # 模拟配置
+  mock:
+    # 启用 AI 模型模拟
+    ai-model: ${TEST_MOCK_AI_MODEL:true}
+
+    # 启用工具模拟
+    tools: ${TEST_MOCK_TOOLS:true}
+
+    # 启用数据库模拟
+    database: ${TEST_MOCK_DATABASE:false}
+
+  # 测试数据
+  data:
+    # 清理策略
+    cleanup-strategy: ${TEST_DATA_CLEANUP_STRATEGY:AFTER_EACH_TEST}  # NEVER, AFTER_EACH_TEST, AFTER_CLASS
+
+    # 预置数据
+    preload: ${TEST_DATA_PRELOAD:true}
+
+  # 性能测试配置
+  performance:
+    # 启用性能测试
+    enabled: ${TEST_PERFORMANCE_ENABLED:false}
+
+    # 并发用户数
+    concurrent-users: ${TEST_PERFORMANCE_CONCURRENT_USERS:10}
+
+    # 测试持续时间
+    duration: ${TEST_PERFORMANCE_DURATION:60s}
+
+  # 集成测试配置
+  integration:
+    # 启用外部服务测试
+    external-services: ${TEST_INTEGRATION_EXTERNAL_SERVICES:false}
+
+    # 超时配置
+    timeout: ${TEST_INTEGRATION_TIMEOUT:30s}
+
+# Spring Boot 测试配置
+spring:
+  test:
+    # 数据库测试配置
+    database:
+      replace: none  # 使用真实数据库进行测试
+
+    # Web 测试配置
+    mockmvc:
+      print: ${TEST_MOCKMVC_PRINT:false}

@@ -1,0 +1,203 @@
+# 生产环境配置
+# 用于生产部署的安全配置
+
+# 数据库配置 (生产环境)
+spring:
+  r2dbc:
+    # 生产环境必须从环境变量获取
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+
+    # 生产环境连接池配置
+    pool:
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 10m
+      max-acquire-time: 30s
+      validation-query: SELECT 1
+      validation-timeout: 5s
+
+  # SQL 初始化 (生产环境关闭)
+  sql:
+    init:
+      mode: never
+
+# AI 模型配置 (生产环境)
+spring:
+  ai:
+    openai:
+      # 生产环境 API 密钥必须来自环境变量
+      api-key: ${OPENAI_API_KEY:${DASHSCOPE_API_KEY:}}
+      base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+
+      chat:
+        options:
+          model: ${AI_OPENAI_CHAT_MODEL:qwen-max}
+          temperature: ${AI_OPENAI_CHAT_TEMPERATURE:0.7}
+          max-tokens: ${AI_OPENAI_CHAT_MAX_TOKENS:4096}
+
+# 日志配置 (生产环境)
+logging:
+  level:
+    # 生产环境较少的日志
+    root: WARN
+    com.ai.agent: INFO
+    org.springframework.ai: WARN
+
+    # 关闭调试日志
+    org.springframework.web.reactive: WARN
+    reactor.netty: WARN
+
+  # 文件日志配置
+  file:
+    name: ${LOG_FILE:/var/log/real-agent/application.log}
+    max-size: ${LOG_FILE_MAX_SIZE:100MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:30}
+
+  # 结构化日志格式
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{turnId},%X{spanId}] %logger{36} - %msg%n"
+
+# Agent 配置 (生产环境)
+agent:
+  react:
+    max-iterations: ${AGENT_REACT_MAX_ITERATIONS:10}
+    thinking-timeout: ${AGENT_REACT_THINKING_TIMEOUT:60s}
+    observation-timeout: ${AGENT_REACT_OBSERVATION_TIMEOUT:30s}
+
+  action:
+    tools:
+      approval-mode: ${AGENT_TOOLS_APPROVAL_MODE:REQUIRE_APPROVAL}  # 生产环境需要审批
+      execution-timeout: ${AGENT_TOOLS_TIMEOUT:60s}
+      max-concurrent-executions: ${AGENT_TOOLS_MAX_CONCURRENT:3}
+
+# 工具配置 (生产环境)
+tool:
+  system:
+    http-request:
+      sandbox:
+        enabled: true  # 生产环境启用沙箱
+        allowed-domains: ${TOOL_HTTP_ALLOWED_DOMAINS:}
+        blocked-domains: ${TOOL_HTTP_BLOCKED_DOMAINS:localhost,127.0.0.1,0.0.0.0,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+        max-response-size: ${TOOL_HTTP_MAX_RESPONSE_SIZE:5MB}
+        timeout: ${TOOL_HTTP_TIMEOUT:30s}
+
+# MCP 配置 (生产环境)
+spring:
+  ai:
+    mcp:
+      client:
+        request-timeout: ${MCP_REQUEST_TIMEOUT:120s}
+
+        sse:
+          connections:
+            # 生产环境百度地图
+            baidu-maps:
+              enabled: ${MCP_BAIDU_MAPS_ENABLED:true}
+              url: https://mcp.map.baidu.com?ak=${BAIDU_MAP_API_KEY:}
+              sse-endpoint: /sse
+
+# 监控配置 (生产环境)
+management:
+  endpoints:
+    web:
+      exposure:
+        # 生产环境限制暴露的端点
+        include: health,info,metrics,prometheus
+
+  endpoint:
+    health:
+      show-details: when-authorized  # 需要授权才显示详情
+      roles: admin
+
+  # 生产环境独立的管理端口
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8081}
+    address: ${MANAGEMENT_SERVER_ADDRESS:127.0.0.1}  # 仅本地访问
+
+# 服务器配置 (生产环境)
+server:
+  port: ${SERVER_PORT:8080}
+
+  # 生产环境 Tomcat 配置
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_MAX_THREADS:200}
+      min-spare: ${SERVER_TOMCAT_MIN_SPARE_THREADS:10}
+    connection-timeout: ${SERVER_TOMCAT_CONNECTION_TIMEOUT:20s}
+    max-connections: ${SERVER_TOMCAT_MAX_CONNECTIONS:8192}
+
+  # 压缩配置
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+  # 错误处理
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+# 安全配置 (生产环境)
+security:
+  # HTTPS 配置
+  ssl:
+    enabled: ${SECURITY_SSL_ENABLED:false}
+    key-store: ${SECURITY_SSL_KEY_STORE:}
+    key-store-password: ${SECURITY_SSL_KEY_STORE_PASSWORD:}
+    key-store-type: ${SECURITY_SSL_KEY_STORE_TYPE:PKCS12}
+
+  # 跨域配置
+  cors:
+    allowed-origins: ${SECURITY_CORS_ALLOWED_ORIGINS:}
+    allowed-methods: ${SECURITY_CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+    allowed-headers: ${SECURITY_CORS_ALLOWED_HEADERS:*}
+    allow-credentials: ${SECURITY_CORS_ALLOW_CREDENTIALS:true}
+
+# 性能配置 (生产环境)
+performance:
+  # 缓存配置
+  cache:
+    # Redis 缓存 (生产环境推荐)
+    type: redis
+    redis:
+      host: ${REDIS_HOST:}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5s}
+
+      # 连接池配置
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 30s
+
+  # 线程池配置
+  async:
+    core-pool-size: ${PERFORMANCE_ASYNC_CORE_POOL_SIZE:10}
+    max-pool-size: ${PERFORMANCE_ASYNC_MAX_POOL_SIZE:50}
+    queue-capacity: ${PERFORMANCE_ASYNC_QUEUE_CAPACITY:200}
+    keep-alive: ${PERFORMANCE_ASYNC_KEEP_ALIVE:60s}
+
+# 生产环境特定配置
+prod:
+  # 监控告警
+  alerting:
+    enabled: ${PROD_ALERTING_ENABLED:true}
+    webhook-url: ${PROD_ALERTING_WEBHOOK_URL:}
+
+  # 备份配置
+  backup:
+    enabled: ${PROD_BACKUP_ENABLED:true}
+    schedule: ${PROD_BACKUP_SCHEDULE:0 0 2 * * ?}  # 每天凌晨2点
+    retention-days: ${PROD_BACKUP_RETENTION_DAYS:30}
+
+  # 审计配置
+  audit:
+    enabled: ${PROD_AUDIT_ENABLED:true}
+    log-file: ${PROD_AUDIT_LOG_FILE:/var/log/real-agent/audit.log}

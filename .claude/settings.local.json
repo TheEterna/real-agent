@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/Agent.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/strategy/AgentStrategy.java\")",
+      "Bash(cat \"./real-agent-contract/src/main/java/com/ai/agent/real/contract/spec/AgentContext.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/impl/GeneralPurposeAgent.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/impl/ThinkingAgent.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/impl/ActionAgent.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/strategy/SingleAgentStrategy.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/strategy/CollaborativeAgentStrategy.java\")",
+      "Bash(cat \"./real-agent-contract/src/main/java/com/ai/agent/real/contract/spec/AgentTool.java\")",
+      "Bash(cat \"./real-agent-application/src/main/java/com/ai/agent/real/application/tool/ToolServiceImpl.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-tool/src/main/java/com/ai/agent/real/tool/system/impl/TaskDoneTool.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-tool/src/main/java/com/ai/agent/real/tool/system/impl/TimeNowTool/TimeNowTool.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-tool/src/main/java/com/ai/agent/real/tool/mcp/CustomMcpAsyncClientCustomizer.java\")",
+      "Bash(cat \"./real-agent-application/src/main/java/com/ai/agent/real/application/service/Impl/PlaygroundRoleplaySessionServiceImpl.java\")",
+      "Bash(cat \"./real-agent-web/src/main/java/com/ai/agent/real/web/controller/AgentChatController.java\")",
+      "Bash(cat \"./real-agent-web/src/main/java/com/ai/agent/real/web/config/AgentBeanConfig.java\")",
+      "Bash(cat \"./real-agent-web/src/main/resources/application.yml\")",
+      "Bash(cat \"./real-agent-common/src/main/java/com/ai/agent/real/common/utils/FluxUtils.java\")",
+      "Bash(cat \"./real-agent-common/src/main/java/com/ai/agent/real/common/utils/AgentUtils.java\")",
+      "Bash(cat \"./real-agent-common/src/main/java/com/ai/agent/real/common/protocol/AgentExecutionEvent.java\")",
+      "Bash(cat \"./real-agent-core/real-agent-agent/src/main/java/com/ai/agent/real/agent/impl/ObservationAgent.java\")",
+      "Bash(cat \"./real-agent-common/src/main/java/com/ai/agent/real/common/utils/ToolUtils.java\")",
+      "Bash(cat \"./real-agent-contract/src/main/java/com/ai/agent/real/contract/spec/message/AgentMessage.java\")",
+      "Bash(git log -5 --pretty=format:\"%h - %s%n%b\" --no-merges)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

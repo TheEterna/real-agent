@@ -1,0 +1,224 @@
+# 监控与管理配置
+# Spring Boot Actuator 和应用监控配置
+
+# 管理端点配置
+management:
+  # 端点配置
+  endpoints:
+    # Web 端点
+    web:
+      # 暴露的端点
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_INCLUDE:health,info,metrics,prometheus,loggers,env,configprops}
+        exclude: ${MANAGEMENT_ENDPOINTS_EXCLUDE:}
+
+      # 基础路径
+      base-path: ${MANAGEMENT_ENDPOINTS_BASE_PATH:/actuator}
+
+      # 路径映射
+      path-mapping:
+        health: ${MANAGEMENT_ENDPOINTS_HEALTH_PATH:health}
+        info: ${MANAGEMENT_ENDPOINTS_INFO_PATH:info}
+        metrics: ${MANAGEMENT_ENDPOINTS_METRICS_PATH:metrics}
+
+    # JMX 端点
+    jmx:
+      exposure:
+        include: ${MANAGEMENT_JMX_INCLUDE:*}
+        exclude: ${MANAGEMENT_JMX_EXCLUDE:}
+
+  # 独立管理服务器
+  server:
+    # 管理端口
+    port: ${MANAGEMENT_SERVER_PORT:8081}
+
+    # 管理地址
+    address: ${MANAGEMENT_SERVER_ADDRESS:0.0.0.0}
+
+    # SSL 配置
+    ssl:
+      enabled: ${MANAGEMENT_SERVER_SSL_ENABLED:false}
+
+  # 健康检查配置
+  endpoint:
+    health:
+      # 显示详细信息
+      show-details: ${MANAGEMENT_HEALTH_SHOW_DETAILS:when-authorized}
+
+      # 显示组件
+      show-components: ${MANAGEMENT_HEALTH_SHOW_COMPONENTS:always}
+
+      # 角色权限
+      roles: ${MANAGEMENT_HEALTH_ROLES:admin}
+
+      # 健康检查组
+      group:
+        # 存活检查
+        liveness:
+          include: ${MANAGEMENT_HEALTH_LIVENESS_INCLUDE:livenessState,diskSpace}
+          show-details: always
+
+        # 就绪检查
+        readiness:
+          include: ${MANAGEMENT_HEALTH_READINESS_INCLUDE:readinessState,db,redis}
+          show-details: always
+
+    # 信息端点配置
+    info:
+      # 启用环境信息
+      env:
+        enabled: ${MANAGEMENT_INFO_ENV_ENABLED:true}
+
+      # 启用 Java 信息
+      java:
+        enabled: ${MANAGEMENT_INFO_JAVA_ENABLED:true}
+
+      # 启用 OS 信息
+      os:
+        enabled: ${MANAGEMENT_INFO_OS_ENABLED:true}
+
+    # 指标端点配置
+    metrics:
+      # 启用标签过滤
+      tags:
+        application: ${spring.application.name}
+        environment: ${spring.profiles.active:default}
+
+      # 导出配置
+      export:
+        # Prometheus 配置
+        prometheus:
+          enabled: ${MANAGEMENT_METRICS_PROMETHEUS_ENABLED:true}
+          descriptions: ${MANAGEMENT_METRICS_PROMETHEUS_DESCRIPTIONS:true}
+
+    # 日志端点配置
+    loggers:
+      enabled: ${MANAGEMENT_LOGGERS_ENABLED:true}
+
+    # 环境端点配置
+    env:
+      enabled: ${MANAGEMENT_ENV_ENABLED:true}
+      show-values: ${MANAGEMENT_ENV_SHOW_VALUES:when-authorized}
+
+  # 健康指示器配置
+  health:
+    # 数据库健康检查
+    db:
+      enabled: ${MANAGEMENT_HEALTH_DB_ENABLED:true}
+
+    # 磁盘空间检查
+    diskspace:
+      enabled: ${MANAGEMENT_HEALTH_DISKSPACE_ENABLED:true}
+      threshold: ${MANAGEMENT_HEALTH_DISKSPACE_THRESHOLD:10MB}
+
+    # Redis 健康检查
+    redis:
+      enabled: ${MANAGEMENT_HEALTH_REDIS_ENABLED:false}
+
+    # 自定义健康指示器
+    custom:
+      # Agent 健康检查
+      agent:
+        enabled: ${MANAGEMENT_HEALTH_AGENT_ENABLED:true}
+        timeout: ${MANAGEMENT_HEALTH_AGENT_TIMEOUT:5s}
+
+      # MCP 连接健康检查
+      mcp:
+        enabled: ${MANAGEMENT_HEALTH_MCP_ENABLED:true}
+        timeout: ${MANAGEMENT_HEALTH_MCP_TIMEOUT:10s}
+
+      # 工具系统健康检查
+      tools:
+        enabled: ${MANAGEMENT_HEALTH_TOOLS_ENABLED:true}
+        timeout: ${MANAGEMENT_HEALTH_TOOLS_TIMEOUT:5s}
+
+  # 指标配置
+  metrics:
+    # 启用指标
+    enable:
+      # JVM 指标
+      jvm: ${MANAGEMENT_METRICS_JVM_ENABLED:true}
+
+      # 系统指标
+      system: ${MANAGEMENT_METRICS_SYSTEM_ENABLED:true}
+
+      # Web 指标
+      web: ${MANAGEMENT_METRICS_WEB_ENABLED:true}
+
+      # 数据库指标
+      jdbc: ${MANAGEMENT_METRICS_JDBC_ENABLED:true}
+
+      # R2DBC 指标
+      r2dbc: ${MANAGEMENT_METRICS_R2DBC_ENABLED:true}
+
+    # 自定义指标
+    custom:
+      # Agent 执行指标
+      agent-execution:
+        enabled: ${MANAGEMENT_METRICS_AGENT_EXECUTION_ENABLED:true}
+
+      # 工具调用指标
+      tool-invocation:
+        enabled: ${MANAGEMENT_METRICS_TOOL_INVOCATION_ENABLED:true}
+
+      # MCP 连接指标
+      mcp-connection:
+        enabled: ${MANAGEMENT_METRICS_MCP_CONNECTION_ENABLED:true}
+
+    # 分布式追踪
+    distribution:
+      # 百分位数配置
+      percentiles-histogram:
+        http.server.requests: ${MANAGEMENT_METRICS_PERCENTILES_HTTP:true}
+
+      # SLA 配置
+      sla:
+        http.server.requests: ${MANAGEMENT_METRICS_SLA_HTTP:50ms,100ms,200ms,500ms}
+
+  # 追踪配置
+  tracing:
+    # 启用追踪
+    enabled: ${MANAGEMENT_TRACING_ENABLED:true}
+
+    # 采样率
+    sampling:
+      probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY:0.1}
+
+    # 导出配置
+    export:
+      # Zipkin 配置
+      zipkin:
+        enabled: ${MANAGEMENT_TRACING_ZIPKIN_ENABLED:false}
+        endpoint: ${MANAGEMENT_TRACING_ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
+
+# 应用信息配置
+info:
+  # 应用信息
+  app:
+    name: ${spring.application.name}
+    version: ${APP_VERSION:1.0.0}
+    description: Real-Agent Multi-Agent Collaboration Framework
+
+  # 构建信息
+  build:
+    artifact: ${project.artifactId:real-agent-web}
+    group: ${project.groupId:com.ai.agent.real}
+    version: ${project.version:1.0.0}
+    time: ${BUILD_TIME:unknown}
+
+  # Git 信息
+  git:
+    branch: ${GIT_BRANCH:unknown}
+    commit:
+      id: ${GIT_COMMIT_ID:unknown}
+      time: ${GIT_COMMIT_TIME:unknown}
+
+  # 环境信息
+  env:
+    java:
+      version: ${java.version}
+      vendor: ${java.vendor}
+
+    spring:
+      version: ${spring-boot.version}
+      profiles: ${spring.profiles.active:default}

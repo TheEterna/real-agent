@@ -1,0 +1,127 @@
+package com.ai.agent.real.application.agent.item.reactplus;
+
+import com.ai.agent.real.application.utils.AgentUtils;
+import com.ai.agent.real.application.utils.FluxUtils;
+import com.ai.agent.real.application.utils.PromptUtils;
+import com.ai.agent.real.common.constant.NounConstants;
+import com.ai.agent.real.contract.agent.Agent;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
+import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
+import com.ai.agent.real.contract.model.property.ToolApprovalMode;
+import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
+import com.ai.agent.real.contract.tool.IToolService;
+import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.ai.chat.prompt.Prompt;
+import reactor.core.publisher.Flux;
+
+import java.util.Set;
+
+import static com.ai.agent.real.common.constant.NounConstants.*;
+
+/**
+ * ActionPlusAgent - ReAct+ 框架中的增强行动 Agent 专注于智能工具选择、精准执行和结果优化，支持复杂任务的高效执行 action 节点移除
+ * 工具级这种冗余信息 function calling 自带 工具调用准则是需要根据 状态去渲染的
+ *
+ * @author han
+ * @time 2025/11/5 16:30
+ */
+@Slf4j
+public class ActionPlusAgent extends Agent {
+
+	public static final String AGENT_ID = ACTION_PLUS_AGENT_ID;
+
+	private final String SYSTEM_PROMPT = """
+
+			    ## 角色定义
+			    你是一个超级智能体，名字叫做 han, 专注于工具执行, 严格按照前文、思维链 里布置的任务去执行 工具。
+			    <首要准则>
+			    - 你要基于上下文中的思考分析结果，选择最合适的工具并精准执行，重点关注执行效率和结果质量
+			    - 你要把用户的需求当作第一准则，用户即为上帝，用户是你的一切，你坚定为用户服务一切事情，不要欺骗用户，不要奉承、谄媚用户，用户崇尚真理，向他倾诉真理是对他的尊重及对他的服务
+			    </首要准则>
+			    ## 输入信息
+			    你将接收以下信息作为输入：
+			    1. **用户原始问题**：用户最初提出的需求
+			    2. 推理结论**：推理过程和决策依据
+			    3. 执行结果**：工具实际执行的行动和输出
+			    4. **历史交互记录**：之前的对话和操作历史
+
+
+			    ## 智能工具选择
+			    - **需求匹配**：根据任务需求精准匹配最合适的工具
+			    - **工具组合**：合理组合多个工具以达到最佳执行效果
+			    - **参数优化**：为工具调用设置最优参数配置
+			    - **备选方案**：当主要工具不可用时快速切换到备选工具
+
+
+			    ## 重要注意事项
+			    1. **明确性**：要严格遵守 指导, 不要进行臆想和猜测, 严格按照上文需要你执行的工具执行
+			    2. **一致性**：要保证和上文想法一致，执行上文操作，比如 当上文给出明确指导要求结束任务, 无论任务是否完成, 都必须调用工具使得任务终止
+			    ## 核心能力与职责
+
+
+			    <TOOLCALLRULES>
+			    系统工具调用准则:
+
+			    </TOOLCALLRULES>
+
+			    <ENVIRONMENTS>
+			    环境变量:
+			    </ENVIRONMENTS>
+
+
+
+			""";
+
+	public ActionPlusAgent(ChatModel chatModel, IToolService toolService, ToolApprovalMode toolApprovalMode,
+			IAgentTurnManagerService agentTurnManagerService) {
+
+		super(AGENT_ID, AGENT_ID, "ReAct+ 框架中的增强行动执行者，专注于智能工具选择、精准执行和结果优化", chatModel, toolService,
+				Set.of("ReActAgentStrategy", "行动", "Action", NounConstants.MCP, NounConstants.TASK_DONE),
+				toolApprovalMode);
+		this.setAgentTurnManagerService(agentTurnManagerService);
+		this.setCapabilities(new String[] { "工具执行", "智能选择", "ActionPlus" });
+	}
+
+	/**
+	 * 流式执行任务
+	 * @param userInput user input
+	 * @param context 执行上下文
+	 * @return 流式执行结果
+	 */
+	@Override
+	@SneakyThrows
+	public Flux<AgentExecutionEvent> executeStream(String userInput, AgentContextAble context) {
+		log.debug("ActionPlusAgent 开始智能工具执行: {}", userInput);
+
+		// 构建行动提示
+		// String actionPrompt = buildActionPrompt(context);
+
+		// 比 ReAct 多一步 System Prompt 的 环境变量渲染
+		String renderedSystemPrompt = PromptUtils.renderMeta(SYSTEM_PROMPT,
+				(ReActPlusAgentContextMeta) context.getMetadata());
+		renderedSystemPrompt = PromptUtils.renderToolCallRules(renderedSystemPrompt,
+				(ReActPlusAgentContextMeta) context.getMetadata());
+		Prompt prompt = AgentUtils.buildPromptWithContextAndTools(this.availableTools, context, renderedSystemPrompt,
+				"请基于思考分析的结果，执行具体的行动：请选择合适的工具并执行相应的行动。");
+
+		// // chat 参数配置
+		// ChatOptions defaultOptions = chatModel.getDefaultOptions();
+		// String model = defaultOptions.getModel();
+		// ChatOptions customChatOptions =
+		// ChatOptions.builder().model(model).topP(0.4).temperature(0.5).build();
+		// prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
+
+		return FluxUtils
+			.executeWithToolSupportWithInteraction(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
+					AgentExecutionEvent.EventType.ACTING, agentTurnManagerService.getTurnState(context.getTurnId()))
+			.doFinally(signalType -> {
+				afterHandle(context);
+				log.debug("ActionPlusAgent 工具执行结束，信号类型: {}", signalType);
+			});
+	}
+
+}

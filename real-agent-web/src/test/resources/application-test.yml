@@ -1,0 +1,17 @@
+# 测试环境 IRealAgentProperties 配置示例
+
+# Real-Agent 配置（测试环境优化）
+real-agent:
+  action:
+    # 测试环境使用自动模式，加快测试速度
+    approval-mode: AUTO
+
+    # 测试环境较短的超时时间
+    execution-timeout: 30s
+
+    # 测试环境较少的并发数
+    max-concurrent-executions: 3
+
+    # 工具配置
+    tools:
+      approval-mode: AUTO

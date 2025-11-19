@@ -1,0 +1,116 @@
+# 数据库配置
+# R2DBC 响应式数据库访问配置
+
+spring:
+  r2dbc:
+    # 连接 URL (支持环境变量)
+    url: ${DB_URL:r2dbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real_agent}?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8}
+
+    # 数据库认证
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+
+    # 连接池配置
+    pool:
+      # 初始连接数
+      initial-size: ${DB_POOL_INITIAL_SIZE:5}
+
+      # 最大连接数
+      max-size: ${DB_POOL_MAX_SIZE:20}
+
+      # 最大空闲时间
+      max-idle-time: ${DB_POOL_MAX_IDLE_TIME:30m}
+
+      # 最大生命周期
+      max-life-time: ${DB_POOL_MAX_LIFE_TIME:1h}
+
+      # 获取连接超时
+      max-acquire-time: ${DB_POOL_MAX_ACQUIRE_TIME:30s}
+
+      # 验证查询
+      validation-query: ${DB_POOL_VALIDATION_QUERY:SELECT 1}
+
+      # 验证超时
+      validation-timeout: ${DB_POOL_VALIDATION_TIMEOUT:5s}
+
+  # 数据库初始化
+  sql:
+    init:
+      # 是否执行数据初始化
+      mode: ${DB_INIT_MODE:embedded}
+
+      # DDL 脚本
+      schema-locations: ${DB_INIT_SCHEMA_LOCATIONS:classpath:schema.sql}
+
+      # DML 脚本
+      data-locations: ${DB_INIT_DATA_LOCATIONS:classpath:data.sql}
+
+      # 继续执行即使出错
+      continue-on-error: ${DB_INIT_CONTINUE_ON_ERROR:false}
+
+      # 字符编码
+      encoding: ${DB_INIT_ENCODING:UTF-8}
+
+# 数据访问配置
+data:
+  # Repository 配置
+  repository:
+    # 启用审计
+    auditing: ${DATA_REPOSITORY_AUDITING:true}
+
+    # 批处理大小
+    batch-size: ${DATA_REPOSITORY_BATCH_SIZE:100}
+
+    # 查询超时
+    query-timeout: ${DATA_REPOSITORY_QUERY_TIMEOUT:30s}
+
+  # 事务配置
+  transaction:
+    # 默认超时
+    default-timeout: ${DATA_TRANSACTION_DEFAULT_TIMEOUT:30s}
+
+    # 只读事务超时
+    read-only-timeout: ${DATA_TRANSACTION_READ_ONLY_TIMEOUT:10s}
+
+    # 事务传播行为
+    propagation: ${DATA_TRANSACTION_PROPAGATION:REQUIRED}
+
+  # 缓存配置
+  cache:
+    # 启用缓存
+    enabled: ${DATA_CACHE_ENABLED:true}
+
+    # 缓存类型
+    type: ${DATA_CACHE_TYPE:caffeine}
+
+    # 缓存配置
+    caffeine:
+      spec: ${DATA_CACHE_CAFFEINE_SPEC:maximumSize=1000,expireAfterWrite=10m}
+
+    # Redis 缓存配置 (可选)
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:5s}
+
+# 数据库监控配置
+monitoring:
+  datasource:
+    # 启用数据源监控
+    enabled: ${MONITORING_DATASOURCE_ENABLED:true}
+
+    # 慢查询阈值
+    slow-query-threshold: ${MONITORING_SLOW_QUERY_THRESHOLD:1s}
+
+    # 连接泄漏检测
+    leak-detection-threshold: ${MONITORING_LEAK_DETECTION_THRESHOLD:30s}
+
+  # 查询统计
+  query:
+    # 启用查询统计
+    enabled: ${MONITORING_QUERY_ENABLED:true}
+
+    # 统计保留时间
+    retention: ${MONITORING_QUERY_RETENTION:1d}

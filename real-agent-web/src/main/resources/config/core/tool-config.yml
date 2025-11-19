@@ -1,0 +1,83 @@
+# 工具系统配置
+# real-agent-core/real-agent-tool 模块相关配置
+
+tool:
+  # 工具注册配置
+  registration:
+    # 启用自动工具发现
+    auto-discovery: ${TOOL_AUTO_DISCOVERY:true}
+
+    # 工具扫描包路径
+    scan-packages: ${TOOL_SCAN_PACKAGES:com.ai.agent.real.tool}
+
+    # 工具注册超时
+    timeout: ${TOOL_REGISTRATION_TIMEOUT:30s}
+
+  # 内置工具配置
+  system:
+    # TaskDone 工具
+    task-done:
+      enabled: ${TOOL_TASK_DONE_ENABLED:true}
+      keywords: ${TOOL_TASK_DONE_KEYWORDS:完成,结束,done,finish,complete}
+
+    # TimeNow 工具
+    time-now:
+      enabled: ${TOOL_TIME_NOW_ENABLED:true}
+      keywords: ${TOOL_TIME_NOW_KEYWORDS:时间,日期,当前,now,time,date}
+      timezone: ${TOOL_TIME_NOW_TIMEZONE:Asia/Shanghai}
+      format: ${TOOL_TIME_NOW_FORMAT:yyyy-MM-dd HH:mm:ss}
+
+    # HTTP 请求工具
+    http-request:
+      enabled: ${TOOL_HTTP_REQUEST_ENABLED:true}
+      keywords: ${TOOL_HTTP_REQUEST_KEYWORDS:网络,请求,http,api,web}
+
+      # 沙箱策略
+      sandbox:
+        enabled: ${TOOL_HTTP_SANDBOX_ENABLED:true}
+        allowed-domains: ${TOOL_HTTP_ALLOWED_DOMAINS:}
+        blocked-domains: ${TOOL_HTTP_BLOCKED_DOMAINS:localhost,127.0.0.1,0.0.0.0}
+        max-response-size: ${TOOL_HTTP_MAX_RESPONSE_SIZE:10MB}
+        timeout: ${TOOL_HTTP_TIMEOUT:30s}
+
+    # 数学计算工具
+    math-eval:
+      enabled: ${TOOL_MATH_EVAL_ENABLED:true}
+      keywords: ${TOOL_MATH_EVAL_KEYWORDS:计算,数学,算术,math,calculate}
+      max-expression-length: ${TOOL_MATH_MAX_EXPRESSION_LENGTH:1000}
+      timeout: ${TOOL_MATH_TIMEOUT:5s}
+
+  # 外部工具配置
+  external:
+    # 百度地图工具
+    baidu-maps:
+      enabled: ${TOOL_BAIDU_MAPS_ENABLED:false}
+      keywords: ${TOOL_BAIDU_MAPS_KEYWORDS:地图,位置,导航,路线,baidu,map}
+      api-key: ${BAIDU_MAP_API_KEY:}
+      timeout: ${TOOL_BAIDU_MAPS_TIMEOUT:15s}
+
+  # 工具执行配置
+  execution:
+    # 异步执行线程池
+    async:
+      core-pool-size: ${TOOL_EXECUTION_CORE_POOL_SIZE:5}
+      max-pool-size: ${TOOL_EXECUTION_MAX_POOL_SIZE:20}
+      queue-capacity: ${TOOL_EXECUTION_QUEUE_CAPACITY:100}
+      keep-alive: ${TOOL_EXECUTION_KEEP_ALIVE:60s}
+
+    # 工具链配置
+    chain:
+      max-depth: ${TOOL_CHAIN_MAX_DEPTH:5}
+      timeout: ${TOOL_CHAIN_TIMEOUT:2m}
+
+  # 工具监控配置
+  monitoring:
+    # 执行统计
+    metrics:
+      enabled: ${TOOL_MONITORING_METRICS_ENABLED:true}
+      retention: ${TOOL_MONITORING_METRICS_RETENTION:1d}
+
+    # 性能追踪
+    tracing:
+      enabled: ${TOOL_MONITORING_TRACING_ENABLED:true}
+      slow-threshold: ${TOOL_MONITORING_SLOW_THRESHOLD:5s}

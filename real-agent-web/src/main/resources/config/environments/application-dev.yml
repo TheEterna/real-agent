@@ -1,0 +1,143 @@
+# 开发环境配置
+# 用于本地开发的配置覆盖
+
+# 数据库配置 (开发环境)
+spring:
+  r2dbc:
+    url: ${DB_URL:r2dbc:mysql://localhost:3306/real_agent_dev?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:dev_password}
+
+    # 开发环境连接池配置
+    pool:
+      initial-size: 2
+      max-size: 10
+      max-idle-time: 30m
+
+  # SQL 初始化 (开发环境)
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+
+# AI 模型配置 (开发环境)
+spring:
+  ai:
+    openai:
+      # 开发环境使用较小的模型参数
+      chat:
+        options:
+          temperature: 0.1  # 更确定的输出，便于调试
+          max-tokens: 2048  # 较小的 token 限制
+
+# 日志配置 (开发环境)
+logging:
+  level:
+    # 开发环境启用调试日志
+    root: INFO
+    com.ai.agent: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.ai.chat: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: DEBUG
+
+    # 数据库调试
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql.QUERY: DEBUG
+    io.r2dbc.postgresql.PARAM: DEBUG
+
+  # 控制台彩色输出
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+# Agent 配置 (开发环境)
+agent:
+  react:
+    max-iterations: 5  # 减少迭代次数，加快调试
+    thinking-timeout: 15s
+    observation-timeout: 10s
+
+  action:
+    tools:
+      approval-mode: AUTO  # 开发环境自动执行工具
+      execution-timeout: 15s
+
+# 工具配置 (开发环境)
+tool:
+  system:
+    http-request:
+      sandbox:
+        enabled: false  # 开发环境关闭沙箱限制
+        allowed-domains: "*"
+
+# MCP 配置 (开发环境)
+spring:
+  ai:
+    mcp:
+      client:
+        request-timeout: 30s  # 较短的超时时间
+
+        sse:
+          connections:
+            # 开发环境测试服务器
+            dev-test-server:
+              enabled: true
+              url: http://localhost:8888
+              sse-endpoint: /sse
+              description: "开发测试服务器"
+
+# 监控配置 (开发环境)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 开发环境暴露所有端点
+
+  endpoint:
+    health:
+      show-details: always  # 总是显示健康检查详情
+
+  server:
+    port: 8081  # 独立的管理端口
+
+# 服务器配置 (开发环境)
+server:
+  port: 8080
+
+# 开发工具配置
+spring:
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+      exclude: static/**,public/**
+
+    livereload:
+      enabled: true
+      port: 35729
+
+# 开发环境特定配置
+dev:
+  # 模拟数据
+  mock-data:
+    enabled: true
+    users-count: 10
+    sessions-count: 5
+
+  # 调试配置
+  debug:
+    # 启用 SQL 日志
+    sql-logging: true
+
+    # 启用请求响应日志
+    http-logging: true
+
+    # 启用性能监控
+    performance-monitoring: true
+
+  # 热重载配置
+  hot-reload:
+    enabled: true
+    watch-paths:
+      - src/main/resources/config
+      - src/main/resources/prompts

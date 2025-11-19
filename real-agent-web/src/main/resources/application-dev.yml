@@ -1,0 +1,103 @@
+# Real-Agent 开发环境配置
+# 使用环境变量的配置文件模板
+
+spring:
+  r2dbc:
+    url: ${DB_URL:r2dbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:real-agent}?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+
+  codec:
+    max-in-memory-size: 10MB
+
+  application:
+    name: real-agent-web
+
+  ai:
+    mcp:
+      client:
+        enabled: true
+        name: real-agent-mcp-client
+        version: 1.0.0
+        request-timeout: ${MCP_REQUEST_TIMEOUT:100s}
+        type: ASYNC
+
+        toolcallback:
+          enabled: true
+        sse:
+          connections:
+            # 百度地图工具服务器
+            baidu-maps:
+              url: https://mcp.map.baidu.com?ak=${BAIDU_MAP_API_KEY:your-api-key}
+              sse-endpoint: /sse
+
+            # 自定义 MCP 服务器 (如果配置了的话)
+            # custom-server:
+            #   url: ${MCP_SERVER_URL:http://localhost:8888}
+            #   sse-endpoint: ${MCP_SERVER_ENDPOINT:/sse}
+
+    # OpenAI 兼容配置 (通义千问)
+    openai:
+      api-key: ${OPENAI_API_KEY:${DASHSCOPE_API_KEY:sk-your-api-key}}
+      base-url: ${OPENAI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+      chat:
+        options:
+          model: ${LLM_MODEL:qwen-max}
+
+    # 向量数据库配置 (可选)
+    vectorstore:
+      milvus:
+        client:
+          host: ${MILVUS_HOST:localhost}
+          port: ${MILVUS_PORT:19530}
+          username: ${MILVUS_USERNAME:root}
+          password: ${MILVUS_PASSWORD:milvus}
+        databaseName: ${MILVUS_DATABASE:default}
+        collectionName: ${MILVUS_COLLECTION:vector_store}
+        embeddingDimension: 1536
+        indexType: IVF_FLAT
+        metricType: COSINE
+
+# AI 语音功能配置
+ai:
+  voice:
+    llm-model: ${AI_VOICE_LLM_MODEL:qwen-max}
+    asr-model: ${AI_VOICE_ASR_MODEL:paraformer-v2}
+    tts-model: ${AI_VOICE_TTS_MODEL:cosyvoice}
+    default-voice: ${AI_VOICE_DEFAULT:longxia}
+    role-voices:
+      conan: longxia
+      detective: xiaogang
+  omni:
+    enabled: true
+    model: qwen3-omni-flash-realtime
+    voice: Cherry
+
+# 日志配置
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.ai.agent: ${LOG_LEVEL_AGENT:INFO}
+    # 调试时可以开启以下日志
+    # io.modelcontextprotocol: DEBUG
+    # org.springframework.ai: DEBUG
+    # reactor.netty: DEBUG
+
+# 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8081}
+
+# Agent 配置
+agent:
+  action:
+    tools:
+      approval-mode: ${AGENT_TOOLS_APPROVAL_MODE:AUTO}   # AUTO | REQUIRE_APPROVAL | DISABLED
+
+# 服务器端口配置
+server:
+  port: ${SERVER_PORT:8080}
