@@ -32,7 +32,6 @@ import static com.ai.agent.real.contract.model.protocol.ResponseResult.success;
 @Slf4j
 @RestController
 @RequestMapping("/api/agent/chat")
-@CrossOrigin(origins = "*")
 public class ReActPlusAgentController {
 
 	private final IAgentTurnManagerService agentSessionManagerService;

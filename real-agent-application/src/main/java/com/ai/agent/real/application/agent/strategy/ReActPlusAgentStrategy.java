@@ -78,7 +78,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStreamWithInteraction(String userInput, List<Agent> agents,
+	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents,
 			AgentContextAble context) {
 		log.debug("ReActPlus starting!!!");
 		if (context != null && !StringUtils.hasText(context.getTurnId())) {

@@ -71,11 +71,11 @@ mvn test -pl real-agent-application
 ```
 real-agent-web (接入层)
     ↓ 依赖
-real-agent-application (应用层) ← real-agent-core (核心层)
+real-agent-application (应用层) ← 
     ↓ 依赖                              ↓
-real-agent-domain (领域层)      real-agent-tool (工具系统)
-    ↓ 依赖                       real-agent-agent (Agent系统)
-real-agent-contract (契约层)
+real-agent-domain (领域层)       tool (工具系统)
+    ↓ 依赖                       agent (Agent系统)
+real-agent-contract (契约层)     ... （其他服务）
     ↓
 real-agent-common (通用层)
 ```

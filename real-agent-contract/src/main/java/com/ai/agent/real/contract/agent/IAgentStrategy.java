@@ -38,7 +38,7 @@ public interface IAgentStrategy {
 	 * @param context 执行上下文
 	 * @return 流式执行结果
 	 */
-	Flux<AgentExecutionEvent> executeStreamWithInteraction(String task, List<Agent> agents, AgentContextAble context);
+	Flux<AgentExecutionEvent> executeStream(String task, List<Agent> agents, AgentContextAble context);
 
 	/**
 	 * 流式执行策略（推荐） 返回实时的执行进度和中间结果

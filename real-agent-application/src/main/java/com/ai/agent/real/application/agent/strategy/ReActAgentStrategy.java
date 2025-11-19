@@ -59,7 +59,7 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStreamWithInteraction(String userInput, List<Agent> agents,
+	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents,
 			AgentContextAble context) {
 		return executeStream(userInput, agents, (ReActAgentContext) context);
 	}

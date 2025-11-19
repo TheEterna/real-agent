@@ -9,7 +9,6 @@ import com.ai.agent.real.contract.model.interaction.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -164,7 +163,7 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 		log.info("开始执行 Agent: turnId={}", state.getTurnId());
 
 		// 执行Agent流式任务
-		Disposable execution = agentStrategy.executeStreamWithInteraction(message, state, context)
+		Disposable execution = agentStrategy.executeStream(message, state, context)
 			.map(this::toSSE)
 			.doOnNext(event -> {
 				log.debug("推送SSE事件: turnId={}, eventType={}", state.getTurnId(), event.event());
@@ -327,7 +326,7 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 	/**
 	 * 将AgentExecutionEvent转换为SSE事件
 	 */
-	public ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event) {
+	public static ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event) {
 		return ServerSentEvent.<AgentExecutionEvent>builder()
 			.id(CommonUtils.getTraceId("sse-"))
 			.event(event.getType() != null ? event.getType().toString() : "message")

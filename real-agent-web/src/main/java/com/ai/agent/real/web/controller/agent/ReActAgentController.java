@@ -1,7 +1,9 @@
 package com.ai.agent.real.web.controller.agent;
 
+import com.ai.agent.real.application.agent.turn.AgentTurnManagerService;
 import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
+import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.dto.ChatRequest;
 import com.ai.agent.real.entity.agent.context.ReActAgentContext;
 import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
@@ -16,6 +18,8 @@ import reactor.core.publisher.*;
 
 import java.time.*;
 
+import static com.ai.agent.real.application.agent.turn.AgentTurnManagerService.toSSE;
+
 /**
  * Agent对话控制器 提供ReAct框架的Web接口
  *
@@ -25,14 +29,13 @@ import java.time.*;
 @Slf4j
 @RestController
 @RequestMapping("/api/agent/chat")
-@CrossOrigin(origins = "*")
 public class ReActAgentController {
 
-	private final IAgentTurnManagerService agentSessionManagerService;
+	private final IAgentStrategy reActAgentStrategy;
 
-	public ReActAgentController(IAgentTurnManagerService agentSessionManagerService,
+	public ReActAgentController(
 			@Qualifier("reActAgentStrategy") IAgentStrategy reActAgentStrategy) {
-		this.agentSessionManagerService = agentSessionManagerService.of(reActAgentStrategy);
+		this.reActAgentStrategy = reActAgentStrategy;
 	}
 
 	/**
@@ -49,20 +52,16 @@ public class ReActAgentController {
 		}
 
 		// 创建执行上下文
-		ReActAgentContext context = new ReActAgentContext(new TraceInfo().setSessionId(request.getSessionId())
+        AgentContextAble context = new ReActAgentContext(new TraceInfo().setSessionId(request.getSessionId())
 			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
 			.setStartTime(LocalDateTime.now()));
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());
+        // 执行ReAct流式任务
+        return reActAgentStrategy.executeStream(request.getMessage(), null, context)
+                .map(AgentTurnManagerService::toSSE);
 
-		// 通过AgentSessionHub订阅会话
-		return agentSessionManagerService.subscribe(request.getSessionId(), request.getMessage(), context)
-			.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
-			.doOnComplete(() -> {
-				context.setEndTime(LocalDateTime.now());
-				log.info("ReAct任务执行完成: sessionId={}", request.getSessionId());
-			});
 
 	}
 
