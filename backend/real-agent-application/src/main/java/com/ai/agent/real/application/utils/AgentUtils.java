@@ -2,12 +2,11 @@ package com.ai.agent.real.application.utils;
 
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
+import com.ai.agent.real.contract.model.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.tool.AgentTool;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContext;
 import io.micrometer.common.util.*;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.messages.*;
@@ -260,8 +259,8 @@ public class AgentUtils {
 			}
 			return String.format(
 					"session=%s trace=%s node=%s agent=%s iter=%d done=%s msgs=%d last=%s toolArgKeys=[%s]",
-					ctx.getSessionId(), ctx.getTurnId(), ctx.getMessageId(), ctx.getAgentId(), ctx.getCurrentIteration(),
-					ctx.isTaskCompleted(), msgSize, lastMsg, toolArgKeys);
+					ctx.getSessionId(), ctx.getTurnId(), ctx.getMessageId(), ctx.getAgentId(),
+					ctx.getCurrentIteration(), ctx.isTaskCompleted(), msgSize, lastMsg, toolArgKeys);
 		}
 		catch (Exception e) {
 			return "<snapshot-error>";

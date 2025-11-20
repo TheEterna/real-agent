@@ -1,6 +1,5 @@
 package com.ai.agent.real.domain.entity.user;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,49 +11,33 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * 用户实体
+ * 会话实体
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users", schema = "app_user")
-public class User implements Persistable<Long> {
-
-	public static class UserBuilder {
-
-		private boolean isNew = true;
-
-	}
+@Table(name = "sessions", schema = "context")
+public class Session implements Persistable<UUID> {
 
 	@Id
 	private UUID id;
 
-	@Column("external_id")
-	private String externalId;
+	@Column("title")
+	private String title;
 
-	@Column("password_hash")
-	private String passwordHash;
+	@Column("type")
+	private String type;
 
-	@Column("nickname")
-	private String nickname;
+	@Column("user_id")
+	private UUID userId;
 
-	@Column("avatar_url")
-	private String avatarUrl;
-
-	@Column("status")
-	private Integer status;
-
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	@Column("created_at")
-	private LocalDateTime createdAt;
-
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	@Column("updated_at")
-	private LocalDateTime updatedAt;
+	@Column("start_time")
+	private OffsetDateTime startTime;
 
 	@Transient
 	@Builder.Default
@@ -68,7 +51,13 @@ public class User implements Persistable<Long> {
 	@Override
 	@Transient
 	public boolean isNew() {
-		return isNew;
+		return isNew; // 如果 ID 由数据库生成，保存前 id 为 null 也会被视为新记录，这里保留以支持手动设置 ID 的情况
+	}
+
+	// 在从数据库读取后，将 isNew 标记为 false
+	public Session asExisting() {
+		this.isNew = false;
+		return this;
 	}
 
 }

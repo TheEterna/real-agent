@@ -20,11 +20,7 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.ai.agent</groupId>
-                <artifactId>real-agent-entity</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+
 
             <dependency>
                 <groupId>com.ai.agent</groupId>

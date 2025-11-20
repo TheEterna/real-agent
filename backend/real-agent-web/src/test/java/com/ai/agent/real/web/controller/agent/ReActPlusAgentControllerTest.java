@@ -60,7 +60,6 @@ class ReActPlusAgentControllerTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("你好，请介绍一下自己");
-		request.setUserId("test-user");
 
 		// 发起请求并验证响应
 		@SuppressWarnings("rawtypes")
@@ -100,7 +99,6 @@ class ReActPlusAgentControllerTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("帮我查询杭州的天气"); // 这会触发工具调用
-		request.setUserId("test-user");
 
 		// 用于收集事件
 		List<AgentExecutionEvent> events = new ArrayList<>();
@@ -194,7 +192,6 @@ class ReActPlusAgentControllerTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("帮我删除所有文件"); // 危险操作
-		request.setUserId("test-user");
 
 		AtomicReference<String> toolCallRequestId = new AtomicReference<>();
 
@@ -256,7 +253,6 @@ class ReActPlusAgentControllerTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId(testSessionId);
 		request.setMessage("帮我执行一个复杂任务");
-		request.setUserId("test-user");
 
 		AtomicReference<String> toolCallRequestId = new AtomicReference<>();
 
@@ -360,7 +356,6 @@ class ReActPlusAgentControllerTest {
 	void testMissingSelectedOptionId() {
 		InteractionResponse response = new InteractionResponse();
 		response.setSessionId(testSessionId);
-		response.setRequestId("test-request-id");
 		response.setSelectedOptionId(null); // 缺少 selectedOptionId
 
 		webTestClient.post()
@@ -383,7 +378,6 @@ class ReActPlusAgentControllerTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId(null); // 不提供 sessionId
 		request.setMessage("测试消息");
-		request.setUserId("test-user");
 
 		@SuppressWarnings("rawtypes")
 		FluxExchangeResult<ServerSentEvent> result = webTestClient.post()

@@ -1,8 +1,10 @@
 package com.ai.agent.real.application.service.auth;
 
+import com.ai.agent.real.contract.service.IAuthService;
+import com.ai.agent.real.contract.service.ITokenService;
 import com.ai.agent.real.domain.entity.user.User;
 import com.ai.agent.real.domain.repository.user.UserRepository;
-import com.ai.agent.real.entity.auth.PasswordUtil;
+import com.ai.agent.real.contract.model.auth.PasswordUtil;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -10,7 +12,7 @@ import java.time.LocalDateTime;
 /**
  * 认证服务
  */
-public class AuthService {
+public class AuthService implements IAuthService {
 
 	private final UserRepository userRepository;
 
@@ -22,9 +24,18 @@ public class AuthService {
 	}
 
 	/**
-	 * 用户登录
+	 * 用户登录（兼容旧版本）
 	 */
+	@Override
 	public Mono<LoginResult> login(String externalId, String password) {
+		return login(externalId, password, null, null);
+	}
+
+	/**
+	 * 用户登录（带设备信息）
+	 */
+	@Override
+	public Mono<LoginResult> login(String externalId, String password, String ipAddress, String deviceInfo) {
 		return userRepository.findByExternalId(externalId).flatMap(user -> {
 			// 验证密码
 			if (!PasswordUtil.matches(password, user.getPasswordHash())) {
@@ -36,8 +47,8 @@ public class AuthService {
 				return Mono.error(new AuthenticationException("用户已被禁用"));
 			}
 
-			// 生成 Token
-			return tokenService.generateTokenPair(user)
+			// 生成 Token（传递设备信息）
+			return tokenService.generateTokenPair(user, ipAddress, deviceInfo)
 				.map(tokenPair -> new LoginResult(user, tokenPair.accessToken(), tokenPair.refreshToken(),
 						tokenPair.expiresIn()));
 		}).switchIfEmpty(Mono.error(new AuthenticationException("用户名或密码错误")));
@@ -46,6 +57,7 @@ public class AuthService {
 	/**
 	 * 用户注册
 	 */
+	@Override
 	public Mono<User> register(String externalId, String password, String nickname, String avatarUrl) {
 		// 1. 检查用户是否已存在
 		return userRepository.existsByExternalId(externalId).flatMap(exists -> {
@@ -70,34 +82,27 @@ public class AuthService {
 	}
 
 	/**
-	 * 刷新 Token
+	 * 刷新 Token（兼容旧版本）
 	 */
-	public Mono<TokenService.TokenPair> refreshToken(String refreshToken) {
-		return tokenService.refreshAccessToken(refreshToken);
+	@Override
+	public Mono<ITokenService.TokenPair> refreshToken(String refreshToken) {
+		return refreshToken(refreshToken, null, null);
+	}
+
+	/**
+	 * 刷新 Token（带设备信息验证）
+	 */
+	@Override
+	public Mono<ITokenService.TokenPair> refreshToken(String refreshToken, String ipAddress, String deviceInfo) {
+		return tokenService.refreshAccessToken(refreshToken, ipAddress, deviceInfo);
 	}
 
 	/**
 	 * 登出
 	 */
+	@Override
 	public Mono<Void> logout(String token) {
 		return tokenService.logout(token);
-	}
-
-	/**
-	 * 登录结果
-	 */
-	public record LoginResult(User user, String accessToken, String refreshToken, Long expiresIn) {
-	}
-
-	/**
-	 * 认证异常
-	 */
-	public static class AuthenticationException extends RuntimeException {
-
-		public AuthenticationException(String message) {
-			super(message);
-		}
-
 	}
 
 }

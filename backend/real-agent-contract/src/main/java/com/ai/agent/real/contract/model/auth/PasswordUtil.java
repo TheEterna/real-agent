@@ -1,4 +1,4 @@
-package com.ai.agent.real.entity.auth;
+package com.ai.agent.real.contract.model.auth;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 

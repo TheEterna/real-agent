@@ -5,8 +5,7 @@ import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.dto.ChatRequest;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
-import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
+import com.ai.agent.real.contract.model.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import lombok.extern.slf4j.*;
@@ -33,8 +32,7 @@ public class ReActAgentController {
 
 	private final IAgentStrategy reActAgentStrategy;
 
-	public ReActAgentController(
-			@Qualifier("reActAgentStrategy") IAgentStrategy reActAgentStrategy) {
+	public ReActAgentController(@Qualifier("reActAgentStrategy") IAgentStrategy reActAgentStrategy) {
 		this.reActAgentStrategy = reActAgentStrategy;
 	}
 
@@ -52,16 +50,15 @@ public class ReActAgentController {
 		}
 
 		// 创建执行上下文
-        AgentContextAble context = new ReActAgentContext(new TraceInfo().setSessionId(request.getSessionId())
+		AgentContextAble context = new ReActAgentContext(new TraceInfo().setSessionId(request.getSessionId())
 			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
 			.setStartTime(LocalDateTime.now()));
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());
-        // 执行ReAct流式任务
-        return reActAgentStrategy.executeStream(request.getMessage(), null, context)
-                .map(AgentTurnManagerService::toSSE);
-
+		// 执行ReAct流式任务
+		return reActAgentStrategy.executeStream(request.getMessage(), null, context)
+			.map(AgentTurnManagerService::toSSE);
 
 	}
 

@@ -182,7 +182,6 @@ public class ToolApprovalSimpleTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId("test-session-" + System.currentTimeMillis());
 		request.setMessage("你好");
-		request.setUserId("test-user");
 
 		// 只验证接口可以正常响应，不验证具体内容
 		webTestClient.post()
@@ -202,7 +201,6 @@ public class ToolApprovalSimpleTest {
 		ChatRequest request = new ChatRequest();
 		request.setSessionId(null); // 不提供 sessionId
 		request.setMessage("测试消息");
-		request.setUserId("test-user");
 
 		webTestClient.post()
 			.uri("/api/agent/chat/react-plus/stream")

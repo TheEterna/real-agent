@@ -4,13 +4,11 @@ import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.protocol.ToolResult;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.contract.tool.ToolSpec;
-import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.context.reactplus.AgentMode;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.ToolParam;
-
-import java.util.List;
 
 import static com.ai.agent.real.common.constant.NounConstants.TASK_ANALYSIS;
 

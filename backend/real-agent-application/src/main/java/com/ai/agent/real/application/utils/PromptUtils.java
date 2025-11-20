@@ -2,9 +2,9 @@ package com.ai.agent.real.application.utils;
 
 import com.ai.agent.real.common.constant.PromptConstants;
 import com.ai.agent.real.contract.tool.AgentTool;
-import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
-import com.ai.agent.real.entity.agent.context.reactplus.TaskModeMeta;
+import com.ai.agent.real.contract.model.context.reactplus.AgentMode;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.context.reactplus.TaskModeMeta;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

@@ -1,7 +1,7 @@
 package com.ai.agent.real.web.filter;
 
 import com.ai.agent.real.application.service.auth.TokenService;
-import com.ai.agent.real.entity.auth.UserContextHolder;
+import com.ai.agent.real.contract.model.auth.UserContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;

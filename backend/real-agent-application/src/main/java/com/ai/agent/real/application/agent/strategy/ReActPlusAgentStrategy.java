@@ -8,26 +8,20 @@ import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.application.utils.FunctionUtils;
 import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.Agent;
-import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.agent.context.ResumePoint;
 import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
-import com.ai.agent.real.contract.dto.ChatResponse;
 import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import com.ai.agent.real.contract.model.message.AgentMessage;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.model.protocol.ResponseResult;
-import com.ai.agent.real.entity.agent.context.reactplus.AgentMode;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.context.reactplus.AgentMode;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContext;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,8 +72,7 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents,
-			AgentContextAble context) {
+	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
 		log.debug("ReActPlus starting!!!");
 		if (context != null && !StringUtils.hasText(context.getTurnId())) {
 			context.setTurnId(CommonUtils.getTraceId("ReActPlus"));

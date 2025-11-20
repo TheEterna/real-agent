@@ -8,15 +8,13 @@ import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.agent.Agent;
-import com.ai.agent.real.contract.agent.AgentResult;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.message.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.IToolService;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
+import com.ai.agent.real.contract.model.context.ReActAgentContext;
 import lombok.extern.slf4j.*;
-import org.springframework.ai.chat.messages.ToolResponseMessage.ToolResponse;
 import reactor.core.publisher.*;
 
 import java.util.*;
@@ -59,8 +57,7 @@ public class ReActAgentStrategy implements IAgentStrategy {
 	 * @return 流式执行结果
 	 */
 	@Override
-	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents,
-			AgentContextAble context) {
+	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
 		return executeStream(userInput, agents, (ReActAgentContext) context);
 	}
 

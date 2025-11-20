@@ -163,7 +163,7 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 	private void startAgentExecution(TurnState state, String message, AgentContextAble context) {
 		log.info("开始执行 Agent: turnId={}", state.getTurnId());
 
-        AtomicInteger messageCount = new AtomicInteger(0);
+		AtomicInteger messageCount = new AtomicInteger(0);
 		// 执行Agent流式任务
 		Disposable execution = agentStrategy.executeStreamWithInteraction(message, state, context)
 			.map(event -> AgentTurnManagerService.toSSE(event, messageCount))
@@ -335,10 +335,11 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 			.data(event)
 			.build();
 	}
+
 	/**
 	 * 将AgentExecutionEvent转换为SSE事件
 	 */
-	public static ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event, AtomicInteger  count) {
+	public static ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event, AtomicInteger count) {
 		return ServerSentEvent.<AgentExecutionEvent>builder()
 			.id(event.getMessageId() + '-' + count.incrementAndGet())
 			.event(event.getType() != null ? event.getType().toString() : "message")

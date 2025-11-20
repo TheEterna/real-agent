@@ -67,8 +67,6 @@ public class TraceInfo implements Traceable {
 		return this;
 	}
 
-
-
 	@Override
 	public String getMessageId() {
 		return messageId;

@@ -10,11 +10,10 @@ import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
 import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.tool.IToolService;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.Flux;
 

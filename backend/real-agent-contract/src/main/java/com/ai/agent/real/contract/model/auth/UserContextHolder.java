@@ -1,7 +1,9 @@
-package com.ai.agent.real.entity.auth;
+package com.ai.agent.real.contract.model.auth;
 
 import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
+
+import java.util.UUID;
 
 /**
  * 用户上下文持有者（响应式）
@@ -30,22 +32,8 @@ public class UserContextHolder {
 	/**
 	 * 获取用户 ID
 	 */
-	public static Mono<Long> getUserId() {
+	public static Mono<UUID> getUserId() {
 		return getUser().map(UserContext::getUserId);
-	}
-
-	/**
-	 * 获取外部 ID
-	 */
-	public static Mono<String> getExternalId() {
-		return getUser().map(UserContext::getExternalId);
-	}
-
-	/**
-	 * 获取昵称
-	 */
-	public static Mono<String> getNickname() {
-		return getUser().map(UserContext::getNickname);
 	}
 
 	/**
@@ -61,13 +49,6 @@ public class UserContextHolder {
 	public static Mono<UserContext> requireAuthenticated() {
 		return getUser().filter(UserContext::isAuthenticated)
 			.switchIfEmpty(Mono.error(new UnauthorizedException("请先登录")));
-	}
-
-	/**
-	 * 要求用户已认证，返回用户 ID
-	 */
-	public static Mono<Long> requireUserId() {
-		return requireAuthenticated().map(UserContext::getUserId);
 	}
 
 	/**

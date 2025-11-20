@@ -1,5 +1,7 @@
 package com.ai.agent.real.common.utils;
 
+import org.springframework.util.StringUtils;
+
 import java.util.*;
 
 /**
@@ -22,6 +24,10 @@ public class CommonUtils {
 	 */
 	public static String generateUuidToken() {
 		return UUID.randomUUID().toString().replace("-", "");
+	}
+
+	public static String defaultIfBlank(String str, String defaultStr) {
+		return StringUtils.hasText(str) ? str : defaultStr;
 	}
 
 }

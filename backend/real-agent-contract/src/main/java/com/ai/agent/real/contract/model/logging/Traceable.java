@@ -24,7 +24,6 @@ public interface Traceable {
 
 	Traceable setMessageId(String messageId);
 
-
 	String getAgentId();
 
 	Traceable setAgentId(String agentId);

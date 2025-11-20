@@ -1,7 +1,7 @@
 package com.ai.agent.real.web.controller.tool;
 
 import com.ai.agent.real.contract.tool.IToolService;
-import com.ai.agent.real.entity.agent.context.ReActAgentContext;
+import com.ai.agent.real.contract.model.context.ReActAgentContext;
 import com.ai.agent.real.contract.model.logging.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.tool.AgentTool;

@@ -13,8 +13,6 @@ public class ChatRequest {
 
 	private String message;
 
-	private String userId;
-
 	private String sessionId;
 
 }

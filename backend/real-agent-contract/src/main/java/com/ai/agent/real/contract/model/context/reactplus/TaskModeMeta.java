@@ -1,4 +1,4 @@
-package com.ai.agent.real.entity.agent.context.reactplus;
+package com.ai.agent.real.contract.model.context.reactplus;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

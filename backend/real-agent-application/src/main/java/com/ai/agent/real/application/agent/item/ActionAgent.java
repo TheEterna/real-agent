@@ -10,7 +10,7 @@ import com.ai.agent.real.contract.model.property.*;
 import com.ai.agent.real.contract.model.protocol.*;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent.*;
 import com.ai.agent.real.contract.tool.IToolService;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
 import lombok.extern.slf4j.*;
 import org.springframework.ai.chat.model.*;
 import org.springframework.ai.chat.prompt.*;

@@ -1,0 +1,26 @@
+# IntelliJ IDEA 配置文件
+.idea/
+
+# 项目文件
+*.iws
+*.iml
+*.ipr
+
+# 编译输出
+out/
+target/
+
+# 本地历史
+.localhistory/
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+tmp/
+temp/
+
+# 系统文件
+.DS_Store
+Thumbs.db

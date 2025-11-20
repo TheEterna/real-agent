@@ -5,13 +5,14 @@ import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
 import com.ai.agent.real.contract.dto.ChatRequest;
-import com.ai.agent.real.contract.dto.ChatResponse;
 import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import com.ai.agent.real.contract.model.logging.TraceInfo;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.model.protocol.ResponseResult;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContext;
-import com.ai.agent.real.entity.agent.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.user.ISessionService;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContext;
+import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
+import com.ai.agent.real.contract.model.auth.UserContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -38,11 +39,15 @@ public class ReActPlusAgentController {
 
 	private final IAgentStrategy reActPlusAgentStrategy;
 
+	private final ISessionService sessionService;
+
 	public ReActPlusAgentController(IAgentTurnManagerService agentSessionManagerService,
-			@Qualifier("reActPlusAgentStrategy") IAgentStrategy reActPlusAgentStrategy) {
+			@Qualifier("reActPlusAgentStrategy") IAgentStrategy reActPlusAgentStrategy,
+			ISessionService sessionService) {
 
 		this.agentSessionManagerService = agentSessionManagerService.of(reActPlusAgentStrategy);
 		this.reActPlusAgentStrategy = reActPlusAgentStrategy;
+		this.sessionService = sessionService;
 	}
 
 	/**
@@ -52,6 +57,32 @@ public class ReActPlusAgentController {
 	public Flux<ServerSentEvent<AgentExecutionEvent>> executeReActPlusStream(@RequestBody ChatRequest request) {
 		log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
 
+		return UserContextHolder.getUserId().flatMapMany(userId -> {
+			log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
+			return Mono.justOrEmpty(request.getSessionId())
+				.filter(id -> !id.isBlank())
+				.switchIfEmpty(this.sessionService.createSessionWithAiTitle(userId, request.getMessage())) // 传入
+																											// userId
+				.flatMapMany(sessionId -> {
+					request.setSessionId(sessionId);
+
+					// 3. 创建并执行 Agent 上下文
+					String turnId = CommonUtils.getTraceId("ReActPlus");
+
+					AgentContextAble<ReActPlusAgentContextMeta> context = new ReActPlusAgentContext(
+							new TraceInfo().setSessionId(request.getSessionId())
+								.setTurnId(turnId)
+								.setStartTime(LocalDateTime.now()));
+					context.setTask(request.getMessage());
+
+					return agentSessionManagerService.subscribe(turnId, request.getMessage(), context)
+						.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
+						.doOnComplete(() -> {
+							context.setEndTime(LocalDateTime.now());
+							log.info("ReActPlus任务执行完成: sessionId={}", request.getSessionId());
+						});
+				});
+		}).switchIfEmpty(Flux.error(new IllegalAccessException("未登录或用户凭证无效"))); // 安全兜底
 		// 验证sessionId
 		if (request.getSessionId() == null || request.getSessionId().isBlank()) {
 			request.setSessionId("session-" + System.currentTimeMillis());

@@ -1,22 +1,23 @@
-package com.ai.agent.real.entity.agent.context;
+package com.ai.agent.real.contract.model.context.reactplus;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.model.logging.*;
-import com.ai.agent.real.contract.model.message.*;
-import lombok.experimental.*;
+import com.ai.agent.real.contract.model.logging.Traceable;
+import com.ai.agent.real.contract.model.message.AgentMessage;
+import org.springframework.ai.model.ModelOptionsUtils;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * AgentContext 类定义了工具执行的上下文信息。
+ * ReActPlusAgentContext 类定义了 ReActPlus 的上下文信息。
  *
  * @author han
- * @time 2025/8/30 17:00
+ * @time 2025/10/28 23:38
  */
-@Accessors(chain = true)
-public class ReActAgentContext implements AgentContextAble<Void> {
+public class ReActPlusAgentContext implements AgentContextAble<ReActPlusAgentContextMeta> {
 
 	/**
 	 * 组合的追踪信息对象（推荐使用）
@@ -36,7 +37,7 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	/**
 	 * 当前迭代轮次
 	 */
-	private int currentIteration;
+	private AtomicInteger currentIteration;
 
 	private String task;
 
@@ -46,27 +47,36 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	private AtomicBoolean taskCompleted;
 
 	/**
+	 * meta 元数据
+	 */
+	private ReActPlusAgentContextMeta meta;
+
+	/**
 	 * 构造函数
 	 */
-	public ReActAgentContext(Traceable trace) {
+	public ReActPlusAgentContext(Traceable trace) {
 		this.trace = trace;
 		this.toolArgs = Map.of();
 		this.messageHistory = new CopyOnWriteArrayList<>();
-		this.currentIteration = 0;
+		this.currentIteration = new AtomicInteger(0);
 		this.taskCompleted = new AtomicBoolean(false);
+		this.meta = new ReActPlusAgentContextMeta();
 	}
 
+	/**
+	 * @return Get all historical messages of this agent
+	 */
 	@Override
 	public List<AgentMessage> getMessageHistory() {
-		return messageHistory;
+		return this.messageHistory;
 	}
 
 	/**
 	 * 添加消息到对话历史
+	 * @param message
 	 */
 	@Override
-	public ReActAgentContext addMessage(AgentMessage message) {
-		// message.setContent("[" + message.getSenderId() + "]: " + message.getText());
+	public ReActPlusAgentContext addMessage(AgentMessage message) {
 		message.setContent(message.getText());
 		this.messageHistory.add(message);
 		return this;
@@ -74,26 +84,29 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 
 	/**
 	 * 添加多条消息到对话历史
+	 * @param messages
 	 */
 	@Override
-	public ReActAgentContext addMessages(List<AgentMessage> messages) {
+	public ReActPlusAgentContext addMessages(List<AgentMessage> messages) {
 		this.messageHistory.addAll(messages);
 		return this;
 	}
 
+	/**
+	 * @return
+	 */
 	@Override
 	public int getCurrentIteration() {
-		return currentIteration;
+		return this.currentIteration.get();
 	}
 
 	/**
-	 * set current iteration
-	 * @param currentIteration 当前迭代轮次
-	 * @return agent context
+	 * @param currentIteration
+	 * @return
 	 */
 	@Override
 	public void setCurrentIteration(int currentIteration) {
-		this.currentIteration = currentIteration;
+		this.currentIteration.set(currentIteration);
 	}
 
 	/**
@@ -101,20 +114,18 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	 */
 	@Override
 	public boolean isTaskCompleted() {
-		return taskCompleted.get();
+		return this.taskCompleted.get();
 	}
 
 	/**
 	 * 设置任务完成状态
+	 * @param taskCompleted
 	 */
 	@Override
 	public void setTaskCompleted(Boolean taskCompleted) {
 		this.taskCompleted.set(taskCompleted);
 	}
 
-	/**
-	 * 设置任务完成状态
-	 */
 	@Override
 	public void setTaskCompleted(AtomicBoolean taskCompleted) {
 		this.taskCompleted = taskCompleted;
@@ -122,7 +133,33 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 
 	@Override
 	public AtomicBoolean getTaskCompleted() {
-		return taskCompleted;
+		return this.taskCompleted;
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public Map<String, Object> getToolArgs() {
+		return this.toolArgs;
+	}
+
+	/**
+	 * 获取结构化工具参数
+	 * @param toolArgsClass
+	 * @return 结构化工具参数
+	 */
+	@Override
+	public <T> T getStructuralToolArgs(Class<T> toolArgsClass) {
+		return ModelOptionsUtils.mapToClass(toolArgs, toolArgsClass);
+	}
+
+	/**
+	 * @param toolArgs
+	 */
+	@Override
+	public void setToolArgs(Map<String, Object> toolArgs) {
+		this.toolArgs = toolArgs;
 	}
 
 	@Override
@@ -136,28 +173,16 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	}
 
 	@Override
-	public Map<String, Object> getToolArgs() {
-		return toolArgs;
+	public void setMessageHistory(List<AgentMessage> messageHistory) {
+		this.messageHistory = messageHistory;
 	}
 
 	/**
-	 * 获取结构化工具参数
-	 * @param toolArgsClass
-	 * @return 结构化工具参数
+	 * @return
 	 */
 	@Override
-	public <T> T getStructuralToolArgs(Class<T> toolArgsClass) {
-		return AgentContextAble.super.getStructuralToolArgs(toolArgsClass);
-	}
-
-	@Override
-	public void setToolArgs(Map<String, Object> toolArgs) {
-		this.toolArgs = toolArgs;
-	}
-
-	@Override
-	public void setMessageHistory(List<AgentMessage> messageHistory) {
-		this.messageHistory = messageHistory;
+	public ReActPlusAgentContextMeta getMetadata() {
+		return this.meta;
 	}
 
 	@Override
@@ -166,14 +191,12 @@ public class ReActAgentContext implements AgentContextAble<Void> {
 	}
 
 	/**
-	 * 创建一个包含工具参数的 AgentContext 对象
-	 * @param toolArgs 工具参数
-	 * @return 包含工具参数的 AgentContext 对象
+	 * @param metadata
 	 */
-	public static ReActAgentContext of(Map<String, Object> toolArgs, Traceable trace) {
-		ReActAgentContext agentContext = new ReActAgentContext(trace);
-		agentContext.setToolArgs(toolArgs);
-		return agentContext;
+	@Override
+	public void setMetadata(Object metadata) {
+
+		this.meta = (ReActPlusAgentContextMeta) metadata;
 	}
 
 }
