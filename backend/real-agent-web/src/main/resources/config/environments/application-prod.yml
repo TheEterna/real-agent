@@ -57,7 +57,7 @@ logging:
 
   # 结构化日志格式
   pattern:
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{turnId},%X{spanId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{turnId}] %logger{36} - %msg%n"
 
 # Agent 配置 (生产环境)
 agent:

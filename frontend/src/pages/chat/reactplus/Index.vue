@@ -157,12 +157,12 @@ const handleDoneNotice = (node: {
   text: string;
   startTime: Date;
   title: string;
-  nodeId?: string,
+  messageId?: string,
   type: NotificationType
 }) => {
   const key = `done-${node.startTime.getTime()}-${Math.random().toString(36).slice(2, 8)}`
 
-  const onClick = () => locateByNode(node.nodeId)
+  const onClick = () => locateByNode(node.messageId)
 
   const notificationConfig = {
     message: node.text,
@@ -207,7 +207,7 @@ let {
   onDoneNotice: handleDoneNotice,
   handlers: {
     onInitPlan: (event: BaseEventItem) => {
-      const approvalId = event.nodeId || `approval-${Date.now()}`
+      const approvalId = event.messageId || `approval-${Date.now()}`
 
       // 存储审批请求
       pendingApprovals.value.set(approvalId, {
@@ -217,12 +217,12 @@ let {
         riskLevel: event.data?.riskLevel || 'medium',
         expectedResult: event.data?.expectedResult,
         startTime: new Date(),
-        nodeId: approvalId
+        messageId: approvalId
       })
 
       // 创建审批消息
       const approvalMessage: UIMessage = {
-        nodeId: approvalId,
+        messageId: approvalId,
         sessionId: event.sessionId,
         type: EventType.TOOL_APPROVAL,
         sender: 'System',
@@ -299,7 +299,7 @@ ${reason}
 
 您可以开始新的对话或选择其他会话继续。`,
     startTime: new Date(),
-    nodeId: `terminate-${Date.now()}`
+    messageId: `terminate-${Date.now()}`
   })
 
   // 滚动到底部显示终止消息
@@ -325,9 +325,9 @@ const handleErrorCopied = (success: boolean) => {
   }
 }
 
-const locateByNode = (nodeId?: string) => {
-  if (nodeId && chatContent.value) {
-    const target = document.getElementById('msg-' + nodeId)
+const locateByNode = (messageId?: string) => {
+  if (messageId && chatContent.value) {
+    const target = document.getElementById('msg-' + messageId)
     if (target) {
       const container = chatContent.value
       const top = (target as HTMLElement).offsetTop
@@ -896,7 +896,7 @@ onUnmounted(() => {
           <div
               v-for="(message, index) in messages"
               :key="index"
-              :id="message.nodeId ? 'msg-' + message.nodeId : undefined"
+              :id="message.messageId ? 'msg-' + message.messageId : undefined"
               class="message-wrapper"
           >
             <UserMessage
@@ -923,10 +923,10 @@ onUnmounted(() => {
             <ToolApprovalMessage
                 v-else-if="message.type === EventType.TOOL_APPROVAL"
                 :message="message"
-                @approved="handleToolApproved(message.nodeId!, $event)"
-                @rejected="handleToolRejected(message.nodeId!, $event)"
-                @error="handleToolError(message.nodeId!, $event)"
-                @terminateRequested="handleToolTerminateRequested(message.nodeId!, $event)"
+                @approved="handleToolApproved(message.messageId!, $event)"
+                @rejected="handleToolRejected(message.messageId!, $event)"
+                @error="handleToolError(message.messageId!, $event)"
+                @terminateRequested="handleToolTerminateRequested(message.messageId!, $event)"
                 class="message-item mb-2.5"
             />
             <!-- 错误消息 - 使用专用组件 -->

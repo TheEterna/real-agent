@@ -197,7 +197,6 @@ public class AgentUtils {
 		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
 		newContext.setSessionId(originalContext.getSessionId());
 		newContext.setTurnId(originalContext.getTurnId());
-		newContext.setSpanId(originalContext.getSpanId());
 		// start/end time 由各 Agent 生命周期自行设置，这里不复制 endTime
 		newContext.setEndTime(null);
 
@@ -212,7 +211,7 @@ public class AgentUtils {
 
 		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);
-		newContext.setNodeId(CommonUtils.getNodeId());
+		newContext.setMessageId(CommonUtils.getMessageId());
 		newContext.setStartTime(LocalDateTime.now());
 
 		return newContext;
@@ -227,7 +226,6 @@ public class AgentUtils {
 		// 独立的 TraceInfo：逐字段复制，避免共享同一个 TraceInfo 对象
 		newContext.setSessionId(originalContext.getSessionId());
 		newContext.setTurnId(originalContext.getTurnId());
-		newContext.setSpanId(originalContext.getSpanId());
 		// start/end time 由各 Agent 生命周期自行设置，这里不复制 endTime
 		newContext.setEndTime(null);
 
@@ -239,7 +237,7 @@ public class AgentUtils {
 
 		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);
-		newContext.setNodeId(CommonUtils.getNodeId());
+		newContext.setMessageId(CommonUtils.getMessageId());
 		newContext.setStartTime(LocalDateTime.now());
 
 		return newContext;
@@ -262,7 +260,7 @@ public class AgentUtils {
 			}
 			return String.format(
 					"session=%s trace=%s node=%s agent=%s iter=%d done=%s msgs=%d last=%s toolArgKeys=[%s]",
-					ctx.getSessionId(), ctx.getTurnId(), ctx.getNodeId(), ctx.getAgentId(), ctx.getCurrentIteration(),
+					ctx.getSessionId(), ctx.getTurnId(), ctx.getMessageId(), ctx.getAgentId(), ctx.getCurrentIteration(),
 					ctx.isTaskCompleted(), msgSize, lastMsg, toolArgKeys);
 		}
 		catch (Exception e) {

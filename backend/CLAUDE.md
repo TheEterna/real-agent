@@ -461,9 +461,9 @@ log.info("Conversation history: {}",
 每个事件都包含追踪信息：
 ```java
 AgentExecutionEvent event = ...;
-log.info("Trace: sessionId={}, turnId={}, spanId={}, nodeId={}, agentId={}",
+log.info("Trace: sessionId={}, turnId={}, spanId={}, messageId={}, agentId={}",
     event.getSessionId(), event.getTraceId(), event.getSpanId(),
-    event.getNodeId(), event.getAgentId()
+    event.getMessageId(), event.getAgentId()
 );
 ```
 

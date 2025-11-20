@@ -31,8 +31,7 @@ public class AgentExecutionEvent extends TraceInfo {
 			this.setTurnId(traceInfo.getTurnId());
 			this.setStartTime(traceInfo.getStartTime());
 			this.setEndTime(traceInfo.getEndTime());
-			this.setSpanId(traceInfo.getSpanId());
-			this.setNodeId(traceInfo.getNodeId());
+			this.setMessageId(traceInfo.getMessageId());
 			this.setAgentId(traceInfo.getAgentId());
 		}
 	}
@@ -55,7 +54,7 @@ public class AgentExecutionEvent extends TraceInfo {
 		// here.
 		// cause 进入每个节点前都会对context进行 copy, filter操作, 所以这里可以大胆赋值
 
-		traceInfo.setNodeId(traceInfo.getNodeId());
+		traceInfo.setMessageId(traceInfo.getMessageId());
 		traceInfo.setAgentId("progress");
 		return new AgentExecutionEvent(EventType.PROGRESS, message, data, traceInfo);
 	}

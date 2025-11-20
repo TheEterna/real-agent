@@ -98,7 +98,7 @@ export enum EventType {
 ```
 
 ##### 3. 强制消息聚合规则
-- ✅ **相同 `nodeId`**: 自动合并为同一条消息
+- ✅ **相同 `messageId`**: 自动合并为同一条消息
 - ✅ **TOOL 事件**: 独立消息插入，视觉归属父节点
 - ✅ **PROGRESS 事件**: 仅更新全局状态，不生成消息
 - ✅ **COMPLETED 事件**: 关闭连接，不生成消息
@@ -113,7 +113,7 @@ const executeYourAgent = async (text: string, sessionId: string) => {
       agentId: 'your-agent',
       type: EventType.STARTED,
       message: '开始处理...',
-      nodeId: generateNodeId(), // ⚠️ 必须生成唯一nodeId
+      messageId: generateMessageId(), // ⚠️ 必须生成唯一messageId
       startTime: new Date()
     });
 
@@ -144,7 +144,7 @@ const executeYourAgent = async (text: string, sessionId: string) => {
 - 不发送 STARTED 或 COMPLETED 事件
 - 忽略错误处理
 - 使用未定义的事件类型
-- 破坏 nodeId 聚合机制
+- 破坏 messageId 聚合机制
 
 #### 🔴 状态管理规范 (严格遵守)
 

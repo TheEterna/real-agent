@@ -16,6 +16,7 @@ import reactor.core.publisher.Sinks;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Agent会话管理中心 负责管理每个会话的Sink、上下文和待审批工具
@@ -162,9 +163,10 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 	private void startAgentExecution(TurnState state, String message, AgentContextAble context) {
 		log.info("开始执行 Agent: turnId={}", state.getTurnId());
 
+        AtomicInteger messageCount = new AtomicInteger(0);
 		// 执行Agent流式任务
 		Disposable execution = agentStrategy.executeStreamWithInteraction(message, state, context)
-			.map(AgentTurnManagerService::toSSE)
+			.map(event -> AgentTurnManagerService.toSSE(event, messageCount))
 			.doOnNext(event -> {
 				log.debug("推送SSE事件: turnId={}, eventType={}", state.getTurnId(), event.event());
 
@@ -328,7 +330,17 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 	 */
 	public static ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event) {
 		return ServerSentEvent.<AgentExecutionEvent>builder()
-			.id(CommonUtils.getTraceId("sse-"))
+			.id(CommonUtils.getMessageId())
+			.event(event.getType() != null ? event.getType().toString() : "message")
+			.data(event)
+			.build();
+	}
+	/**
+	 * 将AgentExecutionEvent转换为SSE事件
+	 */
+	public static ServerSentEvent<AgentExecutionEvent> toSSE(AgentExecutionEvent event, AtomicInteger  count) {
+		return ServerSentEvent.<AgentExecutionEvent>builder()
+			.id(event.getMessageId() + '-' + count.incrementAndGet())
 			.event(event.getType() != null ? event.getType().toString() : "message")
 			.data(event)
 			.build();

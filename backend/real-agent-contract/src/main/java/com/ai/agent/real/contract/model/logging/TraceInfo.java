@@ -7,7 +7,6 @@ import java.time.*;
  */
 public class TraceInfo implements Traceable {
 
-	// TODO
 	/** 会话ID */
 	protected String sessionId;
 
@@ -17,14 +16,10 @@ public class TraceInfo implements Traceable {
 	/** 起始时间戳（毫秒） */
 	protected LocalDateTime startTime;
 
-	/** 截止时间戳（毫秒），0 表示未设置 */
+	/** 截止时间戳（毫秒） */
 	protected LocalDateTime endTime;
 
-	/** spanId（预留分布式追踪） */
-	protected String spanId;
-
-	/** parentSpanId（预留分布式追踪） */
-	protected String nodeId;
+	protected String messageId;
 
 	protected String agentId;
 
@@ -72,25 +67,16 @@ public class TraceInfo implements Traceable {
 		return this;
 	}
 
+
+
 	@Override
-	public String getSpanId() {
-		return spanId;
+	public String getMessageId() {
+		return messageId;
 	}
 
 	@Override
-	public Traceable setSpanId(String spanId) {
-		this.spanId = spanId;
-		return this;
-	}
-
-	@Override
-	public String getNodeId() {
-		return nodeId;
-	}
-
-	@Override
-	public Traceable setNodeId(String nodeId) {
-		this.nodeId = nodeId;
+	public Traceable setMessageId(String messageId) {
+		this.messageId = messageId;
 		return this;
 	}
 

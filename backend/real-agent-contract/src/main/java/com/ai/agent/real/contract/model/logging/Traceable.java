@@ -20,16 +20,10 @@ public interface Traceable {
 
 	Traceable setEndTime(LocalDateTime endTime);
 
-	String getSpanId();
+	String getMessageId();
 
-	Traceable setSpanId(String spanId);
+	Traceable setMessageId(String messageId);
 
-	String getNodeId();
-
-	Traceable setNodeId(String nodeId);
-
-	// String getParentSpanId();
-	// Traceable setParentSpanId(String parentSpanId);
 
 	String getAgentId();
 

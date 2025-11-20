@@ -116,13 +116,13 @@ const handleDoneNotice = (node: {
   text: string;
   startTime: any; // 改为 any 类型，支持字符串、Date等
   title: string;
-  nodeId?: string,
+  messageId?: string,
   type: NotificationType
 }) => {
   const safeDate = ensureDate(node.startTime)
   const key = `done-${safeDate.getTime()}-${Math.random().toString(36).slice(2, 8)}`
 
-  const onClick = () => locateByNode(node.nodeId)
+  const onClick = () => locateByNode(node.messageId)
 
   const desc = h('div', {style: 'max-width: 280px;'}, [
     h('div', {style: 'margin-top:4px; font-size:12px; color:#888; display:flex; align-items:center; gap:6px;'}, [
@@ -188,9 +188,9 @@ const {
   executeReAct
 } = useSSE({onDoneNotice: handleDoneNotice})
 
-const locateNotice = (n: { nodeId?: string }) => {
-  if (n?.nodeId && chatContent.value) {
-    const target = document.getElementById('msg-' + n.nodeId)
+const locateNotice = (n: { messageId?: string }) => {
+  if (n?.messageId && chatContent.value) {
+    const target = document.getElementById('msg-' + n.messageId)
     if (target) {
       const container = chatContent.value
       const top = (target as HTMLElement).offsetTop
@@ -202,7 +202,7 @@ const locateNotice = (n: { nodeId?: string }) => {
   scrollToBottom()
 }
 
-const locateByNode = (nodeId?: string) => locateNotice({nodeId})
+const locateByNode = (messageId?: string) => locateNotice({messageId})
 
 onUnmounted(() => {
   chatContent.value?.removeEventListener('scroll', updateScrollButtonVisibility)
@@ -399,7 +399,7 @@ const md = new MarkdownIt({
       <!-- 消息列表 -->
       <div class="messages-container">
         <div v-for="(message, index) in messages" :key="index"
-             :id="message.nodeId ? 'msg-' + message.nodeId : undefined">
+             :id="message.messageId ? 'msg-' + message.messageId : undefined">
           <ReActMessageItem :message="message"/>
         </div>
 

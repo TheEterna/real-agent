@@ -137,7 +137,7 @@ const responseData = computed(() => {
 
 ```typescript
 {
-  "nodeId": "0bf5138fd8fb487cb4185fc76c9f638f",
+  "messageId": "0bf5138fd8fb487cb4185fc76c9f638f",
   "sessionId": "session-1760166727855",
   "type": "tool",
   "eventType": "TOOL",

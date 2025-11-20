@@ -13,7 +13,7 @@ export const messages: UIMessage[] = [
     现在，请告诉我您希望我帮您解决什么问题？
     `,
         startTime: new Date(Date.now() - 300000),
-        nodeId: 'welcome-msg'
+        messageId: 'welcome-msg'
     },
 
     // 2. 用户消息
@@ -22,7 +22,7 @@ export const messages: UIMessage[] = [
         sender: '用户',
         message: `我正在开发一个项目，需要一个地图工具来获取项目地址的经纬度。请使用 map_geocode 工具来获取地址的经纬度。`,
         startTime: new Date(Date.now() - 250000),
-        nodeId: 'user-msg-1'
+        messageId: 'user-msg-1'
     },
 
     // 3. Assistant 思考消息
@@ -36,7 +36,7 @@ export const messages: UIMessage[] = [
     4. 提供具体的改进建议
     让我开始执行这个任务...`,
         startTime: new Date(Date.now() - 240000),
-        nodeId: 'thinking-msg-1',
+        messageId: 'thinking-msg-1',
         endTime: new Date(Date.now() - 230000)
     },
     // 5. 工具调用消息
@@ -85,7 +85,7 @@ export const messages: UIMessage[] = [
             elapsedMs: 1000
         },
         startTime: new Date(Date.now() - 200000),
-        nodeId: 'tool-msg-1'
+        messageId: 'tool-msg-1'
     },
 
 
@@ -95,7 +95,7 @@ export const messages: UIMessage[] = [
         sender: 'action_agent',
         message: '',
         startTime: new Date(Date.now() - 160000),
-        nodeId: 'approval-msg-1',
+        messageId: 'approval-msg-1',
 
         data: {
             toolCallId: "tool_call_123456789",
@@ -357,7 +357,7 @@ export const messages: UIMessage[] = [
             }
         },
         startTime: new Date(Date.now() - 140000),
-        nodeId: 'tool-msg-2'
+        messageId: 'tool-msg-2'
     },
 
     // 9. 错误消息
@@ -375,7 +375,7 @@ export const messages: UIMessage[] = [
     **错误详情**: Connection timeout after 30s
     **错误代码**: NET_TIMEOUT_001`,
         startTime: new Date(Date.now() - 120000),
-        nodeId: 'error-msg-1',
+        messageId: 'error-msg-1',
     },
 
     // 11. 用户回复
@@ -384,7 +384,7 @@ export const messages: UIMessage[] = [
         sender: '用户',
         message: '感谢分析！请帮我生成一个改进代码质量的具体执行计划',
         startTime: new Date(Date.now() - 80000),
-        nodeId: 'user-msg-2'
+        messageId: 'user-msg-2'
     },
 
     // 11. 用户回复
@@ -412,7 +412,7 @@ export const messages: UIMessage[] = [
             '  A-->B\n' +
             '```\n',
         startTime: new Date(Date.now() - 80000),
-        nodeId: 'user-msg-2'
+        messageId: 'user-msg-2'
     },
 
     // 12. 复杂的 Markdown 消息（代码块、表格、列表）
@@ -493,7 +493,7 @@ export const messages: UIMessage[] = [
 
   您希望我详细说明哪个阶段的具体实施步骤？`,
         startTime: new Date(Date.now() - 60000),
-        nodeId: 'complex-markdown-msg'
+        messageId: 'complex-markdown-msg'
     },
 
     // 13. 系统状态消息
@@ -508,6 +508,6 @@ export const messages: UIMessage[] = [
     - 优化建议: 已生成
     系统运行正常，随时准备为您提供更多帮助。`,
         startTime: new Date(Date.now() - 40000),
-        nodeId: 'system-status-msg'
+        messageId: 'system-status-msg'
     }
 ]

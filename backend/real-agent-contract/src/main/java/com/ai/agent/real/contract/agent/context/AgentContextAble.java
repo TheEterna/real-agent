@@ -113,20 +113,12 @@ public interface AgentContextAble<M> extends Traceable {
 		return getTrace().setEndTime(endTime);
 	}
 
-	default String getSpanId() {
-		return getTrace().getSpanId();
+	default String getMessageId() {
+		return getTrace().getMessageId();
 	}
 
-	default Traceable setSpanId(String spanId) {
-		return getTrace().setSpanId(spanId);
-	}
-
-	default String getNodeId() {
-		return getTrace().getNodeId();
-	}
-
-	default Traceable setNodeId(String nodeId) {
-		return getTrace().setNodeId(nodeId);
+	default Traceable setMessageId(String messageId) {
+		return getTrace().setMessageId(messageId);
 	}
 
 	default String getAgentId() {

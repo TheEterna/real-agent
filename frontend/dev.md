@@ -60,13 +60,13 @@
 ## 运行时数据模型
 
 - UI 消息 `UIMessage`（简化说明）
-  - 核心字段：`type`（MessageType）、`eventType`（EventType）、`message`（文本）、`data`（工具返回结构）、`sender`、`startTime`、`nodeId`、`isCompletion` 等。
+  - 核心字段：`type`（MessageType）、`eventType`（EventType）、`message`（文本）、`data`（工具返回结构）、`sender`、`startTime`、`messageId`、`isCompletion` 等。
   - 用于驱动 `MessageItem.vue` 的具体渲染。
 - SSE 事件 `SSEEvent`
-  - 服务端推送的统一事件数据，关键字段：`type`（EventType）、`message`、`startTime`、`agentId`、`nodeId`、`data` 等。
+  - 服务端推送的统一事件数据，关键字段：`type`（EventType）、`message`、`startTime`、`agentId`、`messageId`、`data` 等。
 - 组合式状态 `useSSE.ts`
   - `messages: UIMessage[]`：消息列表
-  - `nodeIndex: Record<string, number>`：按 `nodeId` 将“主消息”索引到 `messages`，便于把同一 node 的后续事件累计到同一条消息
+  - `nodeIndex: Record<string, number>`：按 `messageId` 将“主消息”索引到 `messages`，便于把同一 node 的后续事件累计到同一条消息
   - `progress: { text; startTime; agentId? } | null`：全局唯一进度状态（不进入 `messages`）
   - `doneNotice: { text; startTime; title } | null`：全局任务完成通知（不进入 `messages`）
   - `executeReAct(text, sessionId)`：发起 ReAct 会话（SSE）
@@ -80,7 +80,7 @@
   - `MessageItem.vue` 统一采用 Markdown 驱动，工具消息结构化渲染。
 - 工具消息（MessageType.Tool）
   - 结构化优先：数组 → 卡片网格；对象 → JSON 美化；原始 → 文本。
-  - 同一 `nodeId` 的工具事件会作为“独立消息”插入，但与主消息共享归属（视觉上相邻）。
+  - 同一 `messageId` 的工具事件会作为“独立消息”插入，但与主消息共享归属（视觉上相邻）。
 - 进度（EventType.PROGRESS）
   - 全局唯一、顶替旧进度，不落入 `messages`。
   - 展现在 `Chat.vue` 顶部的 `.global-progress`（sticky），包含旋转沙漏、进度文本、时间戳。
@@ -113,7 +113,7 @@ flowchart LR
 
 关键点：
 - `PROGRESS` 与 `DONE/DONEWITHWARNING` 不再进入 `messages`，而是进入专门的全局状态。
-- 其他事件按 `nodeId` 归并到主消息或以工具消息单独行呈现。
+- 其他事件按 `messageId` 归并到主消息或以工具消息单独行呈现。
 
 ---
 
@@ -190,14 +190,14 @@ flowchart LR
     "message": "思考中：构建工具参数...",
     "startTime": "2025-09-23T14:20:30Z",
     "agentId": "ThinkingAgent",
-    "nodeId": "node-123",
+    "messageId": "node-123",
     "data": null
   }
   ```
 - 重要语义
   - `PROGRESS`：只更新全局进度（覆盖旧值）
   - `DONE` / `DONEWITHWARNING`：只触发“任务完成通知”，不进入消息列表；`message` 作为通知主文案
-  - 其他事件：按 `nodeId` 归并或追加到 `messages`，驱动消息列表渲染
+  - 其他事件：按 `messageId` 归并或追加到 `messages`，驱动消息列表渲染
 
 ---
 

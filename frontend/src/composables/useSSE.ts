@@ -60,7 +60,7 @@ interface SSEOptions {
         text: string;
         startTime: Date;
         title: string;
-        nodeId?: string,
+        messageId?: string,
         type: NotificationType
     }) => void
 }
@@ -121,9 +121,9 @@ export function useSSE(options: SSEOptions = {}) {
     /** 更新消息到消息列表（默认的消息聚合逻辑） */
     const updateMessage = (event: BaseEventItem): void => {
         // 安全的类型检查，避免强制断言
-        const nodeId = event.nodeId
-        if (!nodeId) {
-            console.warn('Event missing nodeId, cannot aggregate messages', event)
+        const messageId = event.messageId
+        if (!messageId) {
+            console.warn('Event missing messageId, cannot aggregate messages', event)
             return
         }
 
@@ -135,12 +135,12 @@ export function useSSE(options: SSEOptions = {}) {
         const startTime = event.startTime || new Date()
         const endTime = event.endTime ?? new Date()
 
-        const index = nodeIndex.value[nodeId]
+        const index = nodeIndex.value[messageId]
 
         if (type === EventType.TOOL) {
             // 工具事件作为独立消息插入
             const toolMsg: UIMessage = {
-                nodeId: nodeId,
+                messageId: messageId,
                 sessionId: sessionId,
                 turnId: turnId,
                 type: type,
@@ -156,7 +156,7 @@ export function useSSE(options: SSEOptions = {}) {
         else if (type === EventType.TOOL_APPROVAL) {
 
             const toolApprovalMsg: UIMessage = {
-                nodeId: nodeId,
+                messageId: messageId,
                 sessionId: sessionId,
                 turnId: turnId,
                 type: type,
@@ -169,7 +169,7 @@ export function useSSE(options: SSEOptions = {}) {
             }
             messages.value.push(toolApprovalMsg)
         } else if (index !== undefined) {
-            // nodeId已存在，更新现有消息
+            // messageId已存在，更新现有消息
             const node = messages.value[index]
 
             // 非工具事件：累积到message字段
@@ -181,7 +181,7 @@ export function useSSE(options: SSEOptions = {}) {
             // 非工具事件作为主消息创建并建立nodeIndex
 
             const firstNodeMessage: UIMessage = {
-                nodeId: nodeId,
+                messageId: messageId,
                 sessionId: sessionId,
                 turnId: turnId,
                 type: type,
@@ -194,33 +194,33 @@ export function useSSE(options: SSEOptions = {}) {
             }
             messages.value.push(firstNodeMessage)
             // 立即建立nodeIndex映射
-            nodeIndex.value[nodeId] = messages.value.length - 1
+            nodeIndex.value[messageId] = messages.value.length - 1
 
         }
     }
 
     /** 更新思考消息（ReActPlus专用） */
     const updateThoughtMessage = (event: BaseEventItem): void => {
-        const nodeId = event.nodeId
-        if (!nodeId) {
-            console.warn('THOUGHT event missing nodeId, falling back to default handling', event)
+        const messageId = event.messageId
+        if (!messageId) {
+            console.warn('THOUGHT event missing messageId, falling back to default handling', event)
             updateMessage(event)
             return
         }
 
-        const index = nodeIndex.value[nodeId]
+        const index = nodeIndex.value[messageId]
         const message = (event.message || '').toString()
 
         if (index !== undefined) {
-            // nodeId已存在，累积思考内容到现有消息
-            // nodeId已存在，累积思考内容到现有消息 - 使用响应式更新
+            // messageId已存在，累积思考内容到现有消息
+            // messageId已存在，累积思考内容到现有消息 - 使用响应式更新
             const node = messages.value[index]
             node.message = node.message ? `${node.message}${message}` : message
             node.events?.push?.(event)
         } else {
             // 创建新的思考消息节点
             const thoughtMessage: UIMessage = {
-                nodeId: nodeId,
+                messageId: messageId,
                 sessionId: event.sessionId,
                 turnId: event.turnId,
                 type: 'assistant' as any, // 思考属于assistant类型
@@ -233,31 +233,31 @@ export function useSSE(options: SSEOptions = {}) {
                 meta: event.meta
             }
             messages.value.push(thoughtMessage)
-            nodeIndex.value[nodeId] = messages.value.length - 1
+            nodeIndex.value[messageId] = messages.value.length - 1
         }
     }
 
     /** 更新任务分析消息（ReActPlus专用） */
     const updateTaskAnalysisMessage = (event: BaseEventItem): void => {
-        const nodeId = event.nodeId
-        if (!nodeId) {
-            console.warn('TASK_ANALYSIS event missing nodeId, falling back to default handling', event)
+        const messageId = event.messageId
+        if (!messageId) {
+            console.warn('TASK_ANALYSIS event missing messageId, falling back to default handling', event)
             updateMessage(event)
             return
         }
 
-        const index = nodeIndex.value[nodeId]
+        const index = nodeIndex.value[messageId]
         const message = (event.message || '').toString()
 
         if (index !== undefined) {
-            // nodeId已存在，累积任务分析内容到现有消息 - 使用响应式更新
+            // messageId已存在，累积任务分析内容到现有消息 - 使用响应式更新
             const node = messages.value[index]
             node.message = node.message ? `${node.message}${message}` : message
             node.events?.push?.(event)
         } else {
             // 创建新的任务分析消息节点
             const analysisMessage: UIMessage = {
-                nodeId: nodeId,
+                messageId: messageId,
                 sessionId: event.sessionId,
                 turnId: event.turnId,
                 type: 'assistant' as any, // 任务分析属于assistant类型
@@ -270,7 +270,7 @@ export function useSSE(options: SSEOptions = {}) {
                 meta: event.meta
             }
             messages.value.push(analysisMessage)
-            nodeIndex.value[nodeId] = messages.value.length - 1
+            nodeIndex.value[messageId] = messages.value.length - 1
         }
     }
 
@@ -319,7 +319,7 @@ export function useSSE(options: SSEOptions = {}) {
                 text: message,
                 startTime,
                 title: currentTaskTitle.value || '',
-                nodeId: event.nodeId || undefined,
+                messageId: event.messageId || undefined,
                 type: NotificationType.WARNING
             })
         },
@@ -331,7 +331,7 @@ export function useSSE(options: SSEOptions = {}) {
                 text: message,
                 startTime,
                 title: currentTaskTitle.value || '',
-                nodeId: event.nodeId || undefined,
+                messageId: event.messageId || undefined,
                 type: NotificationType.WARNING
             })
         },
@@ -352,7 +352,7 @@ export function useSSE(options: SSEOptions = {}) {
                 text: '[ERROR] ' + message,
                 startTime,
                 title: currentTaskTitle.value || '',
-                nodeId: event.nodeId || undefined,
+                messageId: event.messageId || undefined,
                 type: NotificationType.ERROR
             })
 

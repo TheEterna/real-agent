@@ -13,7 +13,7 @@ public class CommonUtils {
 		return prefix + "-" + UUID.randomUUID().toString().replace("-", "");
 	}
 
-	public static String getNodeId() {
+	public static String getMessageId() {
 		return UUID.randomUUID().toString().replace("-", "");
 	}
 

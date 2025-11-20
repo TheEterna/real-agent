@@ -176,8 +176,8 @@ const formatTime = (ts?: Date | string) => {
         <div v-if="message.sender" class="error-meta">
           <span class="meta-label">来源:</span>
           <span class="meta-value">{{ message.sender }}</span>
-          <span v-if="message.nodeId" class="meta-label">节点ID:</span>
-          <span v-if="message.nodeId" class="meta-value">{{ message.nodeId }}</span>
+          <span v-if="message.messageId" class="meta-label">节点ID:</span>
+          <span v-if="message.messageId" class="meta-value">{{ message.messageId }}</span>
         </div>
       </div>
     </div>

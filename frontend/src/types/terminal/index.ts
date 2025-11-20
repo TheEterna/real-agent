@@ -64,7 +64,7 @@ export interface TerminalMessage {
   content: string
   startTime: Date
   sessionId?: string
-  nodeId?: string
+  messageId?: string
   metadata?: Record<string, any>
 }
 

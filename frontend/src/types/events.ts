@@ -36,8 +36,7 @@ export interface BaseEventItem {
   turnId?: string
   startTime: Date
   endTime?: Date
-  spanId?: string
-  nodeId?: string
+  messageId?: string
   agentId: string
   type: EventType
   message: string
@@ -111,7 +110,7 @@ export interface AdvancePlanEventData {
 
 export interface UIMessage {
   // identity & tracing
-  nodeId?: string
+  messageId?: string
   sessionId?: string
   turnId?: string
 
