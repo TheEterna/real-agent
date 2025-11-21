@@ -12,13 +12,14 @@ import java.util.List;
 @Component
 public class LastMessageResumeStrategy implements TurnResumeStrategy {
 
-    @Override
-    public String generateResume(List<AgentMessage> messages) {
-        if (messages == null || messages.isEmpty()) {
-            return "";
-        }
-        // 获取最后一条消息
-        AgentMessage lastMessage = messages.get(messages.size() - 1);
-        return lastMessage.getMessage();
-    }
+	@Override
+	public String generateResume(List<AgentMessage> messages) {
+		if (messages == null || messages.isEmpty()) {
+			return "";
+		}
+		// 获取最后一条消息
+		AgentMessage lastMessage = messages.get(messages.size() - 1);
+		return lastMessage.getMessage();
+	}
+
 }

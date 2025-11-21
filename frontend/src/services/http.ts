@@ -1,6 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { authApi } from '@/api/auth'
-import { tokenStorage } from '@/utils/tokenStorage'
+import { useAuthStore } from '@/stores/authStore'
 
 const instance = axios.create({
   baseURL: '/api',
@@ -45,7 +45,8 @@ instance.interceptors.request.use(
     }
 
     // 自动添加 Access Token
-    const accessToken = tokenStorage.getAccessToken()
+    const authStore = useAuthStore()
+    const accessToken = authStore.accessToken
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
@@ -75,9 +76,8 @@ instance.interceptors.response.use(
     // 如果是刷新接口本身失败，直接清除token并跳转登录
     if (originalRequest.url?.includes('/auth/refresh')) {
       console.warn('刷新Token失败，清除本地Token并跳转登录页')
-      tokenStorage.clearTokens()
-      // TODO: 跳转到登录页 (根据项目路由配置调整)
-      // window.location.href = '/login'
+      const authStore = useAuthStore()
+      authStore.clearAuth()
       return Promise.reject(error)
     }
 
@@ -104,13 +104,12 @@ instance.interceptors.response.use(
     // 开始刷新Token流程
     isRefreshing = true
 
-    const refreshToken = tokenStorage.getRefreshToken()
+    const authStore = useAuthStore()
+    const refreshToken = authStore.refreshToken
     if (!refreshToken) {
       console.warn('没有Refresh Token，清除本地Token')
-      tokenStorage.clearTokens()
+      authStore.clearAuth()
       isRefreshing = false
-      // TODO: 跳转到登录页
-      // window.location.href = '/login'
       return Promise.reject(error)
     }
 
@@ -126,7 +125,7 @@ instance.interceptors.response.use(
       const { accessToken, refreshToken: newRefreshToken, expiresIn } = response.data
 
       // 更新本地Token
-      tokenStorage.setTokens(accessToken, newRefreshToken, expiresIn)
+      authStore.setTokens(accessToken, newRefreshToken, expiresIn)
 
       // 处理队列中的请求
       processQueue(null, accessToken)
@@ -140,9 +139,7 @@ instance.interceptors.response.use(
       // 刷新失败，清除Token并跳转登录
       console.error('刷新Token失败:', refreshError)
       processQueue(refreshError, null)
-      tokenStorage.clearTokens()
-      // TODO: 跳转到登录页
-      // window.location.href = '/login'
+      authStore.clearAuth()
       return Promise.reject(refreshError)
     } finally {
       isRefreshing = false

@@ -62,8 +62,8 @@ public class SessionService implements ISessionService {
 
 		// 2. 获取最终标题并保存会话
 		return titleMono.flatMap(finalTitle -> {
-            OffsetDateTime now = OffsetDateTime.now();
-            Session session = Session.builder()
+			OffsetDateTime now = OffsetDateTime.now();
+			Session session = Session.builder()
 				.id(UUID.randomUUID()) // 根据你的 Entity 配置，如果由 DB 生成 ID，这里可能不需要设置
 				.title(finalTitle) // 使用最终确定的标题
 				.type(type)

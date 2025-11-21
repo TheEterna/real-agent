@@ -8,11 +8,10 @@ import reactor.core.publisher.Flux;
 import java.util.UUID;
 
 /**
- * 
  * @author: han
  * @time: 2025/11/21 22:12
  */
 @Repository
 public interface TurnRepository extends R2dbcRepository<Turn, UUID> {
-    
+
 }

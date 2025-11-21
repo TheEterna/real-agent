@@ -198,7 +198,6 @@ public class AgentTurnManagerService implements IAgentTurnManagerService {
 		state.setCurrentExecution(execution);
 	}
 
-
 	/**
 	 * 终止对话：直接结束任务
 	 */

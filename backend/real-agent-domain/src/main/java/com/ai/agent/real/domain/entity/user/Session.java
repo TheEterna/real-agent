@@ -38,7 +38,6 @@ public class Session implements Persistable<UUID> {
 	@Column("created_time")
 	private OffsetDateTime createdTime;
 
-
 	@Column("updated_time")
 	private OffsetDateTime updatedTime;
 

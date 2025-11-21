@@ -135,6 +135,15 @@
                 </a>
               </router-link>
             </a-tooltip>
+            <a-tooltip title="退出登录" placement="right">
+              <a
+                  @click="handleLogout"
+                  class="flex items-center gap-2 px-3 py-2 rounded-4xl transition-colors bg-primary-75/35 hover:bg-red-50 cursor-pointer"
+              >
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full" style="background-color: rgba(255, 77, 79, 0.1)"><LogoutOutlined style="color: #ff4d4f" /></span>
+                <span class="font-semibold text-red-500">退出登录</span>
+              </a>
+            </a-tooltip>
           </div>
         </div>
       </a-layout-sider>
@@ -187,8 +196,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { message } from 'ant-design-vue'
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -200,10 +210,14 @@ import {
   SettingOutlined,
   FileTextOutlined,
   ExperimentOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons-vue'
 import { getRandomGlassColor } from '@/utils/colorUtils'
+import { useAuthStore } from '@/stores/authStore'
+import { authApi } from '@/api/auth'
 
 const route = useRoute()
+const router = useRouter()
 const { t, locale } = useI18n()
 
 const currentLocale = ref(locale.value || 'zh')
@@ -218,6 +232,25 @@ const getCurrentMenu = () => {
   if (path === '/') return 'chat'
   return path.substring(1)
 }
+
+// 登出处理
+const handleLogout = async () => {
+  const authStore = useAuthStore()
+  try {
+    const accessToken = authStore.accessToken
+    if (accessToken) {
+      await authApi.logout(accessToken)
+    }
+  } catch (error) {
+    console.error('退出登录失败:', error)
+  } finally {
+    // 无论API调用成功与否，都清除本地token并跳转
+    authStore.clearAuth()
+    message.success('已退出登录')
+    router.push('/login')
+  }
+}
+
 
 const isStandalone = computed(() => Boolean(route.meta && (route.meta as any).standalone))
 // 悬停自动展开：折叠状态下鼠标移入暂时展开

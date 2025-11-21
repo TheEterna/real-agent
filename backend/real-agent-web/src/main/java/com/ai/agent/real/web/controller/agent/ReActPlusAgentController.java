@@ -41,14 +41,12 @@ public class ReActPlusAgentController {
 
 	private final IAgentTurnManagerService agentSessionManagerService;
 
-
 	private final ISessionService sessionService;
 
 	private final IAgentStorageService agentStorageService;
 
 	public ReActPlusAgentController(IAgentTurnManagerService agentSessionManagerService,
-			@Qualifier("reActPlusAgentStrategy") IAgentStrategy reActPlusAgentStrategy,
-			ISessionService sessionService,
+			@Qualifier("reActPlusAgentStrategy") IAgentStrategy reActPlusAgentStrategy, ISessionService sessionService,
 			IAgentStorageService agentStorageService) {
 
 		this.agentSessionManagerService = agentSessionManagerService.of(reActPlusAgentStrategy);
@@ -65,12 +63,10 @@ public class ReActPlusAgentController {
 		return UserContextHolder.getUserId().flatMapMany(userId -> {
 			log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
 
-            return Mono.justOrEmpty(request.getSessionId())
-				.switchIfEmpty(
-						this.sessionService
-							.createSessionWithAiTitle("", NounConstants.REACT_PLUS, userId, request.getMessage())
-							.map(SessionDTO::getId)
-				) // 传入
+			return Mono.justOrEmpty(request.getSessionId())
+				.switchIfEmpty(this.sessionService
+					.createSessionWithAiTitle("", NounConstants.REACT_PLUS, userId, request.getMessage())
+					.map(SessionDTO::getId)) // 传入
 				.flatMapMany(sessionId -> {
 					request.setSessionId(sessionId);
 
@@ -83,18 +79,25 @@ public class ReActPlusAgentController {
 								.setStartTime(OffsetDateTime.now()));
 					context.setTask(request.getMessage());
 
-					// 保存用户消息作为第一条消息 (可选，或者在 executeStreamWithInteraction 内部处理，这里先手动保存一下用户提问)
+					// 保存用户消息作为第一条消息 (可选，或者在 executeStreamWithInteraction
+					// 内部处理，这里先手动保存一下用户提问)
 					// 注意：AgentExecutionEvent 中通常包含用户提问，或者我们可以构造一个
 					// 这里为了简单，我们依赖 agentSessionManagerService 返回的流中包含的事件
 					// 但通常第一条用户消息是输入，可能不在流里，需要手动保存。
 					// 让我们先保存 Turn，然后手动保存一条 User Message
 
-					return agentStorageService.startTurn(turnId, null, sessionId) // TODO: parentTurnId logic if needed
+					return agentStorageService.startTurn(turnId, null, sessionId) // TODO:
+																					// parentTurnId
+																					// logic
+																					// if
+																					// needed
 						.flatMapMany(turn -> {
 							// 保存用户输入消息
-							AgentExecutionEvent userEvent = AgentExecutionEvent.common(AgentExecutionEvent.EventType.USER, context, request.getMessage());
+							AgentExecutionEvent userEvent = AgentExecutionEvent
+								.common(AgentExecutionEvent.EventType.USER, context, request.getMessage());
 							return agentStorageService.saveMessage(sessionId, turnId, userEvent)
-								.thenMany(agentSessionManagerService.subscribe(turnId.toString(), request.getMessage(), context));
+								.thenMany(agentSessionManagerService.subscribe(turnId.toString(), request.getMessage(),
+										context));
 						})
 						.doOnNext(sse -> {
 							if (sse.data() != null) {
@@ -116,9 +119,7 @@ public class ReActPlusAgentController {
 	 */
 	@GetMapping("/react-plus/{sessionId}/messages")
 	public Mono<ResponseResult<Object>> getSessionMessages(@PathVariable UUID sessionId) {
-		return agentStorageService.getSessionMessages(sessionId)
-			.collectList()
-			.map(ResponseResult::success);
+		return agentStorageService.getSessionMessages(sessionId).collectList().map(ResponseResult::success);
 	}
 
 	/**

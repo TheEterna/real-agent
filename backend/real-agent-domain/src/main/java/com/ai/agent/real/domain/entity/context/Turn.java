@@ -15,8 +15,8 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * 对话轮次实体
- * 对应表 context.turns
+ * 对话轮次实体 对应表 context.turns
+ *
  * @author: han
  * @time: 2025/11/21 22:12
  */
@@ -27,39 +27,40 @@ import java.util.UUID;
 @Table(name = "turns", schema = "context")
 public class Turn implements Persistable<UUID> {
 
-    @Id
-    private UUID id;
+	@Id
+	private UUID id;
 
-    @Column("session_id")
-    private UUID sessionId;
+	@Column("session_id")
+	private UUID sessionId;
 
-    @Column("parent_turn_id")
-    private UUID parentTurnId;
+	@Column("parent_turn_id")
+	private UUID parentTurnId;
 
-    @Column("resume")
-    private String resume;
+	@Column("resume")
+	private String resume;
 
-    @Column("meta")
-    private Json meta;
+	@Column("meta")
+	private Json meta;
 
-    @Column("start_time")
-    private OffsetDateTime startTime;
+	@Column("start_time")
+	private OffsetDateTime startTime;
 
-    @Column("end_time")
-    private OffsetDateTime endTime;
+	@Column("end_time")
+	private OffsetDateTime endTime;
 
-    @Transient
-    @Builder.Default
-    private boolean isNew = true;
+	@Transient
+	@Builder.Default
+	private boolean isNew = true;
 
-    @Override
-    public UUID getId() {
-        return id;
-    }
+	@Override
+	public UUID getId() {
+		return id;
+	}
 
-    @Override
-    @Transient
-    public boolean isNew() {
-        return isNew;
-    }
+	@Override
+	@Transient
+	public boolean isNew() {
+		return isNew;
+	}
+
 }

@@ -51,7 +51,6 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 
 	private final FinalAgent finalAgent;
 
-
 	public ReActPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
 			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
 			FinalAgent finalAgent) {

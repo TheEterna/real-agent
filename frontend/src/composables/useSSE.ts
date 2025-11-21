@@ -5,6 +5,7 @@ import { ConnectionStatus, TaskStatus, ProgressInfo } from '@/types/status'
 import { NotificationType } from '@/types/notification'
 import { AgentType } from '@/types/session'
 import { useChatStore } from '@/stores/chatStore'
+import { useAuthStore } from '@/stores/authStore'
 const ssePromise = import('sse.js')
 
 // === SSE 相关接口定义 ===
@@ -540,10 +541,18 @@ export function useSSE(options: SSEOptions = {}) {
                 currentTaskTitle.value = text || ''
                 progress.value = null
 
-                const defaultHeaders = {
+
+                const defaultHeaders: Record<string, string> = {
                     'Content-Type': 'application/json',
                     Accept: 'text/event-stream',
                     'Cache-Control': 'no-cache',
+                }
+
+                // 从 authStore 获取 token 并添加到 headers
+                const authStore = useAuthStore()
+                const token = authStore.accessToken
+                if (token) {
+                    defaultHeaders['Authorization'] = `Bearer ${token}`
                 }
 
                 const source = new SSE(agentOptions.endpoint, {

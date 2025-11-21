@@ -15,9 +15,8 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * 智能体消息实体
- * 对应表 context.messages
- * 
+ * 智能体消息实体 对应表 context.messages
+ *
  * @author: han
  * @time: 2025/11/21 22:12
  */
@@ -28,49 +27,50 @@ import java.util.UUID;
 @Table(name = "messages", schema = "context")
 public class AgentMessage implements Persistable<UUID> {
 
-    @Id
-    private UUID id;
+	@Id
+	private UUID id;
 
-    @Column("turn_id")
-    private UUID turnId;
+	@Column("turn_id")
+	private UUID turnId;
 
-    @Column("session_id")
-    private UUID sessionId;
+	@Column("session_id")
+	private UUID sessionId;
 
-    @Column("type")
-    private String type;
+	@Column("type")
+	private String type;
 
-    @Column("message")
-    private String message;
+	@Column("message")
+	private String message;
 
-    @Column("data")
-    private Json data;
+	@Column("data")
+	private Json data;
 
-    @Column("meta")
-    private Json meta;
+	@Column("meta")
+	private Json meta;
 
-    @Column("start_time")
-    private OffsetDateTime startTime;
+	@Column("start_time")
+	private OffsetDateTime startTime;
 
-    @Column("end_time")
-    private OffsetDateTime endTime;
+	@Column("end_time")
+	private OffsetDateTime endTime;
 
-    @Column("is_deleted")
-    @Builder.Default
-    private Boolean isDeleted = false;
+	@Column("is_deleted")
+	@Builder.Default
+	private Boolean isDeleted = false;
 
-    @Transient
-    @Builder.Default
-    private boolean isNew = true;
+	@Transient
+	@Builder.Default
+	private boolean isNew = true;
 
-    @Override
-    public UUID getId() {
-        return id;
-    }
+	@Override
+	public UUID getId() {
+		return id;
+	}
 
-    @Override
-    @Transient
-    public boolean isNew() {
-        return isNew;
-    }
+	@Override
+	@Transient
+	public boolean isNew() {
+		return isNew;
+	}
+
 }

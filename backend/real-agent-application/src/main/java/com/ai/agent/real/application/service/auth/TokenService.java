@@ -120,8 +120,6 @@ public class TokenService implements ITokenService {
 	@Override
 	public Mono<UserContext> validateToken(String token, String path) {
 
-
-
 		// 直接从 Redis 获取用户上下文
 		String key = TOKEN_PREFIX + token;
 

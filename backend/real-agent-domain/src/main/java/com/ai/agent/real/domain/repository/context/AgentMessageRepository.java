@@ -8,14 +8,14 @@ import reactor.core.publisher.Flux;
 import java.util.UUID;
 
 /**
- * 
  * @author: han
  * @time: 2025/11/21 22:12
  */
 @Repository
 public interface AgentMessageRepository extends R2dbcRepository<AgentMessage, UUID> {
-    
-    Flux<AgentMessage> findBySessionIdOrderByStartTimeAsc(UUID sessionId);
-    
-    Flux<AgentMessage> findByTurnIdOrderByStartTimeAsc(UUID turnId);
+
+	Flux<AgentMessage> findBySessionIdOrderByStartTimeAsc(UUID sessionId);
+
+	Flux<AgentMessage> findByTurnIdOrderByStartTimeAsc(UUID turnId);
+
 }

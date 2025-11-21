@@ -32,20 +32,34 @@ public class AuthenticationFilter implements WebFilter {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		String path = exchange.getRequest().getPath().value();
+		boolean isPublicPath = CommonUtils.isPublicPath(path);
 
 		// 1. 提取 Token
 		String token = extractToken(exchange.getRequest());
 
-        // 既没有 token，又是私有api端口
-        if (token == null && !CommonUtils.isPublicPath(path)) {
-            return makeUnauthorizedResponse(exchange, "Token missing");
-        }
+		// 2. 如果没有 Token
+		if (token == null) {
+			if (isPublicPath) {
+				// 公开路径：无 token 直接放行（匿名访问）
+				return chain.filter(exchange);
+			}
+			else {
+				// 私有路径：无 token 返回 401
+				return makeUnauthorizedResponse(exchange, "Token missing");
+			}
+		}
 
-		// 验证 Token 并获取用户信息
+		// 3. 有 Token：尝试验证并获取用户信息
 		return tokenService.validateToken(token, path).flatMap(user -> {
-			// 将用户信息注入到 Reactor Context
+			// Token 有效：将用户信息注入到 Reactor Context
 			return chain.filter(exchange).contextWrite(ctx -> UserContextHolder.setUser(ctx, user));
-		});
+		})
+			.switchIfEmpty(
+					// Token 无效或已过期
+					isPublicPath ? chain.filter(exchange) // 公开路径：降级为匿名访问
+							: makeUnauthorizedResponse(exchange, "Invalid or expired token") // 私有路径：返回
+																								// 401
+			);
 	}
 
 	/**
@@ -59,19 +73,19 @@ public class AuthenticationFilter implements WebFilter {
 		return null;
 	}
 
-    /**
-     * 构建 401 响应
-     */
-    private Mono<Void> makeUnauthorizedResponse(ServerWebExchange exchange, String msg) {
-        ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+	/**
+	 * 构建 401 响应
+	 */
+	private Mono<Void> makeUnauthorizedResponse(ServerWebExchange exchange, String msg) {
+		ServerHttpResponse response = exchange.getResponse();
+		response.setStatusCode(HttpStatus.UNAUTHORIZED);
+		response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        String errorMessage = String.format("{\"code\": 401, \"message\": \"Unauthorized: %s\"}", msg);
-        byte[] bytes = errorMessage.getBytes(StandardCharsets.UTF_8);
-        DataBuffer buffer = response.bufferFactory().wrap(bytes);
+		String errorMessage = String.format("{\"code\": 401, \"message\": \"Unauthorized: %s\"}", msg);
+		byte[] bytes = errorMessage.getBytes(StandardCharsets.UTF_8);
+		DataBuffer buffer = response.bufferFactory().wrap(bytes);
 
-        return response.writeWith(Mono.just(buffer));
-    }
+		return response.writeWith(Mono.just(buffer));
+	}
 
 }
