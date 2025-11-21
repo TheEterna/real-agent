@@ -201,6 +201,7 @@ watch(currentPlan, (newPlan, oldPlan) => {
 
 <style scoped lang="scss">
 @use '@/styles/variables.scss';
+@use "sass:color";
 
 .plan-sidebar {
   position: fixed;
@@ -299,7 +300,7 @@ watch(currentPlan, (newPlan, oldPlan) => {
 .empty-desc {
   font-size: 14px;
   line-height: 1.5;
-  color: lighten($muted-color, 10%);
+  color: color.adjust($muted-color, $lightness: 10%);
 }
 
 /* 计划概览样式 */
@@ -399,7 +400,7 @@ watch(currentPlan, (newPlan, oldPlan) => {
 
 .phase-desc {
   font-size: 13px;
-  color: lighten($text-color, 20%);
+  color: color.adjust($text-color, $lightness: 20%);
   line-height: 1.4;
   margin-bottom: $space-sm;
 }

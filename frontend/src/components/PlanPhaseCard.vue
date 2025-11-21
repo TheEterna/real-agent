@@ -240,6 +240,7 @@ const phaseProgress = computed(() => {
 
 <style scoped lang="scss">
 @use '@/styles/variables.scss';
+@use "sass:color";
 
 .phase-card {
   @include plan-card-base;
@@ -351,7 +352,7 @@ const phaseProgress = computed(() => {
 
 .phase-index {
   font-size: 11px;
-  color: lighten($muted-color, 20%);
+  color: color.adjust($muted-color, $lightness: 20%);
 }
 
 .parallel-badge {
@@ -394,7 +395,7 @@ const phaseProgress = computed(() => {
 
 .phase-description {
   font-size: 13px;
-  color: lighten($text-color, 20%);
+  color: color.adjust($text-color, $lightness: 20%);
   line-height: 1.5;
 }
 
@@ -409,7 +410,7 @@ const phaseProgress = computed(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, $plan-status-running, lighten($plan-status-running, 10%));
+  background: linear-gradient(90deg, $plan-status-running, color.adjust($plan-status-running, $lightness: 10%));
   transition: width 0.3s ease;
   border-radius: 2px;
 }
