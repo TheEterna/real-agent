@@ -1010,7 +1010,7 @@ onUnmounted(() => {
               @click="sendMessage"
               class="send-button absolute right-4 top-1/2 w-10 h-10 -translate-y-1/2 rounded-[50%] font-semibold"
           >
-            <SendOutlined class="m-auto text-lg" v-if="!isLoading"/>
+            <SendOutlined class="rotate-330 m-auto pl-1 pt-1 text-lg" v-if="!isLoading"/>
             <LoadingOutlined class="m-auto text-lg" v-else/>
           </button>
 
