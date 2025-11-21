@@ -11,11 +11,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@RequiredArgsConstructor
 public class WebSocketConfig {
 
 	private final VoiceStreamWebSocketHandler voiceStreamWebSocketHandler;
 
+    public WebSocketConfig(VoiceStreamWebSocketHandler voiceStreamWebSocketHandler) {
+        this.voiceStreamWebSocketHandler = voiceStreamWebSocketHandler;
+    }
 	@Bean
 	public SimpleUrlHandlerMapping webSocketMapping() {
 		Map<String, Object> map = new HashMap<>();

@@ -118,7 +118,12 @@ public class TokenService implements ITokenService {
 	 * 验证 Token 并获取用户上下文（纯 Redis 方案）
 	 */
 	@Override
-	public Mono<UserContext> validateToken(String token) {
+	public Mono<UserContext> validateToken(String token, String path) {
+
+		if (token == null && !CommonUtils.isPublicPath(path)) {
+			return null;
+		}
+
 		// 直接从 Redis 获取用户上下文
 		String key = TOKEN_PREFIX + token;
 
@@ -130,7 +135,7 @@ public class TokenService implements ITokenService {
 	 */
 	@Override
 	public Mono<UserContext> validateRefreshToken(String token, String ipAddress, String deviceInfo) {
-		return validateToken(token).filter(ctx -> {
+		return validateToken(token, "").filter(ctx -> {
 			// 如果存储的Token中没有设备信息，则跳过验证（兼容旧数据）
 			if (ctx.getIpAddress() == null) {
 				return true;
@@ -171,7 +176,7 @@ public class TokenService implements ITokenService {
 	@Override
 	public Mono<Void> logout(String token) {
 		// 1. 从 Redis 获取用户信息
-		return validateToken(token).flatMap(userContext -> {
+		return validateToken(token, "").flatMap(userContext -> {
 			// 2. 删除 Token
 			return redisService.delete(TOKEN_PREFIX + token)
 				// 3. 删除用户的 Token 映射

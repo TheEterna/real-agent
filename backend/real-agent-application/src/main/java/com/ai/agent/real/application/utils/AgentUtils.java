@@ -140,7 +140,45 @@ public class AgentUtils {
 	}
 
 	public static Prompt configurePromptOptions(Prompt prompt, ChatOptions chatOptions) {
-		return prompt.mutate().chatOptions(chatOptions).build();
+		// 1. create a prompt builder
+		Prompt.Builder promptBuilder = prompt.mutate();
+		// 2. exact chat options
+		ChatOptions oldChatOptions = null;
+		if (prompt.getOptions() != null) {
+			oldChatOptions = prompt.getOptions().copy();
+		}
+		else {
+			oldChatOptions = ChatOptions.builder().build();
+		}
+
+		String model = CommonUtils.defaultIfBlank(chatOptions.getModel(), oldChatOptions.getModel());
+		Double frequencyPenalty = CommonUtils.defaultIfBlank(chatOptions.getFrequencyPenalty(),
+				oldChatOptions.getFrequencyPenalty());
+		Double temperature = CommonUtils.defaultIfBlank(chatOptions.getTemperature(), oldChatOptions.getTemperature());
+		Integer maxTokens = CommonUtils.defaultIfBlank(chatOptions.getMaxTokens(), oldChatOptions.getMaxTokens());
+		Double presencePenalty = CommonUtils.defaultIfBlank(chatOptions.getPresencePenalty(),
+				oldChatOptions.getPresencePenalty());
+		List<String> stopSequences = CommonUtils.defaultIfBlank(chatOptions.getStopSequences(),
+				oldChatOptions.getStopSequences(), String.class);
+		Integer topK = CommonUtils.defaultIfBlank(chatOptions.getTopK(), oldChatOptions.getTopK());
+		Double topP = CommonUtils.defaultIfBlank(chatOptions.getTopP(), oldChatOptions.getTopP());
+
+		ChatOptions newChatOptions = ChatOptions.builder()
+			.model(model)
+			.frequencyPenalty(frequencyPenalty)
+			.temperature(temperature)
+			.maxTokens(maxTokens)
+			.presencePenalty(presencePenalty)
+			.stopSequences(stopSequences)
+			.topK(topK)
+			.topP(topP)
+			.build();
+
+		// 3. create a new chat options builder
+		// 3. merge old chat options and new chat options
+
+		Prompt newPrompt = promptBuilder.chatOptions(newChatOptions).build();
+		return newPrompt;
 	}
 
 	/**
@@ -211,7 +249,7 @@ public class AgentUtils {
 		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);
 		newContext.setMessageId(CommonUtils.getMessageId());
-		newContext.setStartTime(LocalDateTime.now());
+		newContext.setStartTime(OffsetDateTime.now());
 
 		return newContext;
 	}
@@ -237,7 +275,7 @@ public class AgentUtils {
 		// 为新上下文设置独立的 Agent 与 node 标识
 		newContext.setAgentId(agentId);
 		newContext.setMessageId(CommonUtils.getMessageId());
-		newContext.setStartTime(LocalDateTime.now());
+		newContext.setStartTime(OffsetDateTime.now());
 
 		return newContext;
 	}

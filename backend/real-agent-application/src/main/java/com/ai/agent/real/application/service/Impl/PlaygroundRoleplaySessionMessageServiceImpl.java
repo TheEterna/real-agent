@@ -1,5 +1,6 @@
 package com.ai.agent.real.application.service.Impl;
 
+import com.ai.agent.real.application.service.playground.roleplay.PlaygroundRoleplaySessionMessageService;
 import com.ai.agent.real.common.constant.RoleplayConstants;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.dto.MessageCreateRequestDto;
@@ -27,8 +28,7 @@ import java.util.Collections;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PlaygroundRoleplaySessionMessageServiceImpl
-		implements com.ai.agent.real.application.service.PlaygroundRoleplaySessionMessageService {
+public class PlaygroundRoleplaySessionMessageServiceImpl implements PlaygroundRoleplaySessionMessageService {
 
 	private final PlaygroundRoleplaySessionMessageRepository messageRepository;
 

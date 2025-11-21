@@ -11,7 +11,7 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -19,16 +19,9 @@ import java.util.UUID;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users", schema = "app_user")
-public class User implements Persistable<Long> {
-
-	public static class UserBuilder {
-
-		private boolean isNew = true;
-
-	}
+public class User implements Persistable<UUID> {
 
 	@Id
 	private UUID id;
@@ -48,13 +41,11 @@ public class User implements Persistable<Long> {
 	@Column("status")
 	private Integer status;
 
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	@Column("created_at")
-	private LocalDateTime createdAt;
+	@Column("created_time")
+	private OffsetDateTime createdTime;
 
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	@Column("updated_at")
-	private LocalDateTime updatedAt;
+	@Column("updated_time")
+	private OffsetDateTime updatedTime;
 
 	@Transient
 	@Builder.Default
@@ -69,6 +60,9 @@ public class User implements Persistable<Long> {
 	@Transient
 	public boolean isNew() {
 		return isNew;
+	}
+
+	public User() {
 	}
 
 }

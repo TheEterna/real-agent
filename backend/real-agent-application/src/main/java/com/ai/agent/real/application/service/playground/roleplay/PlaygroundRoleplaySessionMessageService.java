@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.service;
+package com.ai.agent.real.application.service.playground.roleplay;
 
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.dto.MessageCreateRequestDto;

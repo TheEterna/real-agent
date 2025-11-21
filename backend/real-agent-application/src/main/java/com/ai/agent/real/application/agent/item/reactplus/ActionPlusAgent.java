@@ -116,7 +116,8 @@ public class ActionPlusAgent extends Agent {
 
 		return FluxUtils
 			.executeWithToolSupportWithInteraction(chatModel, prompt, context, AGENT_ID, toolService, toolApprovalMode,
-					AgentExecutionEvent.EventType.ACTING, agentTurnManagerService.getTurnState(context.getTurnId()))
+					AgentExecutionEvent.EventType.ACTING,
+					agentTurnManagerService.getTurnState(context.getTurnId().toString()))
 			.doFinally(signalType -> {
 				afterHandle(context);
 				log.debug("ActionPlusAgent 工具执行结束，信号类型: {}", signalType);

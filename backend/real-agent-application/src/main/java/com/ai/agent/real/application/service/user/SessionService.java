@@ -1,5 +1,6 @@
-package com.ai.agent.real.application.user;
+package com.ai.agent.real.application.service.user;
 
+import com.ai.agent.real.common.constant.PromptConstants;
 import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.user.ISessionService;
 import com.ai.agent.real.contract.user.SessionDTO;
@@ -16,16 +17,23 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.ai.agent.real.common.constant.PromptConstants.PROMPT_GEN_TITLE;
+
 /**
  * 会话业务服务
  */
 @Service
-@RequiredArgsConstructor
 public class SessionService implements ISessionService {
 
 	private final SessionRepository sessionRepository;
 
 	private final ChatClient chatClient;
+
+	public SessionService(SessionRepository sessionRepository, ChatClient.Builder chatClientBuilder) {
+		this.sessionRepository = sessionRepository;
+		this.chatClient = chatClientBuilder.defaultSystem(PromptConstants.PROMPT_GEN_TITLE).build();
+
+	}
 
 	/**
 	 * 创建新会话
@@ -36,7 +44,7 @@ public class SessionService implements ISessionService {
 	 * @return 创建的会话
 	 */
 	@Override
-	public Mono<SessionDTO> createSessionWithAi(String title, String type, UUID userId, String firstUserMessage) {
+	public Mono<SessionDTO> createSessionWithAiTitle(String title, String type, UUID userId, String firstUserMessage) {
 
 		// 1. 确定标题来源：如果有传入 title，则直接使用；否则调用 AI 生成
 		Mono<String> titleMono;
@@ -44,7 +52,7 @@ public class SessionService implements ISessionService {
 			titleMono = Mono.just(title);
 		}
 		else {
-			String prompt = "请根据以下用户输入生成一个简短的会话标题（15字以内），直接返回标题内容，不要包含引号或其他标点：\n" + firstUserMessage;
+			String prompt = PROMPT_GEN_TITLE + firstUserMessage;
 			titleMono = chatClient.prompt()
 				.user(prompt)
 				.stream()
@@ -115,13 +123,6 @@ public class SessionService implements ISessionService {
 	@Override
 	public Mono<Boolean> isSessionBelongsToUser(UUID sessionId, UUID userId) {
 		return sessionRepository.existsByIdAndUserId(sessionId, userId);
-	}
-
-	/**
-	 * 使用 AI 生成标题并创建新会话
-	 */
-	private Mono<String> createSessionWithAiTitle(UUID userId, String type, String message) {
-
 	}
 
 }

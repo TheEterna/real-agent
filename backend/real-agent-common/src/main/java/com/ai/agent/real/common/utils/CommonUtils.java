@@ -30,4 +30,24 @@ public class CommonUtils {
 		return StringUtils.hasText(str) ? str : defaultStr;
 	}
 
+	public static Double defaultIfBlank(Double doubleNum, Double defaultDoubleNum) {
+		return doubleNum != null ? doubleNum : defaultDoubleNum;
+	}
+
+	public static Integer defaultIfBlank(Integer integerNum, Integer defaultIntegerNum) {
+		return integerNum != null ? integerNum : defaultIntegerNum;
+	}
+
+	public static <T> List<T> defaultIfBlank(List<T> list, List<T> defaultList, Class<T> clazz) {
+		return list != null && !list.isEmpty() ? list : defaultList;
+	}
+
+	/**
+	 * 判断是否是公开路径
+	 */
+	public static boolean isPublicPath(String path) {
+		return path.startsWith("/api/auth/") || path.startsWith("/api/public/") || path.equals("/")
+				|| path.startsWith("/actuator/");
+	}
+
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.*;
 
 import java.time.*;
+import java.util.UUID;
 
 import static com.ai.agent.real.application.agent.turn.AgentTurnManagerService.toSSE;
 
@@ -44,15 +45,15 @@ public class ReActAgentController {
 		log.info("收到ReAct流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
 
 		// 验证sessionId
-		if (request.getSessionId() == null || request.getSessionId().isBlank()) {
-			request.setSessionId("session-" + System.currentTimeMillis());
+		if (request.getSessionId() == null) {
+			request.setSessionId(UUID.randomUUID());
 			log.info("未提供sessionId，自动生成: {}", request.getSessionId());
 		}
 
 		// 创建执行上下文
 		AgentContextAble context = new ReActAgentContext(new TraceInfo().setSessionId(request.getSessionId())
-			.setTurnId(CommonUtils.getTraceId(CommonUtils.getTraceId("ReAct")))
-			.setStartTime(LocalDateTime.now()));
+			.setTurnId(UUID.randomUUID())
+			.setStartTime(OffsetDateTime.now()));
 
 		// 设置任务到上下文（用于恢复时使用）
 		context.setTask(request.getMessage());

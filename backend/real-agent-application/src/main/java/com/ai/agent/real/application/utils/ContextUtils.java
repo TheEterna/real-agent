@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.service;
+package com.ai.agent.real.application.utils;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.model.message.AgentMessage;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class ContextManager {
+public class ContextUtils {
 
 	/**
 	 * 最大 token 数量（根据模型调整） qwen-max 支持 8k 上下文
@@ -38,7 +38,7 @@ public class ContextManager {
 	 * 管理上下文大小，超限时自动压缩
 	 * @param context Agent 上下文
 	 */
-	public void manageContextSize(AgentContextAble context) {
+	public static void manageContextSize(AgentContextAble context) {
 		List<AgentMessage> history = context.getMessageHistory();
 
 		if (history == null || history.isEmpty()) {
@@ -66,7 +66,7 @@ public class ContextManager {
 	 * @param history 原始历史消息
 	 * @return 压缩后的历史消息
 	 */
-	private List<AgentMessage> compressContext(List<AgentMessage> history) {
+	private static List<AgentMessage> compressContext(List<AgentMessage> history) {
 		List<AgentMessage> result = new ArrayList<>();
 
 		// 1. 保留第一条系统提示词（如果存在）
@@ -99,7 +99,7 @@ public class ContextManager {
 	 * @param messages 要压缩的消息列表
 	 * @return 摘要文本
 	 */
-	private String summarizeMessages(List<AgentMessage> messages) {
+	private static String summarizeMessages(List<AgentMessage> messages) {
 		StringBuilder summary = new StringBuilder();
 
 		// 统计信息
@@ -154,7 +154,7 @@ public class ContextManager {
 	 * @param maxLength 最大长度
 	 * @return 截断后的文本
 	 */
-	private String truncateText(String text, int maxLength) {
+	private static String truncateText(String text, int maxLength) {
 		if (text == null || text.length() <= maxLength) {
 			return text;
 		}
@@ -166,7 +166,7 @@ public class ContextManager {
 	 * @param messages 消息列表
 	 * @return 估算的 token 数量
 	 */
-	private int calculateTokens(List<AgentMessage> messages) {
+	private static int calculateTokens(List<AgentMessage> messages) {
 		int totalTokens = 0;
 
 		for (AgentMessage message : messages) {
@@ -202,7 +202,7 @@ public class ContextManager {
 	 * @param context Agent 上下文
 	 * @return 是否接近限制（超过 80%）
 	 */
-	public boolean isContextNearLimit(AgentContextAble context) {
+	public static boolean isContextNearLimit(AgentContextAble context) {
 		List<AgentMessage> history = context.getMessageHistory();
 		if (history == null || history.isEmpty()) {
 			return false;
@@ -219,7 +219,7 @@ public class ContextManager {
 	 * @param context Agent 上下文
 	 * @return 格式化的使用情况字符串
 	 */
-	public String getContextUsage(AgentContextAble context) {
+	public static String getContextUsage(AgentContextAble context) {
 		List<AgentMessage> history = context.getMessageHistory();
 		if (history == null || history.isEmpty()) {
 			return "0 / " + (MAX_TOKENS - RESERVED_TOKENS) + " tokens (0%)";

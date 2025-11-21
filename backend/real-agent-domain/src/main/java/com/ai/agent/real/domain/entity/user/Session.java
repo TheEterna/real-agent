@@ -54,10 +54,4 @@ public class Session implements Persistable<UUID> {
 		return isNew; // 如果 ID 由数据库生成，保存前 id 为 null 也会被视为新记录，这里保留以支持手动设置 ID 的情况
 	}
 
-	// 在从数据库读取后，将 isNew 标记为 false
-	public Session asExisting() {
-		this.isNew = false;
-		return this;
-	}
-
 }

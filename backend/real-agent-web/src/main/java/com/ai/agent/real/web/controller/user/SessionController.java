@@ -1,13 +1,12 @@
 package com.ai.agent.real.web.controller.user;
 
-import com.ai.agent.real.application.user.SessionService;
 import com.ai.agent.real.contract.model.auth.UserContextHolder;
 import com.ai.agent.real.contract.model.protocol.ResponseResult;
+import com.ai.agent.real.contract.user.ISessionService;
 import com.ai.agent.real.contract.user.SessionDTO;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -21,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SessionController {
 
-	private final SessionService sessionService;
+	private final ISessionService sessionService;
 
 	/**
 	 * 获取当前用户的所有会话

@@ -7,6 +7,11 @@ package com.ai.agent.real.common.constant;
 
 public class NounConstants {
 
+	/**
+	 * ReActPlus
+	 */
+	public static final String REACT_PLUS = "react_plus";
+
 	public final static String TASK_DONE = "task_done";
 
 	public final static String PLAN_INIT = "plan_init";

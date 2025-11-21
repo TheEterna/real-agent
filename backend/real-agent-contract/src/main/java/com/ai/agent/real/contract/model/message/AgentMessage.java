@@ -82,6 +82,7 @@ public class AgentMessage extends TraceInfo implements Message {
 	}
 
 	@Override
+	@NonNull
 	public MessageType getMessageType() {
 		return messageType.toSpringAIMessageType();
 	}
@@ -102,6 +103,7 @@ public class AgentMessage extends TraceInfo implements Message {
 
 	/**
 	 * 创建用户消息
+	 * @param userId 用户ID 这里先不于实现，没必要
 	 */
 	public static AgentMessage user(String content, String userId) {
 		return new AgentMessage(content, AgentMessageType.USER, userId);

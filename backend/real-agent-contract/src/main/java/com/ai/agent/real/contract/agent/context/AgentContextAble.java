@@ -4,9 +4,10 @@ import com.ai.agent.real.contract.model.logging.Traceable;
 import com.ai.agent.real.contract.model.message.AgentMessage;
 import org.springframework.ai.model.ModelOptionsUtils;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -81,35 +82,35 @@ public interface AgentContextAble<M> extends Traceable {
 
 	Traceable getTrace();
 
-	default String getSessionId() {
+	default UUID getSessionId() {
 		return getTrace().getSessionId();
 	}
 
-	default Traceable setSessionId(String sessionId) {
+	default Traceable setSessionId(UUID sessionId) {
 		return getTrace().setSessionId(sessionId);
 	}
 
-	default String getTurnId() {
+	default UUID getTurnId() {
 		return getTrace().getTurnId();
 	}
 
-	default Traceable setTurnId(String turnId) {
+	default Traceable setTurnId(UUID turnId) {
 		return getTrace().setTurnId(turnId);
 	}
 
-	default LocalDateTime getStartTime() {
+	default OffsetDateTime getStartTime() {
 		return getTrace().getStartTime();
 	}
 
-	default Traceable setStartTime(LocalDateTime startTime) {
+	default Traceable setStartTime(OffsetDateTime startTime) {
 		return getTrace().setStartTime(startTime);
 	}
 
-	default LocalDateTime getEndTime() {
+	default OffsetDateTime getEndTime() {
 		return getTrace().getEndTime();
 	}
 
-	default Traceable setEndTime(LocalDateTime endTime) {
+	default Traceable setEndTime(OffsetDateTime endTime) {
 		return getTrace().setEndTime(endTime);
 	}
 

@@ -37,7 +37,7 @@ public interface ITokenService {
 	 */
 	Mono<Boolean> addToOnlineUsers(UUID userId, String token);
 
-	Mono<UserContext> validateToken(String token);
+	Mono<UserContext> validateToken(String token, String path);
 
 	/**
 	 * 验证刷新令牌并检查设备信息

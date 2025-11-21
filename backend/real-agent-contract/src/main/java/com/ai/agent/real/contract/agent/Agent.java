@@ -113,7 +113,7 @@ public abstract class Agent {
 	 * after handle of executeStream method
 	 */
 	protected void afterHandle(AgentContextAble context) {
-		context.setEndTime(LocalDateTime.now());
+		context.setEndTime(OffsetDateTime.now());
 	}
 
 }

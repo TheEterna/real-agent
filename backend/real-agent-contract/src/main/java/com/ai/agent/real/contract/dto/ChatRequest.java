@@ -2,6 +2,8 @@ package com.ai.agent.real.contract.dto;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 /**
  * 聊天请求DTO
  *
@@ -13,6 +15,6 @@ public class ChatRequest {
 
 	private String message;
 
-	private String sessionId;
+	private UUID sessionId;
 
 }

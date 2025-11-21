@@ -9,7 +9,7 @@ import com.ai.agent.real.application.agent.item.reactplus.*;
 import com.ai.agent.real.application.agent.turn.AgentTurnManagerService;
 import com.ai.agent.real.application.agent.strategy.ReActAgentStrategy;
 import com.ai.agent.real.application.agent.strategy.ReActPlusAgentStrategy;
-import com.ai.agent.real.application.service.ContextManager;
+import com.ai.agent.real.application.utils.ContextUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.IAgentDispatcher;
 import com.ai.agent.real.contract.agent.context.AgentMemory;
@@ -20,7 +20,6 @@ import com.ai.agent.real.contract.model.property.ToolApprovalMode;
 import com.ai.agent.real.contract.service.IPropertyService;
 import com.ai.agent.real.contract.tool.IToolService;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -129,10 +128,10 @@ public class ApplicationAgentAutoConfiguration {
 	@Primary
 	public IAgentStrategy reActPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
 			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
-			FinalAgent finalAgent, ContextManager contextManager) {
+			FinalAgent finalAgent) {
 
 		return new ReActPlusAgentStrategy(taskAnalysisAgent, planInitAgent, thoughtAgent, thinkingPlusAgent,
-				actionPlusAgent, finalAgent, contextManager);
+				actionPlusAgent, finalAgent);
 	}
 
 	@Bean("reActAgentStrategy")

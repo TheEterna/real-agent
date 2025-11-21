@@ -1,24 +1,25 @@
 package com.ai.agent.real.contract.model.logging;
 
 import java.time.*;
+import java.util.UUID;
 
 public interface Traceable {
 
-	String getSessionId();
+	UUID getSessionId();
 
-	Traceable setSessionId(String sessionId);
+	Traceable setSessionId(UUID sessionId);
 
-	String getTurnId();
+	UUID getTurnId();
 
-	Traceable setTurnId(String turnId);
+	Traceable setTurnId(UUID turnId);
 
-	LocalDateTime getStartTime();
+	OffsetDateTime getStartTime();
 
-	Traceable setStartTime(LocalDateTime startTime);
+	Traceable setStartTime(OffsetDateTime startTime);
 
-	LocalDateTime getEndTime();
+	OffsetDateTime getEndTime();
 
-	Traceable setEndTime(LocalDateTime endTime);
+	Traceable setEndTime(OffsetDateTime endTime);
 
 	String getMessageId();
 

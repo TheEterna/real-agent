@@ -26,27 +26,14 @@ public class AuthenticationFilter implements WebFilter {
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		String path = exchange.getRequest().getPath().value();
 
-		// 公开接口，跳过认证
-		if (isPublicPath(path)) {
-			return chain.filter(exchange);
-		}
-
-		// 提取 Token
+		// 1. 提取 Token
 		String token = extractToken(exchange.getRequest());
 
-		if (token == null) {
-			// Token 不存在，允许匿名访问
-			return chain.filter(exchange);
-		}
-
 		// 验证 Token 并获取用户信息
-		return tokenService.validateToken(token).flatMap(user -> {
+		return tokenService.validateToken(token, path).flatMap(user -> {
 			// 将用户信息注入到 Reactor Context
 			return chain.filter(exchange).contextWrite(ctx -> UserContextHolder.setUser(ctx, user));
-		})
-			.switchIfEmpty(
-					// Token 无效，允许匿名访问
-					chain.filter(exchange));
+		});
 	}
 
 	/**
@@ -58,14 +45,6 @@ public class AuthenticationFilter implements WebFilter {
 			return bearerToken.substring(7);
 		}
 		return null;
-	}
-
-	/**
-	 * 判断是否是公开路径
-	 */
-	private boolean isPublicPath(String path) {
-		return path.startsWith("/api/auth/") || path.startsWith("/api/public/") || path.equals("/")
-				|| path.startsWith("/actuator/");
 	}
 
 }

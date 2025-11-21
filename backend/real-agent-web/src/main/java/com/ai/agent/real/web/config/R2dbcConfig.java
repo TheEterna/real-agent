@@ -30,7 +30,7 @@ public class R2dbcConfig {
 		converters.add(new MessageRoleWritingConverter());
 		converters.add(new VoiceEnumReadingConverter());
 		converters.add(new VoiceEnumWritingConverter());
-		return R2dbcCustomConversions.of(MySqlDialect.INSTANCE, converters);
+		return R2dbcCustomConversions.of(PostgresDialect.INSTANCE, converters);
 	}
 
 	// MessageType 转换器

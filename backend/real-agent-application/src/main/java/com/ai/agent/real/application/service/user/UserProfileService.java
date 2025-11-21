@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.user;
+package com.ai.agent.real.application.service.user;
 
 import com.ai.agent.real.contract.user.IUserProfileService;
 import com.ai.agent.real.domain.vo.user.UserProfileVO;

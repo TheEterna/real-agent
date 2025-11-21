@@ -1,5 +1,6 @@
 package com.ai.agent.real.web.controller.agent;
 
+import com.ai.agent.real.common.constant.NounConstants;
 import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
@@ -13,6 +14,7 @@ import com.ai.agent.real.contract.user.ISessionService;
 import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContext;
 import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
 import com.ai.agent.real.contract.model.auth.UserContextHolder;
+import com.ai.agent.real.contract.user.SessionDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -21,7 +23,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Objects;
+import java.util.UUID;
 
 import static com.ai.agent.real.contract.model.protocol.ResponseResult.success;
 
@@ -60,52 +64,34 @@ public class ReActPlusAgentController {
 		return UserContextHolder.getUserId().flatMapMany(userId -> {
 			log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
 			return Mono.justOrEmpty(request.getSessionId())
-				.filter(id -> !id.isBlank())
-				.switchIfEmpty(this.sessionService.createSessionWithAiTitle(userId, request.getMessage())) // 传入
-																											// userId
+				.filter(id -> !Objects.isNull(id))
+				.switchIfEmpty(
+
+						this.sessionService
+							.createSessionWithAiTitle("", NounConstants.REACT_PLUS, userId, request.getMessage())
+							.map(SessionDTO::getId)
+
+				) // 传入
 				.flatMapMany(sessionId -> {
 					request.setSessionId(sessionId);
 
 					// 3. 创建并执行 Agent 上下文
-					String turnId = CommonUtils.getTraceId("ReActPlus");
+					UUID turnId = UUID.randomUUID();
 
 					AgentContextAble<ReActPlusAgentContextMeta> context = new ReActPlusAgentContext(
 							new TraceInfo().setSessionId(request.getSessionId())
 								.setTurnId(turnId)
-								.setStartTime(LocalDateTime.now()));
+								.setStartTime(OffsetDateTime.now()));
 					context.setTask(request.getMessage());
 
-					return agentSessionManagerService.subscribe(turnId, request.getMessage(), context)
+					return agentSessionManagerService.subscribe(turnId.toString(), request.getMessage(), context)
 						.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
 						.doOnComplete(() -> {
-							context.setEndTime(LocalDateTime.now());
+							context.setEndTime(OffsetDateTime.now());
 							log.info("ReActPlus任务执行完成: sessionId={}", request.getSessionId());
 						});
 				});
 		}).switchIfEmpty(Flux.error(new IllegalAccessException("未登录或用户凭证无效"))); // 安全兜底
-		// 验证sessionId
-		if (request.getSessionId() == null || request.getSessionId().isBlank()) {
-			request.setSessionId("session-" + System.currentTimeMillis());
-			log.info("未提供sessionId，自动生成: {}", request.getSessionId());
-		}
-
-		String turnId = CommonUtils.getTraceId("ReActPlus");
-		// 创建执行上下文
-		AgentContextAble<ReActPlusAgentContextMeta> context = new ReActPlusAgentContext(
-				new TraceInfo().setSessionId(request.getSessionId())
-					.setTurnId(turnId)
-					.setStartTime(LocalDateTime.now()));
-
-		// 设置任务到上下文（用于恢复时使用）
-		context.setTask(request.getMessage());
-
-		// 通过AgentSessionHub订阅会话
-		return agentSessionManagerService.subscribe(turnId, request.getMessage(), context)
-			.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
-			.doOnComplete(() -> {
-				context.setEndTime(LocalDateTime.now());
-				log.info("ReActPlus任务执行完成: sessionId={}", request.getSessionId());
-			});
 
 	}
 

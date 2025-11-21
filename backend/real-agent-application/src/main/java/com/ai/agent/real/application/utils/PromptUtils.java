@@ -163,13 +163,13 @@ public class PromptUtils {
 				return prompt;
 			case PLAN:
 			case PLAN_THOUGHT:
-				toolCallRulesBuilder.append(PromptConstants.PLAN_MODE_PLAN_ADVANCE_TOOL_PROMPT
-						+ PromptConstants.PLAN_MODE_PLAN_UPDATE_TOOL_PROMPT
-						+ PromptConstants.PLAN_MODE_TASK_DONE_TOOL_PROMPT);
+				toolCallRulesBuilder.append(PromptConstants.PROMPT_PLAN_MODE_PLAN_ADVANCE_TOOL
+						+ PromptConstants.PROMPT_PLAN_MODE_PLAN_UPDATE_TOOL
+						+ PromptConstants.PROMPT_PLAN_MODE_TASK_DONE_TOOL);
 
-				toolCallRulesBuilder.append(PromptConstants.PLAN_MODE_PLAN_ADVANCE_TOOL_PROMPT
-						+ PromptConstants.PLAN_MODE_PLAN_UPDATE_TOOL_PROMPT
-						+ PromptConstants.PLAN_MODE_TASK_DONE_TOOL_PROMPT);
+				toolCallRulesBuilder.append(PromptConstants.PROMPT_PLAN_MODE_PLAN_ADVANCE_TOOL
+						+ PromptConstants.PROMPT_PLAN_MODE_PLAN_UPDATE_TOOL
+						+ PromptConstants.PROMPT_PLAN_MODE_TASK_DONE_TOOL);
 				break;
 			default:
 				log.warn("Unknown AgentMode: {}", agentMode);

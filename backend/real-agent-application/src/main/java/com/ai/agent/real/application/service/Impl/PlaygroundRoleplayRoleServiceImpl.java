@@ -1,6 +1,6 @@
 package com.ai.agent.real.application.service.Impl;
 
-import com.ai.agent.real.application.service.PlaygroundRoleplayRoleService;
+import com.ai.agent.real.application.service.playground.roleplay.PlaygroundRoleplayRoleService;
 import com.ai.agent.real.contract.dto.RoleCreateRequestDto;
 import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import com.ai.agent.real.domain.repository.roleplay.PlaygroundRoleplayRoleRepository;

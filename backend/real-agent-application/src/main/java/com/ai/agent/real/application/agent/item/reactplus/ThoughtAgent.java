@@ -636,6 +636,7 @@ public class ThoughtAgent extends Agent {
 
 		ChatOptions defaultOptions = chatModel.getDefaultOptions();
 		String model = defaultOptions.getModel();
+
 		ChatOptions customChatOptions = ChatOptions.builder().model(model).topP(0.3).temperature(0.3).build();
 		prompt = AgentUtils.configurePromptOptions(prompt, customChatOptions);
 
@@ -645,7 +646,7 @@ public class ThoughtAgent extends Agent {
 			.doFinally(signalType -> {
 				afterHandle(context);
 				// after handle
-				log.debug("ThinkingAgent流式分析结束，信号类型: {}", signalType);
+				log.debug("ThoughtAgent流式分析结束，信号类型: {}", signalType);
 			});
 	}
 

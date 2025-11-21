@@ -1,6 +1,5 @@
 package com.ai.agent.real.web.controller.user;
 
-import com.ai.agent.real.application.user.UserProfileService;
 import org.springframework.web.bind.annotation.RestController;
 
 /**

@@ -2,7 +2,7 @@ package com.ai.agent.real.application.agent.strategy;
 
 import com.ai.agent.real.application.agent.item.FinalAgent;
 import com.ai.agent.real.application.agent.item.reactplus.*;
-import com.ai.agent.real.application.service.ContextManager;
+import com.ai.agent.real.application.utils.ContextUtils;
 import com.ai.agent.real.application.utils.AgentUtils;
 import com.ai.agent.real.application.utils.FluxUtils;
 import com.ai.agent.real.application.utils.FunctionUtils;
@@ -25,6 +25,7 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -50,18 +51,16 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 
 	private final FinalAgent finalAgent;
 
-	private final ContextManager contextManager;
 
 	public ReActPlusAgentStrategy(TaskAnalysisAgent taskAnalysisAgent, PlanInitAgent planInitAgent,
 			ThoughtAgent thoughtAgent, ThinkingPlusAgent thinkingPlusAgent, ActionPlusAgent actionPlusAgent,
-			FinalAgent finalAgent, ContextManager contextManager) {
+			FinalAgent finalAgent) {
 		this.taskAnalysisAgent = taskAnalysisAgent;
 		this.planInitAgent = planInitAgent;
 		this.thoughtAgent = thoughtAgent;
 		this.thinkingPlusAgent = thinkingPlusAgent;
 		this.actionPlusAgent = actionPlusAgent;
 		this.finalAgent = finalAgent;
-		this.contextManager = contextManager;
 	}
 
 	/**
@@ -74,13 +73,16 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 	@Override
 	public Flux<AgentExecutionEvent> executeStream(String userInput, List<Agent> agents, AgentContextAble context) {
 		log.debug("ReActPlus starting!!!");
-		if (context != null && !StringUtils.hasText(context.getTurnId())) {
-			context.setTurnId(CommonUtils.getTraceId("ReActPlus"));
+		// check null
+		if (context == null) {
+			return Flux.error(new NullPointerException("context cannot be null"));
 		}
 
+		context.setTurnId(UUID.randomUUID());
+
 		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
-		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
-			context.setSessionId("default");
+		if (context.getSessionId() == null) {
+			context.setSessionId(UUID.randomUUID());
 		}
 		// fixme: 这里的 userId 后面可能要修复一下
 		context.addMessage(AgentMessage.user(userInput, "user"));
@@ -117,11 +119,11 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 
 					return Flux.range(1, iterationCount.get()).doOnNext(iteration -> {
 						// 在每轮迭代前管理上下文大小
-						contextManager.manageContextSize(context);
+						ContextUtils.manageContextSize(context);
 
 						// 记录上下文使用情况
 						if (iteration % 5 == 0) { // 每 5 轮记录一次
-							log.info("迭代 {}/50, 上下文使用: {}", iteration, contextManager.getContextUsage(context));
+							log.info("迭代 {}/50, 上下文使用: {}", iteration, ContextUtils.getContextUsage(context));
 						}
 
 						// 记录当前迭代次数到上下文
@@ -169,12 +171,12 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 		if (context == null) {
 			return Flux.error(new RuntimeException("context is null"));
 		}
-		if (!StringUtils.hasText(context.getTurnId())) {
-			context.setTurnId(CommonUtils.getTraceId("ReActPlus"));
+		if (context.getTurnId() == null) {
+			context.setTurnId(UUID.randomUUID());
 		}
 		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
-		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
-			context.setSessionId("default");
+		if (context.getSessionId() == null) {
+			context.setSessionId(UUID.randomUUID());
 		}
 		// fixme: 这里的 userId 后面可能要修复一下
 		context.addMessage(AgentMessage.user(userInput, "user"));
@@ -210,29 +212,34 @@ public class ReActPlusAgentStrategy implements IAgentStrategy {
 					}
 				}), Flux.defer(() -> {
 
-					return Flux.range(1, iterationCount.get()).doOnNext(iteration -> {
-						// 在每轮迭代前管理上下文大小
-						contextManager.manageContextSize(context);
+					return Flux.range(1, iterationCount.get())
 
-						// 记录上下文使用情况
-						if (iteration % 5 == 0) { // 每 5 轮记录一次
-							log.info("迭代 {}/50, 上下文使用: {}", iteration, contextManager.getContextUsage(context));
-						}
+						// .doOnNext(iteration -> {
+						// // 在每轮迭代前管理上下文大小
+						// ContextUtils.manageContextSize(context);
+						//
+						// // 记录上下文使用情况
+						// if (iteration % 5 == 0) { // 每 5 轮记录一次
+						// log.info("迭代 {}/50, 上下文使用: {}", iteration,
+						// ContextUtils.getContextUsage(context));
+						// }
+						//
+						// // 记录当前迭代次数到上下文
+						// context.setCurrentIteration(iteration);
+						// })
 
-						// 记录当前迭代次数到上下文
-						context.setCurrentIteration(iteration);
-					}).concatMap(iteration -> {
-						// 在每次迭代开始前检查是否已完成
-						if (context.isTaskCompleted()) {
-							log.info("任务已完成，跳过第 {} 次迭代", iteration);
-							return Flux.empty();
-						}
+						.concatMap(iteration -> {
+							// 在每次迭代开始前检查是否已完成
+							if (context.isTaskCompleted()) {
+								log.info("任务已完成，跳过第 {} 次迭代", iteration);
+								return Flux.empty();
+							}
 
-						return Flux.concat(
-								Flux.just(AgentExecutionEvent.progress(context,
-										String.format("开始第 %d 轮思考-行动循环...", iteration), null)),
-								executeReActPlusIteration(userInput, context));
-					})
+							return Flux.concat(
+									Flux.just(AgentExecutionEvent.progress(context,
+											String.format("开始第 %d 轮思考-行动循环...", iteration), null)),
+									executeReActPlusIteration(userInput, context));
+						})
 						// 结束条件：收到DONE事件（由task_done工具触发）
 						// 已由上下文标记任务完成（例如ActionAgent调用task_done后设置的标记）
 						.takeUntil(event -> {

@@ -5,13 +5,17 @@ import com.ai.agent.real.contract.service.ITokenService;
 import com.ai.agent.real.domain.entity.user.User;
 import com.ai.agent.real.domain.repository.user.UserRepository;
 import com.ai.agent.real.contract.model.auth.PasswordUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * 认证服务
  */
+@Slf4j
+@Service
 public class AuthService implements IAuthService {
 
 	private final UserRepository userRepository;
@@ -72,8 +76,8 @@ public class AuthService implements IAuthService {
 				.nickname(nickname)
 				.avatarUrl(avatarUrl)
 				.status(1)
-				.createdAt(LocalDateTime.now())
-				.updatedAt(LocalDateTime.now())
+				.createdTime(OffsetDateTime.now())
+				.updatedTime(OffsetDateTime.now())
 				.build();
 
 			// 3. 保存用户

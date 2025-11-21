@@ -1,46 +1,76 @@
 spring:
   r2dbc:
-    url: r2dbc:mysql://localhost:3306/real-agent?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8
-    username: root
-    password: *
+    #    url: r2dbc:mysql://62.234.92.252:3306/real-agent?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8
+    url: r2dbc:postgresql://62.234.92.252:5432/real-agent?timezone=UTC&client_encoding=utf8
+    username: postgres
+    password: hfy
+    pool:
+      max-size: 20
+      idle-timeout: 300000
+      validation-query: SELECT 1
 
-  # Redis 配置
   data:
     redis:
-      host: localhost
+      host: 139.9.138.158
       port: 6379
-      password: 
-      database: 0
-      timeout: 3000ms
+      password: syf133618
       lettuce:
         pool:
           max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: -1ms
+          max-idle: 1
 
+  codec:
+    max-in-memory-size: 10MB
   application:
     name: real-agent-web
   ai:
     mcp:
       client:
         enabled: true
-        name: my-mcp-client
+        name: client
         version: 1.0.0
-        request-timeout: 30s
+        request-timeout: 100s
         type: ASYNC
-        # 移除stdio配置以避免启动错误
-        # stdio:
-        #   servers-configuration: mcp-servers-config.json
-    dashscope:
-      api-key: sk-***
+
+        toolcallback:
+          enabled: true
+
+        #        streamable-http:
+        #          connections:
+        #            test-server:
+        #              url: http://localhost:8888
+        #              endpoint: /api/mcp
+        sse:
+          connections:
+            #            test-server:
+            #              url: http://localhost:8888
+            #              sse-endpoint: /sse
+
+
+            baidu-maps:
+              url: https://mcp.map.baidu.com?ak=00bXUCdLOea1vxaQrAlXcG2dAvt4NjoH
+              sse-endpoint: /sse
+
+
+    openai:
+      api-key: sk-ceed140a1a2542dea668ad405f6d36f4
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
       chat:
         options:
           model: qwen-max
+
+
+    #    dashscope:
+    #      api-key: sk-ceed140a1a2542dea668ad405f6d36f4
+    #      chat:
+    #        options:
+    #          model: qwen-max
+
+
     vectorstore:
       milvus:
         client:
-          host: "192.168.*.*"
+          host: "192.168.4.247"
           port: 19530
           username: "root"
           password: "milvus"
@@ -49,18 +79,41 @@ spring:
         embeddingDimension: 1536
         indexType: IVF_FLAT
         metricType: COSINE
-
+ai:
+  voice:
+    llm-model: qwen-max
+    asr-model: paraformer-v2
+    tts-model: cosyvoice
+    default-voice: longxia
+    role-voices:
+      conan: longxia
+      detective: xiaogang
+  omni:
+    enabled: true
+    model: qwen3-omni-flash-realtime
+    voice: Cherry
 logging:
   level:
-    com.ai.agent: DEBUG
+    com.ai.agent: INFO
+#    io.modelcontextprotocol: DEBUG
+#    com.alibaba: DEBUG
+#    org.springframework.ai: DEBUG
+#    org.springframework.ai.chat: DEBUG
+#    org.springframework.ai.openai: DEBUG
+#    org.springframework.ai.model: DEBUG
+#    org.springframework.web.reactive.function.client: DEBUG
+#    reactor.netty.http.client: DEBUG
+#    reactor.netty.transport: TRACE
+#    reactor.netty.channel: TRACE
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+real-agent:
+  tool:
+    approval-mode: REQUIRE_APPROVAL   # 可选：AUTO | REQUIRE_APPROVAL | DISABLED
+  context:
+    zip-mode: ZIP # 可选：DISABLED | ZIP | ZIP_PLUS | CRAZY_ZIP
 
-# JWT 配置
-jwt:
 
-  # 访问令牌有效期（秒），默认 2 小时
-  # 刷新令牌有效期（秒），默认 7 天
-
-agent:
-  action:
-    tools:
-      approval-mode: AUTO   # 可选：AUTO | REQUIRE_APPROVAL | DISABLED

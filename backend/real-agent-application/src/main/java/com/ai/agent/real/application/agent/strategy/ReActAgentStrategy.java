@@ -72,10 +72,10 @@ public class ReActAgentStrategy implements IAgentStrategy {
 		log.debug("ReActAgentStrategy executeStream userInput: {}", userInput);
 
 		// 设置上下文
-		context.setTurnId(CommonUtils.getTraceId("ReAct"));
+		context.setTurnId(UUID.randomUUID());
 		// 避免覆盖上游传入的 sessionId，仅在为空时设置默认
-		if (context.getSessionId() == null || context.getSessionId().isBlank()) {
-			context.setSessionId("default");
+		if (context.getSessionId() == null) {
+			context.setSessionId(UUID.randomUUID());
 		}
 
 		// fixme: 这里的 userId 后面可能要修复一下
