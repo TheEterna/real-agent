@@ -113,7 +113,7 @@ export interface Command {
   tags?: string[]               // 标签
   relatedCommands?: string[]    // 相关命令
   createdAt?: Date             // 创建时间
-  updatedAt?: Date             // 更新时间
+  updatedTime?: Date             // 更新时间
 }
 
 // 命令处理函数类型

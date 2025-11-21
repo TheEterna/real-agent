@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.tool.system;
 
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
-import com.ai.agent.real.contract.exception.ToolException;
+import com.ai.agent.real.common.exception.ToolException;
 import com.ai.agent.real.contract.model.protocol.ToolResult;
 import com.ai.agent.real.contract.tool.AgentTool;
 import com.ai.agent.real.contract.tool.ToolSpec;

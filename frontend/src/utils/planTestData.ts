@@ -54,7 +54,7 @@ export function generateTestPlan(): PlanData {
     currentPhaseId: phases[1].id, // 当前在第二阶段
     status: PlanStatus.EXECUTING,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2小时前创建
-    updatedAt: new Date(Date.now() - 10 * 60 * 1000) // 10分钟前更新
+    updatedTime: new Date(Date.now() - 10 * 60 * 1000) // 10分钟前更新
   }
 }
 
@@ -95,7 +95,7 @@ export function generateSimplePlan(): PlanData {
     currentPhaseId: phases[1].id,
     status: PlanStatus.EXECUTING,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedTime: new Date()
   }
 }
 
@@ -123,6 +123,6 @@ export function simulatePlanAdvancement(plan: PlanData): PlanData {
     phases,
     currentPhaseId: currentPhase?.id,
     status: allCompleted ? PlanStatus.COMPLETED : PlanStatus.EXECUTING,
-    updatedAt: new Date()
+    updatedTime: new Date()
   }
 }

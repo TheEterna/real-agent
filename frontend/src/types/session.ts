@@ -3,8 +3,10 @@ import type {Component} from "vue";
 export interface Session {
     id: string
     title: string
-    agentType: AgentType
-    updatedAt: Date
+    type: AgentType
+    createdTime: Date,
+    updatedTime: Date,
+    isTemp: boolean
 }
 export enum AgentType {
     ReAct = 'ReAct',

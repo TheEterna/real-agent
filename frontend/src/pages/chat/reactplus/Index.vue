@@ -359,7 +359,9 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    await executeReActPlus(currentMessage, sessionId)
+    // 如果是临时 ID（temp-开头），传空字符串给后端，让后端创建真实的 sessionId
+    const backendSessionId = sessionId.startsWith('temp-') ? '' : sessionId
+    await executeReActPlus(currentMessage, backendSessionId)
   } catch (error) {
     console.error('发送消息失败:', error)
     messages.value.push({

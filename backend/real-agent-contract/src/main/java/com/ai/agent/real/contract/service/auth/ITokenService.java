@@ -1,12 +1,9 @@
-package com.ai.agent.real.contract.service;
+package com.ai.agent.real.contract.service.auth;
 
 import com.ai.agent.real.contract.model.auth.UserContext;
 import com.ai.agent.real.domain.entity.user.User;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /**

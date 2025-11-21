@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useChatStore } from '@/stores/chatStore'
-import { useRouter, useRoute } from 'vue-router'
-import { AgentType } from '@/types/session'
-import type { Ref } from 'vue'
-import { getRandomGlassColor, getRandomTooltipColor } from '@/utils/colorUtils'
+import {computed, onMounted, ref} from 'vue'
+import {useChatStore} from '@/stores/chatStore'
+import {useRouter, useRoute} from 'vue-router'
+import {AgentType} from '@/types/session'
+import type {Ref} from 'vue'
+import {getRandomGlassColor, getRandomTooltipColor} from '@/utils/colorUtils'
 import AgentSelector from '@/components/AgentSelector.vue'
 
 const chat = useChatStore()
@@ -122,42 +122,45 @@ onMounted(() => {
   <div>
     <!-- Agent选择弹窗 -->
     <AgentSelector
-      :visible="showAgentSelector"
-      @select="handleAgentSelect"
-      @close="handleCloseSelector"
+        :visible="showAgentSelector"
+        @select="handleAgentSelect"
+        @close="handleCloseSelector"
     />
 
     <div class="sl-section">
       <div class="sl-title">会话</div>
       <div class="sl-conv-list">
-        <div
-          v-for="c in chat.sessions"
-          :key="c.id"
-          class="sl-conv-item"
-          :class="{ active: isActive(c.id) }"
-          @click="handleSessionClick(c.id)"
+        <template
+            v-for="c in chat.sessions"
+            :key="c.id"
         >
-          <div class="sl-conv-header">
-            <div class="sl-conv-title">{{ c.title }}</div>
-            <div
-              v-if="c.agentType"
-              class="sl-agent-tag"
-              :style="{ backgroundColor: getAgentColor(c.agentType) }"
-            >
-              {{ getAgentLabel(c.agentType) }}
+          <div v-if="!c.isTemp"
+               class="sl-conv-item"
+               :class="{ active: isActive(c.id) }"
+               @click="handleSessionClick(c.id)">
+            <div class="sl-conv-header">
+              <div class="sl-conv-title">{{ c.title }}</div>
+              <div
+                  v-if="c.agentType"
+                  class="sl-agent-tag"
+                  :style="{ backgroundColor: getAgentColor(c.agentType) }"
+              >
+                {{ getAgentLabel(c.agentType) }}
+              </div>
+            </div>
+            <div class="sl-conv-meta">
+              {{ c.id }} • {{ formatDate(c.updatedTime) }}
             </div>
           </div>
-          <div class="sl-conv-meta">
-            {{ c.id }} • {{ formatDate(c.updatedAt) }}
-          </div>
-        </div>
+
+        </template>
       </div>
       <a-button
-        class="new-session-btn text-shadow-cyan-900"
-        :style='{ background: `linear-gradient(135deg, ${getRandomGlassColor()} 0%, ${getRandomGlassColor()} 100%)`}'
-        type="primary"
-        size="large"
-        @click="handleNewConversation"
+          class="new-session-btn text-shadow-cyan-900"
+          :style='{ background: `linear-gradient(135deg, ${getRandomGlassColor()} 0%, ${getRandomGlassColor()} 100%)`}'
+          type="primary"
+          size="large"
+          @click="handleNewConversation"
       >
         ✨ 新建会话
       </a-button>
@@ -167,16 +170,30 @@ onMounted(() => {
 
 <style scoped>
 
-.sl-section { padding: 12px 14px; border-bottom: 1px solid #f5f7fb; }
-.sl-title { font-weight: 600; font-size: 13px; color: #445; margin-bottom: 8px; }
-.sl-conv-list { display: grid; gap: 6px; margin-bottom: 12px; }
+.sl-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f5f7fb;
+}
+
+.sl-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #445;
+  margin-bottom: 8px;
+}
+
+.sl-conv-list {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
 
 .sl-conv-item {
   padding: 12px;
   border-radius: 12px;
   border: 1px solid #eef2f7;
   cursor: pointer;
-  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   position: relative;
@@ -197,7 +214,7 @@ onMounted(() => {
 
 .sl-conv-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   border-color: rgba(22, 119, 255, 0.3);
 }
 
@@ -207,7 +224,7 @@ onMounted(() => {
 
 .sl-conv-item.active {
   border-color: #1677ff;
-  background: linear-gradient(135deg, rgba(245,250,255,0.95) 0%, rgba(240,248,255,0.95) 100%);
+  background: linear-gradient(135deg, rgba(245, 250, 255, 0.95) 0%, rgba(240, 248, 255, 0.95) 100%);
   box-shadow: 0 4px 20px rgba(22, 119, 255, 0.15);
 }
 
@@ -241,7 +258,7 @@ onMounted(() => {
   border-radius: 10px;
   font-weight: 500;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   letter-spacing: 0.3px;
 }
 

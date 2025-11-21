@@ -151,7 +151,7 @@ public class AgentExecutionEvent extends TraceInfo {
 	}
 
 	public enum EventType {
-
+        USER,
 		STARTED, // 开始执行
 		PROGRESS, // 执行进度
 		AGENT_SELECTED, // Agent选择

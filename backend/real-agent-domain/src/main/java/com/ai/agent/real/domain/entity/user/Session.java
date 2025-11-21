@@ -10,7 +10,6 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -36,8 +35,12 @@ public class Session implements Persistable<UUID> {
 	@Column("user_id")
 	private UUID userId;
 
-	@Column("start_time")
-	private OffsetDateTime startTime;
+	@Column("created_time")
+	private OffsetDateTime createdTime;
+
+
+	@Column("updated_time")
+	private OffsetDateTime updatedTime;
 
 	@Transient
 	@Builder.Default

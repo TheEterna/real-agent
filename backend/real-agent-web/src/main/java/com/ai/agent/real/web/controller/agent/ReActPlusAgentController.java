@@ -1,7 +1,6 @@
 package com.ai.agent.real.web.controller.agent;
 
 import com.ai.agent.real.common.constant.NounConstants;
-import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.agent.IAgentStrategy;
 import com.ai.agent.real.contract.agent.context.AgentContextAble;
 import com.ai.agent.real.contract.agent.service.IAgentTurnManagerService;
@@ -10,6 +9,7 @@ import com.ai.agent.real.contract.model.interaction.InteractionResponse;
 import com.ai.agent.real.contract.model.logging.TraceInfo;
 import com.ai.agent.real.contract.model.protocol.AgentExecutionEvent;
 import com.ai.agent.real.contract.model.protocol.ResponseResult;
+import com.ai.agent.real.contract.service.agent.IAgentStorageService;
 import com.ai.agent.real.contract.user.ISessionService;
 import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContext;
 import com.ai.agent.real.contract.model.context.reactplus.ReActPlusAgentContextMeta;
@@ -41,17 +41,19 @@ public class ReActPlusAgentController {
 
 	private final IAgentTurnManagerService agentSessionManagerService;
 
-	private final IAgentStrategy reActPlusAgentStrategy;
 
 	private final ISessionService sessionService;
 
+	private final IAgentStorageService agentStorageService;
+
 	public ReActPlusAgentController(IAgentTurnManagerService agentSessionManagerService,
 			@Qualifier("reActPlusAgentStrategy") IAgentStrategy reActPlusAgentStrategy,
-			ISessionService sessionService) {
+			ISessionService sessionService,
+			IAgentStorageService agentStorageService) {
 
 		this.agentSessionManagerService = agentSessionManagerService.of(reActPlusAgentStrategy);
-		this.reActPlusAgentStrategy = reActPlusAgentStrategy;
 		this.sessionService = sessionService;
+		this.agentStorageService = agentStorageService;
 	}
 
 	/**
@@ -59,18 +61,15 @@ public class ReActPlusAgentController {
 	 */
 	@PostMapping(value = "/react-plus/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public Flux<ServerSentEvent<AgentExecutionEvent>> executeReActPlusStream(@RequestBody ChatRequest request) {
-		log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
 
 		return UserContextHolder.getUserId().flatMapMany(userId -> {
 			log.info("收到ReAct-Plus流式执行请求: sessionId={}, message={}", request.getSessionId(), request.getMessage());
-			return Mono.justOrEmpty(request.getSessionId())
-				.filter(id -> !Objects.isNull(id))
-				.switchIfEmpty(
 
+            return Mono.justOrEmpty(request.getSessionId())
+				.switchIfEmpty(
 						this.sessionService
 							.createSessionWithAiTitle("", NounConstants.REACT_PLUS, userId, request.getMessage())
 							.map(SessionDTO::getId)
-
 				) // 传入
 				.flatMapMany(sessionId -> {
 					request.setSessionId(sessionId);
@@ -84,15 +83,42 @@ public class ReActPlusAgentController {
 								.setStartTime(OffsetDateTime.now()));
 					context.setTask(request.getMessage());
 
-					return agentSessionManagerService.subscribe(turnId.toString(), request.getMessage(), context)
+					// 保存用户消息作为第一条消息 (可选，或者在 executeStreamWithInteraction 内部处理，这里先手动保存一下用户提问)
+					// 注意：AgentExecutionEvent 中通常包含用户提问，或者我们可以构造一个
+					// 这里为了简单，我们依赖 agentSessionManagerService 返回的流中包含的事件
+					// 但通常第一条用户消息是输入，可能不在流里，需要手动保存。
+					// 让我们先保存 Turn，然后手动保存一条 User Message
+
+					return agentStorageService.startTurn(turnId, null, sessionId) // TODO: parentTurnId logic if needed
+						.flatMapMany(turn -> {
+							// 保存用户输入消息
+							AgentExecutionEvent userEvent = AgentExecutionEvent.common(AgentExecutionEvent.EventType.USER, context, request.getMessage());
+							return agentStorageService.saveMessage(sessionId, turnId, userEvent)
+								.thenMany(agentSessionManagerService.subscribe(turnId.toString(), request.getMessage(), context));
+						})
+						.doOnNext(sse -> {
+							if (sse.data() != null) {
+								agentStorageService.saveMessage(sessionId, turnId, sse.data()).subscribe();
+							}
+						})
 						.doOnError(error -> log.error("ReAct执行异常: sessionId={}", request.getSessionId(), error))
 						.doOnComplete(() -> {
 							context.setEndTime(OffsetDateTime.now());
-							log.info("ReActPlus任务执行完成: sessionId={}", request.getSessionId());
+							agentStorageService.completeTurn(turnId).subscribe();
 						});
 				});
 		}).switchIfEmpty(Flux.error(new IllegalAccessException("未登录或用户凭证无效"))); // 安全兜底
 
+	}
+
+	/**
+	 * 获取会话历史消息
+	 */
+	@GetMapping("/react-plus/{sessionId}/messages")
+	public Mono<ResponseResult<Object>> getSessionMessages(@PathVariable UUID sessionId) {
+		return agentStorageService.getSessionMessages(sessionId)
+			.collectList()
+			.map(ResponseResult::success);
 	}
 
 	/**

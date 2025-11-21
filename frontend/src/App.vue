@@ -36,7 +36,6 @@
             <div class="lang" v-show="!effectiveCollapsed">
               <a-select
                   v-model:value="currentLocale"
-                  style="width: 100%"
                   @change="changeLanguage"
                   size="small"
               >

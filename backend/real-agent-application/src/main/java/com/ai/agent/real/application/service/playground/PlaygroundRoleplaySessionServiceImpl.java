@@ -1,6 +1,6 @@
-package com.ai.agent.real.application.service.Impl;
+package com.ai.agent.real.application.service.playground;
 
-import com.ai.agent.real.application.service.playground.roleplay.PlaygroundRoleplaySessionService;
+import com.ai.agent.real.contract.service.playground.roleplay.PlaygroundRoleplaySessionService;
 import com.ai.agent.real.common.constant.RoleplayConstants;
 import com.ai.agent.real.common.utils.*;
 import com.ai.agent.real.contract.dto.SessionCreateRequestDto;

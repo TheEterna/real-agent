@@ -83,16 +83,6 @@ const onTransitionError = (error: string) => {
   isTransitioning.value = false
 }
 
-// 🔥 URL 同步逻辑：会话切换时更新 URL
-watch(() => chat.sessionId, (newSessionId) => {
-  // 更新 URL query 参数（不触发页面刷新）
-  if (route.query.sessionId !== newSessionId) {
-    router.replace({ 
-      query: { ...route.query, sessionId: newSessionId } 
-    })
-  }
-})
-
 
 watch(() => route.query.sessionId as string | undefined, (urlSessionId) => {
   if (urlSessionId && urlSessionId !== chat.sessionId) {
@@ -119,25 +109,22 @@ watch(() => route.query.sessionId as string | undefined, (urlSessionId) => {
 
 // 监听session变化，处理组件切换和过渡动画
 watch(() => chat.sessionId, async (newSessionId, oldSessionId) => {
-  console.log('🔄 会话切换检测:', { newSessionId, oldSessionId })
+  console.log('会话切换检测:', { newSessionId, oldSessionId })
 
   if (oldSessionId && newSessionId !== oldSessionId) {
-    console.log('🎬 开始播放过渡动画')
-
     const session = chat.getCurrentSession()
 
     // 1. 先播放青花瓷过渡动画，阻止组件切换
     if (session) {
-      await playVideoTransition(session.agentType)
+      await playVideoTransition(session.type)
     }
 
     // 2. 等待过渡动画开始后再更新组件
     setTimeout(() => {
-      console.log('🔄 更新组件')
       const currentSession = chat.getCurrentSession()
       if (currentSession) {
         previousComponent.value = currentComponent.value
-        currentComponent.value = getComponentForAgent(currentSession.agentType)
+        currentComponent.value = getComponentForAgent(currentSession.type)
       }
     }, 100) // 100ms后更新，确保过渡动画已开始显示
   } else {
@@ -145,7 +132,7 @@ watch(() => chat.sessionId, async (newSessionId, oldSessionId) => {
     const session = chat.getCurrentSession()
     if (session) {
       previousComponent.value = currentComponent.value
-      currentComponent.value = getComponentForAgent(session.agentType)
+      currentComponent.value = getComponentForAgent(session.type)
     }
   }
 })
@@ -154,14 +141,14 @@ watch(() => chat.sessionId, async (newSessionId, oldSessionId) => {
 onMounted(() => {
   const session = chat.getCurrentSession()
   if (session) {
-    currentComponent.value = getComponentForAgent(session.agentType)
+    currentComponent.value = getComponentForAgent(session.type)
   }
 })
 </script>
 
 <template>
   <div class="chat-gateway">
-    <!-- 青花瓷视频过渡效果 -->
+    <!-- 过渡效果 -->
     <CeladonVideoLoading
       :visible="showVideoTransition"
       :title="transitionTitle"
@@ -215,7 +202,6 @@ onMounted(() => {
 .empty-icon {
   font-size: 80px;
   margin-bottom: 24px;
-  opacity: 0.5;
 }
 
 .empty-state h3 {

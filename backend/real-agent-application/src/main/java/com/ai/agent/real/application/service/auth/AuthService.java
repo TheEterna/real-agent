@@ -1,7 +1,7 @@
 package com.ai.agent.real.application.service.auth;
 
-import com.ai.agent.real.contract.service.IAuthService;
-import com.ai.agent.real.contract.service.ITokenService;
+import com.ai.agent.real.contract.service.auth.IAuthService;
+import com.ai.agent.real.contract.service.auth.ITokenService;
 import com.ai.agent.real.domain.entity.user.User;
 import com.ai.agent.real.domain.repository.user.UserRepository;
 import com.ai.agent.real.contract.model.auth.PasswordUtil;

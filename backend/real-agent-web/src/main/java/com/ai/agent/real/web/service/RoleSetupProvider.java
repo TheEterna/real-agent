@@ -1,6 +1,6 @@
 package com.ai.agent.real.web.service;
 
-import com.ai.agent.real.application.service.playground.roleplay.PlaygroundRoleplayRoleService;
+import com.ai.agent.real.contract.service.playground.roleplay.PlaygroundRoleplayRoleService;
 import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;

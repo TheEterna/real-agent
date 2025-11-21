@@ -1,4 +1,4 @@
-package com.ai.agent.real.application.service.playground.roleplay;
+package com.ai.agent.real.contract.service.playground.roleplay;
 
 import com.ai.agent.real.contract.dto.RoleCreateRequestDto;
 import com.ai.agent.real.domain.entity.roleplay.PlaygroundRoleplayRole;

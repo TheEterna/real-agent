@@ -2,7 +2,7 @@ package com.ai.agent.real.application.service.auth;
 
 import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.infra.redis.IRedisService;
-import com.ai.agent.real.contract.service.ITokenService;
+import com.ai.agent.real.contract.service.auth.ITokenService;
 import com.ai.agent.real.domain.entity.user.User;
 import com.ai.agent.real.contract.model.auth.UserContext;
 import lombok.extern.slf4j.Slf4j;
@@ -120,9 +120,7 @@ public class TokenService implements ITokenService {
 	@Override
 	public Mono<UserContext> validateToken(String token, String path) {
 
-		if (token == null && !CommonUtils.isPublicPath(path)) {
-			return null;
-		}
+
 
 		// 直接从 Redis 获取用户上下文
 		String key = TOKEN_PREFIX + token;

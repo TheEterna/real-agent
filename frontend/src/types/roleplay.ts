@@ -8,7 +8,7 @@ export interface RoleDetail {
   scriptsJson?: Record<string, unknown>
   status: number
   createdAt?: string
-  updatedAt?: string
+  updatedTime?: string
   new?: boolean
 }
 

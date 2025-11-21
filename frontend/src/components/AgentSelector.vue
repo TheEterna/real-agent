@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import { AgentType } from '@/types/session'
+import {ref, onMounted, nextTick} from 'vue'
+import {AgentType} from '@/types/session'
 import gsap from 'gsap'
 
 interface AgentOption {
@@ -66,10 +66,10 @@ const handleSelect = (agent: AgentOption) => {
     stagger: 0.05,
     ease: 'back.in(1.7)'
   })
-  .to(overlayRef.value, {
-    opacity: 0,
-    duration: 0.2
-  }, '-=0.1')
+      .to(overlayRef.value, {
+        opacity: 0,
+        duration: 0.2
+      }, '-=0.5')
 }
 
 const handleClose = () => {
@@ -88,10 +88,10 @@ const handleClose = () => {
     stagger: 0.05,
     ease: 'power2.in'
   })
-  .to(overlayRef.value, {
-    opacity: 0,
-    duration: 0.2
-  }, '-=0.1')
+      .to(overlayRef.value, {
+        opacity: 0,
+        duration: 0.2
+      }, '-=0.1')
 }
 
 // 入场动画
@@ -101,42 +101,32 @@ const playEnterAnimation = () => {
 
     const tl = gsap.timeline()
 
-    // 背景淡入
-    gsap.set(overlayRef.value, { opacity: 0 })
+    // 1. 背景淡入
+    gsap.set(overlayRef.value, {opacity: 0})
     tl.to(overlayRef.value, {
       opacity: 1,
-      duration: 0.3,
+      duration: 0.5, // 建议改短一点，1秒太久了
       ease: 'power2.out'
     })
 
-    // 卡片入场动画
+    // 2. 卡片入场
     gsap.set(cardsRef.value, {
-      scale: 0,
-      opacity: 0,
-      rotationY: -180,
+      scale: 0.5,     // 建议从0开始，更有爆发力
+      rotationY: -130, // -130度转太多了，-30度刚好有3D感
+      y: 50,
+      opacity: 0.7    // 加上透明度变化更丝滑
     })
 
     tl.to(cardsRef.value, {
       scale: 1,
-      opacity: 1,
       rotationY: 0,
-      duration: 0.6,
-      stagger: {
-        each: 0.15,
-        from: 'center'
-      },
-      ease: 'back.out(1.7)'
-    }, '-=0.2')
-
-    // 悬浮动画
-    tl.to(cardsRef.value, {
-      y: -10,
-      duration: 1.5,
-      stagger: 0.1,
+      y: 0,
+      stagger: { each: 0.02, from: 'center' },
+      opacity: 1,
+      duration: 0.2,
       ease: 'sine.inOut',
-      repeat: -1,
-      yoyo: true
-    })
+    }, "-=0.1")
+
   })
 }
 
@@ -155,17 +145,18 @@ const handleVisibleChange = (newVal: boolean) => {
 }
 
 // 监听props.visible变化
-import { watch } from 'vue'
+import {watch} from 'vue'
+
 watch(() => props.visible, handleVisibleChange)
 </script>
 
 <template>
   <Teleport to="body">
     <div
-      v-if="visible"
-      ref="overlayRef"
-      class="agent-selector-overlay"
-      @click.self="handleClose"
+        v-if="visible"
+        ref="overlayRef"
+        class="agent-selector-overlay"
+        @click.self="handleClose"
     >
       <div class="agent-selector-container">
         <div class="selector-header">
@@ -175,13 +166,13 @@ watch(() => props.visible, handleVisibleChange)
 
         <div class="agent-cards">
           <div
-            v-for="(agent, index) in agentOptions"
-            :key="agent.type"
-            :ref="el => cardsRef[index] = el as HTMLElement"
-            class="agent-card"
-            :class="{ disabled: agent.disabled }"
-            :style="{ '--agent-color': agent.color }"
-            @click="handleSelect(agent)"
+              v-for="(agent, index) in agentOptions"
+              :key="agent.type"
+              :ref="el => cardsRef[index] = el as HTMLElement"
+              class="agent-card"
+              :class="{ disabled: agent.disabled }"
+              :style="{ '--agent-color': agent.color }"
+              @click="handleSelect(agent)"
           >
             <div class="card-glow"></div>
             <div class="card-content">
@@ -232,7 +223,7 @@ watch(() => props.visible, handleVisibleChange)
 .selector-title {
   font-size: 48px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -302,9 +293,8 @@ watch(() => props.visible, handleVisibleChange)
 .agent-card:hover {
   transform: translateY(-8px) scale(1.02);
   border-color: var(--agent-color);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.3),
-    0 0 40px var(--agent-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+  0 0 40px var(--agent-color);
 }
 
 .agent-card.disabled {

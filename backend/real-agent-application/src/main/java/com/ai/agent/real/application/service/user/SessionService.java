@@ -1,12 +1,10 @@
 package com.ai.agent.real.application.service.user;
 
 import com.ai.agent.real.common.constant.PromptConstants;
-import com.ai.agent.real.common.utils.CommonUtils;
 import com.ai.agent.real.contract.user.ISessionService;
 import com.ai.agent.real.contract.user.SessionDTO;
 import com.ai.agent.real.domain.entity.user.Session;
 import com.ai.agent.real.domain.repository.user.SessionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -64,12 +62,14 @@ public class SessionService implements ISessionService {
 
 		// 2. 获取最终标题并保存会话
 		return titleMono.flatMap(finalTitle -> {
-			Session session = Session.builder()
+            OffsetDateTime now = OffsetDateTime.now();
+            Session session = Session.builder()
 				.id(UUID.randomUUID()) // 根据你的 Entity 配置，如果由 DB 生成 ID，这里可能不需要设置
 				.title(finalTitle) // 使用最终确定的标题
 				.type(type)
 				.userId(userId)
-				.startTime(OffsetDateTime.now())
+				.createdTime(now)
+				.updatedTime(now)
 				.isNew(true) // 标记为新记录以强制 INSERT
 				.build();
 			return sessionRepository.save(session);
@@ -89,7 +89,7 @@ public class SessionService implements ISessionService {
 	 */
 	@Override
 	public Flux<SessionDTO> getSessionsByUserId(UUID userId) {
-		return sessionRepository.findByUserIdOrderByStartTimeDesc(userId).map(SessionDTO::fromEntity);
+		return sessionRepository.findByUserIdOrderByUpdatedTimeDesc(userId).map(SessionDTO::fromEntity);
 	}
 
 	/**

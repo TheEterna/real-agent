@@ -1,4 +1,4 @@
-package com.ai.agent.real.contract.exception;
+package com.ai.agent.real.common.exception;
 
 /**
  * @author han

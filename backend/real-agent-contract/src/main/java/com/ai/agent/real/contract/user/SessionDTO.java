@@ -3,7 +3,6 @@ package com.ai.agent.real.contract.user;
 import com.ai.agent.real.domain.entity.user.Session;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -36,7 +35,11 @@ public class SessionDTO {
 	/**
 	 * 会话创建时间
 	 */
-	private OffsetDateTime startTime;
+	private OffsetDateTime createdTime;
+    /**
+	 * 会话创建时间
+	 */
+	private OffsetDateTime updatedTime;
 
 	/**
 	 * 从Session实体转换为SessionDTO
@@ -47,7 +50,8 @@ public class SessionDTO {
 		dto.setTitle(session.getTitle());
 		dto.setType(session.getType());
 		dto.setUserId(session.getUserId());
-		dto.setStartTime(session.getStartTime());
+		dto.setCreatedTime(session.getCreatedTime());
+		dto.setUpdatedTime(session.getUpdatedTime());
 		return dto;
 	}
 
@@ -60,7 +64,7 @@ public class SessionDTO {
 			.title(this.title)
 			.type(this.type)
 			.userId(this.userId)
-			.startTime(this.startTime)
+			.createdTime(this.createdTime)
 			.build();
 	}
 

@@ -1,7 +1,9 @@
-import {ref, nextTick} from 'vue'
-import {UIMessage, EventType, BaseEventItem, InitPlanEventData, UpdatePlanEventData, AdvancePlanEventData, PlanData} from '@/types/events'
-import {ConnectionStatus, TaskStatus, ProgressInfo} from '@/types/status'
-import {NotificationType} from '@/types/notification'
+import { ref, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { UIMessage, EventType, BaseEventItem, InitPlanEventData, UpdatePlanEventData, AdvancePlanEventData, PlanData } from '@/types/events'
+import { ConnectionStatus, TaskStatus, ProgressInfo } from '@/types/status'
+import { NotificationType } from '@/types/notification'
+import { AgentType } from '@/types/session'
 import { useChatStore } from '@/stores/chatStore'
 const ssePromise = import('sse.js')
 
@@ -282,6 +284,26 @@ export function useSSE(options: SSEOptions = {}) {
             const startTime = event.startTime || new Date()
             progress.value = new ProgressInfo(event.message, startTime, event.agentId as any)
 
+            // 懒加载模式：如果后端返回了 sessionId，更新前端状态和 URL
+            if (event.sessionId && typeof event.sessionId === 'string') {
+                const chatStore = useChatStore()
+                const route = useRoute()
+                const router = useRouter()
+
+                // 如果当前 URL 中没有 sessionId，说明是新会话，需要更新
+                if (!route.query.sessionId) {
+                    console.log('[useSSE] 收到新 sessionId，更新 URL:', event.sessionId)
+
+                    // 在 chatStore 中创建会话记录
+                    chatStore.createSessionIfNotExists(event.sessionId, AgentType.ReAct_Plus)
+
+                    // 更新 URL（使用 replace 避免产生历史记录）
+                    router.replace({
+                        query: { ...route.query, sessionId: event.sessionId }
+                    })
+                }
+            }
+
         },
         onThinking: (event: BaseEventItem) => {
             updateMessage(event)
@@ -511,7 +533,7 @@ export function useSSE(options: SSEOptions = {}) {
 
         return new Promise<void>((resolve, reject) => {
             // 动态 import，避免在 SSR 或测试环境报错
-            ssePromise.then(({SSE}) => {
+            ssePromise.then(({ SSE }) => {
                 // 启动新任务前先清理之前的连接
                 closeActiveSource()
 
@@ -608,7 +630,6 @@ export function useSSE(options: SSEOptions = {}) {
             method: 'POST',
             payload: {
                 message: text,
-                userId: 'user-001',
                 sessionId,
             }
         })
@@ -624,7 +645,6 @@ export function useSSE(options: SSEOptions = {}) {
             method: 'POST',
             payload: {
                 message: text,
-                userId: 'user-001',
                 sessionId,
             }
         })

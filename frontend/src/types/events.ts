@@ -75,7 +75,7 @@ export interface PlanData {
   currentPhaseId?: string       // 当前执行的阶段ID
   status?: PlanStatus           // 整体计划状态
   createdAt?: Date             // 计划创建时间
-  updatedAt?: Date             // 计划最后更新时间
+  updatedTime?: Date             // 计划最后更新时间
 }
 
 export enum PlanStatus {

@@ -1,7 +1,7 @@
 package com.ai.agent.real.web.service;
 
 import com.ai.agent.real.common.constant.*;
-import com.ai.agent.real.application.service.playground.roleplay.PlaygroundRoleplayRoleService;
+import com.ai.agent.real.contract.service.playground.roleplay.PlaygroundRoleplayRoleService;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeCallback;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeConfig;
 import com.alibaba.dashscope.audio.omni.OmniRealtimeConversation;

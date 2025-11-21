@@ -1,4 +1,4 @@
-package com.ai.agent.real.contract.service;
+package com.ai.agent.real.contract.service.auth;
 
 import com.ai.agent.real.domain.entity.user.User;
 import reactor.core.publisher.Mono;
