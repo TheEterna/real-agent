@@ -1,9 +1,9 @@
 spring:
   r2dbc:
-    #    url: r2dbc:mysql://62.234.92.252:3306/real-agent?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8
-    url: r2dbc:postgresql://62.234.92.252:5432/real-agent?timezone=UTC&client_encoding=utf8
-    username: postgres
-    password: hfy
+    #    url: r2dbc:mysql://******:3306/real-agent?connectionTimeZone=UTC&serverZoneId=UTC&useUnicode=true&characterEncoding=utf-8
+    url: r2dbc:postgresql://*****:5432/real-agent?timezone=UTC&client_encoding=utf8
+    username: ****
+    password: ****
     pool:
       max-size: 20
       idle-timeout: 300000
